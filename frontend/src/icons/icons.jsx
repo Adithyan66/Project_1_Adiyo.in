@@ -132,8 +132,8 @@ export const Logout = ({ className = "w-6 h-6" }) => (
         xmlns="http://www.w3.org/2000/svg"
         className={className}
         viewBox="0 0 52 52"
-        enable-background="new 0 0 52 52"
-        xml:space="preserve">
+        enableBackground="new 0 0 52 52"
+        xmlSpace="preserve">
         <g>
             <path d="M21,48.5v-3c0-0.8-0.7-1.5-1.5-1.5h-10C8.7,44,8,43.3,8,42.5v-33C8,8.7,8.7,8,9.5,8h10
 		C20.3,8,21,7.3,21,6.5v-3C21,2.7,20.3,2,19.5,2H6C3.8,2,2,3.8,2,6v40c0,2.2,1.8,4,4,4h13.5C20.3,50,21,49.3,21,48.5z"/>
@@ -143,3 +143,6 @@ export const Logout = ({ className = "w-6 h-6" }) => (
         </g>
     </svg>
 )
+
+
+

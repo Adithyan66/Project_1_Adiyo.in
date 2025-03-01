@@ -11,7 +11,6 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: true
     },
     role: {
         type: String,
@@ -27,6 +26,9 @@ const userSchema = new mongoose.Schema({
     resetPasswordToken: {
         type: String
     },
+    googleId: {
+        type: String
+    }
 })
 
 const User = mongoose.model("User", userSchema);

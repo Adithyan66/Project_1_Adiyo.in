@@ -1,5 +1,5 @@
 import LandingPage from "./pages/customer/LandingPage";
-import AdminDashboard from "./components/admin/dashboard/DashBorad";
+import AdminDashboard from "./components/admin/DashBorad";
 import ProductDetail from "./components/customer/ProductDetail";
 import ExtraDetails from "./components/customer/ExtraDetails";
 import AlsoLikeProducts from "./components/customer/AlsoLikeProducts";
@@ -9,6 +9,8 @@ import Footer from "./components/common/Footer";
 import ProductLists from "./components/customer/ProductLists";
 import ProductDetailsPage from "./pages/customer/ProductDetailsPage";
 import ProductsListPage from "./pages/customer/ProductsListPage";
+
+import DashboardPage from "./pages/admin/DashboardPage";
 
 
 import 'rc-slider/assets/index.css';
@@ -22,7 +24,8 @@ function App() {
   return (
 
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<DashboardPage />} />
+
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/product-detail" element={<ProductDetailsPage />} />
       <Route path="/products-list" element={<ProductsListPage />} />

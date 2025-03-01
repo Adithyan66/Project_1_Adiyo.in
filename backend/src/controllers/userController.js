@@ -8,6 +8,8 @@ import jwt from "jsonwebtoken";
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
 
+import { OAuth2Client } from 'google-auth-library';
+
 
 
 
@@ -242,6 +244,65 @@ const resetPassword = async (req, res) => {
 
 
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+const googleLogin = async (req, res) => {
+    // Rename the variable that holds the token from the request body
+    const token = req.body.token;
+
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
+
+        const payload = ticket.getPayload();
+        const { sub: googleId, email, name } = payload;
+
+        let user = await User.findOne({ email });
+        if (!user) {
+            // Register the user if they don't exist
+            user = new User({
+                username: name,
+                email,
+                googleId,
+            });
+            await user.save();
+        }
+
+        user = await User.findOne({ email });
+        console.log(user);
+
+        // Rename the JWT token variable
+        const jwtToken = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
+        console.log("Generated Token:", jwtToken);
+
+        res.cookie("jwt", jwtToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+        });
+
+        res.status(200).json({
+            success: true,
+            message: 'Google login successful',
+            token: jwtToken,
+            role: user.role,
+            user: {
+                _id: user._id,
+                email: user.email,
+                username: user.username,
+            }
+        });
+    } catch (error) {
+        console.error('Error verifying token:', error);
+        res.status(400).json({
+            success: false,
+            message: 'Invalid token'
+        });
+    }
+};
 
 
 
@@ -249,8 +310,4 @@ const resetPassword = async (req, res) => {
 
 
 
-
-
-
-
-export { signUp, login, forgotPassword, validateOTP, resetPassword };
+export { signUp, login, forgotPassword, validateOTP, resetPassword, googleLogin };

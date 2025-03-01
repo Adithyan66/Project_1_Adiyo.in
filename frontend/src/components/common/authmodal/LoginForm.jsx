@@ -12,6 +12,8 @@ import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../../store/slices/userSlice';
 import { setLoginPopup, setActiveForm } from '../../../store/slices/authModalSlice.js';
 
+import GoogleSignIn from './GoogleSignin.jsx';
+
 
 function LoginForm() {
 
@@ -60,6 +62,13 @@ function LoginForm() {
 
 
 
+
+    const handleGoogleSignIn = () => {
+
+
+        google.accounts.id.prompt();
+
+    }
 
     return (
 
@@ -143,9 +152,25 @@ function LoginForm() {
                 <button className="bg-gray-100  hover:bg-gray-200 transition-colors">
                     <img src={facebook} alt="" />
                 </button>
+
+
                 <button className="bg-gray-100  hover:bg-gray-200 transition-colors">
-                    <img src={google} alt="" />
+                    <GoogleSignIn />
                 </button>
+
+
+                {/* <button
+                    className="bg-gray-100 hover:bg-gray-200 transition-colors"
+                    onClick={handleGoogleSignIn}
+                >
+                    <img src={google} alt="Sign in with Google" />
+                </button>
+ */}
+
+
+
+
+
                 <button className="bg-gray-100  hover:bg-gray-200 transition-colors">
                     <img src={apple} alt="" />
                 </button>
@@ -165,3 +190,6 @@ function LoginForm() {
 
 
 export default LoginForm
+
+
+

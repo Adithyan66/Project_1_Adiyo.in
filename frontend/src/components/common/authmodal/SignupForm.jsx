@@ -11,6 +11,7 @@ import apple from "../../../assets/images/Apple (Button).png";
 
 import { setActiveForm, setLoginPopup } from '../../../store/slices/authModalSlice.js';
 import { useDispatch } from 'react-redux';
+import GoogleSignIn from './GoogleSignin.jsx';
 
 function SignupForm() {
 
@@ -157,12 +158,14 @@ function SignupForm() {
                     <img src={facebook} alt="Facebook" />
                 </button>
                 <button className="bg-gray-100 hover:bg-gray-200 transition-colors">
-                    <img src={google} alt="Google" />
+                    {/* <img src={google} alt="Google" /> */}
+                    <GoogleSignIn />
                 </button>
                 <button className="bg-gray-100 hover:bg-gray-200 transition-colors">
                     <img src={apple} alt="Apple" />
                 </button>
             </div>
+
 
             {/* Bottom text */}
             <div className="text-center mt-6 text-sm text-gray-500">
