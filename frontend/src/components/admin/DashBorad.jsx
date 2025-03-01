@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 
 import Sellers from './dashboard/Sellers';
+import Customers from './dashboard/Customers';
+import CustomerDetails from './dashboard/CustomerDetails';
 
 
 
@@ -21,13 +23,15 @@ const AdminPanel = () => {
             case 'sellers':
                 return <Sellers />;
             case 'customers':
-                return <Customers />;
+                return <Customers setSelectedSection={setSelectedSection} />;
             case 'delivery':
                 return <DeliveryAgent />;
             case 'manageProducts':
                 return <ManageProducts />;
             case 'editCoupon':
                 return <EditCoupon />;
+            case "CustomerDetails":
+                return <CustomerDetails />;
             default:
                 return <Dashboard />;
         }
@@ -107,13 +111,6 @@ const Dashboard = () => (
     </div>
 );
 
-
-const Customers = () => (
-    <div>
-        <h2 className="text-2xl font-bold mb-4">Customers</h2>
-        <p>Customers content goes here.</p>
-    </div>
-);
 
 const DeliveryAgent = () => (
     <div>
