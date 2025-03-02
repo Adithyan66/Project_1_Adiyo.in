@@ -1,4 +1,4 @@
-
+import axios from "axios";
 
 
 import React, { useState } from "react";
@@ -93,30 +93,48 @@ const AddProduct = () => {
         }
     };
 
-    // Form submission handler
-    const handleSubmit = (e) => {
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Build product object matching the schema
-        const newProduct = {
-            name: productName,
-            shortDescription,
-            description: productDescription,
-            brand,
-            category,
-            subCategory,
-            sku,
-            price: basePrice,
-            discountPrice,
-            discountPercentage,
-            material,
-            careInstructions,
-            gender: "male", // fixed for men's clothing
-            variants: Object.values(variants), // convert variants object to an array
-            images, // here you may need to convert file objects to URLs or upload them
-            totalStock,
-        };
-        console.log("Submitting product:", newProduct);
-        // Send newProduct to your backend or API as needed
+
+
+
+        const formData = new FormData();
+
+        formData.append("name", productName);
+        formData.append("shortDescription", shortDescription);
+        formData.append("description", productDescription);
+        formData.append("brand", brand);
+        formData.append("category", category);
+        formData.append("subCategory", subCategory);
+        formData.append("sku", sku);
+        formData.append("price", basePrice);
+        formData.append("discountPrice", discountPrice);
+        formData.append("discountPercentage", discountPercentage);
+        formData.append("material", material);
+        formData.append("totalStock", totalStock);
+        formData.append("gender", "male");
+        formData.append("totalStock", totalStock);
+
+        formData.append("careInstructions", JSON.stringify(careInstructions));
+        formData.append("variants", JSON.stringify(variants));
+
+        images.forEach((image, index) => {
+            if (image) {
+                formData.append("images", image)
+            }
+        })
+
+
+
+        const response = await axios.post("http://localhost:3333/seller/add-products", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            }
+        })
+
+        console.log(response.data);
+
     };
 
     return (

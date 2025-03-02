@@ -5,6 +5,7 @@ import connectDB from "./config/db.js";
 
 
 import userRouter from "./routes/userRoutes.js";
+import sellerRoutes from "./routes/sellerRoutes.js";
 
 
 
@@ -27,11 +28,9 @@ app.use(
 
 
 
-// Database Connection
 connectDB();
 
-
-// Routes
+app.use("/seller", sellerRoutes)
 app.use("/user", userRouter);
 
 
