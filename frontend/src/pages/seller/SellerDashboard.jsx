@@ -1,19 +1,19 @@
 import React from 'react'
-import Dashboard from "../../components/admin/DashBorad"
-import NavbarTwo from '../../components/common/NavbarTwo'
-import Footer from '../../components/common/Footer'
 
-function DashboardPage() {
+import NavbarTwo from '../../components/common/NavbarTwo'
+import Footer from "../../components/common/Footer"
+import SellerPanel from '../../components/seller/SellerPanel'
+
+function SellerDashboard() {
     return (
         <>
             <NavbarTwo />
             <div className="px-[10%] py-6">
-                <Dashboard />
+                <SellerPanel />
             </div>
             <Footer />
         </>
     )
 }
 
-export default DashboardPage
-
+export default SellerDashboard

@@ -2,7 +2,11 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
+
+
 import userRouter from "./routes/userRoutes.js";
+
+
 
 import dotenv from 'dotenv';
 dotenv.config();
@@ -29,5 +33,7 @@ connectDB();
 
 // Routes
 app.use("/user", userRouter);
+
+
 
 export default app;

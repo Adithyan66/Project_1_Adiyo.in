@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-
-import Sellers from './dashboard/Sellers';
-import Customers from './dashboard/Customers';
-import CustomerDetails from './dashboard/CustomerDetails';
+import Products from './dashboard/Products';
+import AddProduct from './dashboard/AddProduct';
 
 
 
@@ -10,8 +8,7 @@ import CustomerDetails from './dashboard/CustomerDetails';
 
 
 
-
-const AdminPanel = () => {
+const SellerPanel = () => {
     // Track which section is selected
     const [selectedSection, setSelectedSection] = useState('dashboard');
 
@@ -20,10 +17,10 @@ const AdminPanel = () => {
         switch (selectedSection) {
             case 'dashboard':
                 return <Dashboard />;
-            case 'sellers':
-                return <Sellers />;
+            case 'products':
+                return <Products setSelectedSection={setSelectedSection} />;
             case 'customers':
-                return <Customers setSelectedSection={setSelectedSection} />;
+                return <Customers />;
             case 'delivery':
                 return <DeliveryAgent />;
             case 'manageProducts':
@@ -32,6 +29,8 @@ const AdminPanel = () => {
                 return <EditCoupon />;
             case "CustomerDetails":
                 return <CustomerDetails />;
+            case "addProduct":
+                return <AddProduct />;
             default:
                 return <Dashboard />;
         }
@@ -40,8 +39,8 @@ const AdminPanel = () => {
     return (
         <div className="flex  bg-gray-100">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md p-4">
-                <h2 className="text-xl font-bold mb-6">Admin</h2>
+            <aside className="w-64 bg-white shadow-md p-5">
+                <h2 className="text-xl font-bold mb-6">Seller</h2>
                 <nav className="space-y-2">
                     <button
                         className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'dashboard' ? 'bg-gray-200' : ''
@@ -51,40 +50,34 @@ const AdminPanel = () => {
                         Dashboard
                     </button>
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'sellers' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'products' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('sellers')}
+                        onClick={() => setSelectedSection('products')}
                     >
-                        Sellers
+                        Products
                     </button>
                     <button
                         className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'customers' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('customers')}
+                        onClick={() => setSelectedSection('')}
                     >
-                        Customers
+                        Orders
                     </button>
                     <button
                         className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'delivery' ? 'bg-gray-200' : ''
                             }`}
                         onClick={() => setSelectedSection('delivery')}
                     >
-                        Delivery Agent
+                        Sales report
                     </button>
                     <button
                         className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'manageProducts' ? 'bg-gray-200' : ''
                             }`}
                         onClick={() => setSelectedSection('manageProducts')}
                     >
-                        Manage Products
+                        Refund/return
                     </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'editCoupon' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => setSelectedSection('editCoupon')}
-                    >
-                        Edit Coupon
-                    </button>
+
                     <button
                         className="w-full text-left p-2 rounded hover:bg-gray-200"
                         onClick={() => console.log('Sign out logic here')}
@@ -133,4 +126,4 @@ const EditCoupon = () => (
     </div>
 );
 
-export default AdminPanel;
+export default SellerPanel;

@@ -44,6 +44,20 @@ export default function CustomerDetails() {
             date: "12 Dec 2023",
         },
         {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "301801",
+            product: "pant",
+            amount: 320,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
             orderId: "301802",
             product: "kurtha",
             amount: 450,
@@ -197,7 +211,7 @@ export default function CustomerDetails() {
     };
 
     return (
-        <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+        <div className="p-4 md:p-6 bg-gray-50 ">
             {/* Top bar: "Customer Details" + "Block" button */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold">Customer Details</h1>

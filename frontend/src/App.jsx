@@ -16,6 +16,7 @@ import DashboardPage from "./pages/admin/DashboardPage";
 import 'rc-slider/assets/index.css';
 
 import { Routes, Route } from "react-router-dom";
+import SellerDashboard from "./pages/seller/SellerDashboard";
 
 
 
@@ -24,7 +25,8 @@ function App() {
   return (
 
     <Routes>
-      <Route path="/" element={<DashboardPage />} />
+
+      <Route path="/" element={<SellerDashboard />} />
 
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/product-detail" element={<ProductDetailsPage />} />
