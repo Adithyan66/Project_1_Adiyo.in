@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from '../../../store/slices/userSlice'
 
@@ -25,7 +26,7 @@ function GoogleSignIn() {
     }, []);
 
     function handleCredentialResponse(response) {
-        console.log("Encoded JWT ID token:", response.credential);
+
         axios
             .post('http://localhost:3333/user/google-login', { token: response.credential })
 
@@ -37,6 +38,7 @@ function GoogleSignIn() {
 
                 console.log("User:", user);
 
+                Cookies.set("token", res.data.token, { expires: 7, path: "/" })
 
             })
             .catch((err) => {

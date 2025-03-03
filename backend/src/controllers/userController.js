@@ -1,6 +1,5 @@
 
 
-import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -11,7 +10,8 @@ import { generateResetToken } from '../services/tokenService.js';
 import { OAuth2Client } from 'google-auth-library';
 
 
-
+import User from "../models/userModel.js";
+import Product from "../models/productModel.js"
 
 
 
@@ -39,7 +39,7 @@ const signUp = async (req, res) => {
             username,
             email,
             password: hashedPassword,
-            role: role || "customer", // Default to "customer"
+            role: role || "customer",
         });
 
         console.log("Created:", user);
@@ -64,10 +64,8 @@ const signUp = async (req, res) => {
 
 
 const login = async (req, res) => {
+
     const { email, password } = req.body;
-
-    console.log(req.body);
-
 
     if (!email || !password) {
         return res.status(400).json({ message: "Please enter all fields" });
@@ -83,17 +81,16 @@ const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
 
-        // Generate token
+
         const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
 
-        // Debugging - check token before sending
-        console.log("Generated Token:", token);
+
 
         res.cookie("jwt", token, {
             httpOnly: true,
-            secure: false,  // false for development on HTTP
+            secure: false,
             sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
         return res.status(200).json({
@@ -247,7 +244,7 @@ const resetPassword = async (req, res) => {
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const googleLogin = async (req, res) => {
-    // Rename the variable that holds the token from the request body
+
     const token = req.body.token;
 
     try {
@@ -261,7 +258,7 @@ const googleLogin = async (req, res) => {
 
         let user = await User.findOne({ email });
         if (!user) {
-            // Register the user if they don't exist
+
             user = new User({
                 username: name,
                 email,
@@ -271,17 +268,16 @@ const googleLogin = async (req, res) => {
         }
 
         user = await User.findOne({ email });
-        console.log(user);
 
-        // Rename the JWT token variable
+
+
         const jwtToken = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
-        console.log("Generated Token:", jwtToken);
 
         res.cookie("jwt", jwtToken, {
             httpOnly: true,
             secure: false,
             sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
         res.status(200).json({
@@ -307,7 +303,91 @@ const googleLogin = async (req, res) => {
 
 
 
+const productList = async (req, res) => {
+
+    try {
+        const products = await Product.find({});
+        res.status(200).json({
+            status: true,
+            message: 'Product list fetched successfully',
+            products
+        });
+
+
+    } catch (error) {
+        res.status(400).json({
+            status: false,
+            message: 'Server error'
+        })
+
+    }
+
+}
+
+
+const logout = async (req, res) => {
+
+    res.cookie("token", "", { expires: new Date(0), httpOnly: true, path: "/" })
+    res.status(200).json({
+        status: true,
+        message: "logout succesfully"
+    })
+}
+
+
+const profile = async (req, res) => {
+
+    const token = req.cookies.token;
+
+    console.log("token from front end :", token)
+
+    if (!token) {
+        return res.status(401).json({
+            status: false,
+            message: "not authenticated"
+        })
+    }
+    try {
+        const decoded = jwt.verify(token, "secret")
+
+        console.log("decoded token =", decoded);
+        const _id = decoded.userId
+        console.log("decoded userId =", _id);
+
+        const user = await User.findOne({ _id })
+
+        console.log("final user", user);
+
+        return res.status(200).json({
+            status: true,
+            message: "token verified",
+            role: user.role,
+            user: {
+                _id: user._id,
+                email: user.email,
+                username: user.username,
+            }
+        })
 
 
 
-export { signUp, login, forgotPassword, validateOTP, resetPassword, googleLogin };
+    } catch (error) {
+        return res.status(401).json({
+            status: false,
+            message: "invalid token"
+        })
+    }
+}
+
+
+export {
+    signUp,
+    login,
+    forgotPassword,
+    validateOTP,
+    resetPassword,
+    googleLogin,
+    productList,
+    logout,
+    profile
+};

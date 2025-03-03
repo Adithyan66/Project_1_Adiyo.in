@@ -10,9 +10,11 @@ import {
     forgotPassword,
     resetPassword,
     validateOTP,
-    googleLogin
+    googleLogin,
+    productList,
+    logout,
+    profile
 } from "../controllers/userController.js"
-
 
 
 router.post("/signUp", signUp)
@@ -21,6 +23,10 @@ router.post("/forgot-password", forgotPassword)
 router.post("/validate-otp", validateOTP)
 router.post("/reset-password", resetPassword)
 router.post("/google-login", googleLogin)
+router.post("/logout", logout)
+router.get("/profile", profile)
+
+router.get("/product-list", productList)
 
 
 

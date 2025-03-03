@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState } from 'react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 import { Eye, ShowEye } from "../../../icons/icons";
 
@@ -13,11 +14,13 @@ import { loginSuccess } from '../../../store/slices/userSlice';
 import { setLoginPopup, setActiveForm } from '../../../store/slices/authModalSlice.js';
 
 import GoogleSignIn from './GoogleSignin.jsx';
+import { Navigate, useNavigate } from 'react-router';
 
 
 function LoginForm() {
 
     const dispatch = useDispatch();
+    const navigate = useNavigate()
 
 
     const [showPassword, setShowPassword] = useState(false);
@@ -26,16 +29,20 @@ function LoginForm() {
     const [password, setPassword] = useState("");
 
 
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent default form submission
 
+
+    const handleSubmit = async (e) => {
+
+        e.preventDefault();
 
         if (!email || !password) {
+
             console.error("Fields cannot be empty!");
             return;
         }
 
         try {
+
             const response = await axios.post(
                 "http://localhost:3333/user/login",
                 { email, password },
@@ -44,31 +51,28 @@ function LoginForm() {
                     withCredentials: true,
                 }
             );
-            console.log("check token available in this:", response.data.token);
 
+            Cookies.set("token", response.data.token, { expires: 7, path: "/" })
 
-            localStorage.setItem('token', response.data.token);
+            dispatch(loginSuccess({
+                user: response.data.user,
+                token: response.data.token,
+                role: response.data.role
+            }));
+            console.log("role is = ", response.data.role)
 
-            console.log("saved to local");
-
-            dispatch(loginSuccess({ user: response.data.user, token: response.data.token, role: response.data.role }));
-
-
+            if (response.data.role === "admin") {
+                navigate("/admin")
+            }
 
         } catch (err) {
+
             console.error("Error:", err.response?.data || err.message);
         }
     };
 
 
 
-
-    const handleGoogleSignIn = () => {
-
-
-        google.accounts.id.prompt();
-
-    }
 
     return (
 

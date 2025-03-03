@@ -13,11 +13,10 @@ function LandingProducts() {
 
 
     const productImages = [
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/kids-t-shirt/k/o/7/13-14-years-provogue103-rednavy-provogue-original-imaghudycnpy5djn.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/kids-t-shirt/k/o/7/13-14-years-provogue103-rednavy-provogue-original-imaghudycnpy5djn.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/kids-t-shirt/k/o/7/13-14-years-provogue103-rednavy-provogue-original-imaghudycnpy5djn.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/kids-t-shirt/k/o/7/13-14-years-provogue103-rednavy-provogue-original-imaghudycnpy5djn.jpeg?q=70",
-
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/wyndtj959emxshw7v7f7.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zcm0mapzcbbh5pn0kg0j.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/ia47nr7wyrsfaafx4vya.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zupfkd9wwjcfz7vp8wxn.avif",
     ]
 
     return (

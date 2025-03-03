@@ -1,15 +1,15 @@
 
 
 
-
-// src/components/UserPopupMenu.jsx
 import { useDispatch, useSelector } from "react-redux";
 import { setLoginPopup, setActiveForm } from "../../../store/slices/authModalSlice.js"
-
+import axios from "axios";
 
 import SignupForm from "../authmodal/SignupForm";
 import LoginForm from "../authmodal/LoginForm";
 import Forgot from "../authmodal/Forgot";
+
+import { logout } from "../../../store/slices/userSlice.js"
 
 import {
   ProfileIcon,
@@ -22,11 +22,13 @@ import {
   Logout,
 } from "../../../icons/icons";
 
+
 function UserPopupMenu({ popupRef }) {
 
 
 
   const dispatch = useDispatch();
+
   const { loginPopup, activeForm } = useSelector((state) => state.authModal);
 
 
@@ -40,6 +42,30 @@ function UserPopupMenu({ popupRef }) {
   const handleModalClick = (e) => {
     e.stopPropagation();
   };
+
+  const handleLogout = async () => {
+    try {
+      const response = await axios.post(
+        "http://localhost:3333/user/logout",
+        {},
+        { withCredentials: true })
+
+      console.log(response.data)
+
+      dispatch(logout())
+
+    } catch (error) {
+
+      console.log("logout fails");
+
+    }
+  }
+
+
+
+
+
+
 
   return (
     <>
@@ -122,6 +148,7 @@ function UserPopupMenu({ popupRef }) {
           <a
             href="#"
             className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
+            onClick={() => handleLogout()}
           >
             <Logout /> <span className="ml-5">Log Out</span>
           </a>

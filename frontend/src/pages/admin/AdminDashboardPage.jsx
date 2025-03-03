@@ -3,7 +3,7 @@ import Dashboard from "../../components/admin/DashBorad"
 import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from '../../components/common/Footer'
 
-function DashboardPage() {
+function AdminDashboardPage() {
     return (
         <>
             <NavbarTwo />
@@ -15,5 +15,5 @@ function DashboardPage() {
     )
 }
 
-export default DashboardPage
+export default AdminDashboardPage
 

@@ -30,6 +30,7 @@ const userSlice = createSlice({
         logout: (state) => {
             state.userInfo = null;
             state.token = null;
+            state.role = null;
         },
     },
 });

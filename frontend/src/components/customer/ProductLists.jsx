@@ -1,6 +1,7 @@
-// src/App.js
-import React, { useState } from "react";
-import { dummyProducts } from "../customer/dummydata";
+
+import React, { useEffect, useState } from "react";
+
+import { useSelector } from "react-redux";
 
 // Components
 import FilterSidebar from "../customer/productlist/FilterSidebar";
@@ -12,6 +13,7 @@ import Pagination from "./productlist/Pagination";
 
 function ProductLists() {
 
+    const products = useSelector((state) => state.listProducts.productlist)
 
 
 
@@ -30,7 +32,7 @@ function ProductLists() {
     const itemsPerPage = 40; // number of products per page
 
     // ======= Filtered Products =======
-    const filteredProducts = dummyProducts.filter((product) => {
+    const filteredProducts = products.filter((product) => {
         // Filter by color
         if (selectedColors.length > 0 && !selectedColors.includes(product.color)) {
             return false;
@@ -105,8 +107,8 @@ function ProductLists() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4">
-            <div className="max-w-7xl mx-auto flex gap-6">
+        <div className="min-h-[90%] bg-gray-50 p-4">
+            <div className="max-w-11/12 mx-auto flex gap-6">
                 {/* Sidebar Filters */}
                 <FilterSidebar
                     selectedColors={selectedColors}

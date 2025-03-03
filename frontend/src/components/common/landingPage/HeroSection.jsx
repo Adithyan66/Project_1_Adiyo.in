@@ -1,15 +1,31 @@
 import React from "react";
+import { useNavigate } from "react-router";
+
+
 
 import hero from "../../../assets/images/vijay.png";
 import heroHeading from "../../../assets/images/heroHeading.svg";
 import frame from "../../../assets/images/frame.svg";
 
+
+
+
+
 function HeroSection() {
+
+  const navigate = useNavigate();
+
+
+
+
+
+
+
   return (
     <section
       className="relative w-full min-h-screen bg-center bg-no-repeat bg-cover flex items-center justify-start"
-      // Uncomment and adjust the following line if you wish to apply a background image:
-      // style={{ backgroundImage: `url(${hero})` }}
+    // Uncomment and adjust the following line if you wish to apply a background image:
+    // style={{ backgroundImage: `url(${hero})` }}
     >
       {/* Stars: visible on medium screens and larger, with a higher z-index */}
       <div className="hidden md:block relative z-20">
@@ -57,7 +73,10 @@ function HeroSection() {
           </p>
 
           {/* Button */}
-          <button className="bg-black text-white font-semibold py-3 px-6 rounded-full hover:bg-gray-800 transition-colors ml-20">
+          <button
+            className="bg-black text-white font-semibold py-3 px-6 rounded-full hover:bg-gray-800 transition-colors ml-20"
+            onClick={() => navigate("/products-list")}
+          >
             Shop Now
           </button>
 

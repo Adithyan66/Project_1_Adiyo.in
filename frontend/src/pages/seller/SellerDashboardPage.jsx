@@ -4,7 +4,7 @@ import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from "../../components/common/Footer"
 import SellerPanel from '../../components/seller/SellerPanel'
 
-function SellerDashboard() {
+function SellerDashboardPage() {
     return (
         <>
             <NavbarTwo />
@@ -16,4 +16,4 @@ function SellerDashboard() {
     )
 }
 
-export default SellerDashboard
+export default SellerDashboardPage

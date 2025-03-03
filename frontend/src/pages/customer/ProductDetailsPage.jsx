@@ -5,8 +5,10 @@ import ExtraDetails from "../../components/customer/ExtraDetails"
 import AlsoLikeProducts from '../../components/customer/AlsoLikeProducts'
 import Newsletter from '../../components/common/landingPage/NewsLetter'
 import Footer from '../../components/common/Footer'
+import { useParams } from 'react-router'
 
 function ProductDetailsPage() {
+    const { id } = useParams()
     return (
         <div>
             <Navbar />

@@ -1,8 +1,15 @@
 import React, { useState } from 'react';
+import axios from 'axios';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+
 
 import Sellers from './dashboard/Sellers';
 import Customers from './dashboard/Customers';
 import CustomerDetails from './dashboard/CustomerDetails';
+
+
+import { logout } from '../../store/slices/userSlice';
 
 
 
@@ -12,10 +19,12 @@ import CustomerDetails from './dashboard/CustomerDetails';
 
 
 const AdminPanel = () => {
-    // Track which section is selected
+
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
     const [selectedSection, setSelectedSection] = useState('dashboard');
 
-    // Render content on the right side based on selected section
     const renderContent = () => {
         switch (selectedSection) {
             case 'dashboard':
@@ -36,6 +45,27 @@ const AdminPanel = () => {
                 return <Dashboard />;
         }
     };
+
+    const handleLogout = async () => {
+        try {
+            const response = await axios.post(
+                "http://localhost:3333/user/logout",
+                {},
+                { withCredentials: true })
+
+            console.log(response.data)
+
+            dispatch(logout())
+
+            navigate("/")
+
+        } catch (error) {
+
+            console.log("logout fails");
+
+        }
+    }
+
 
     return (
         <div className="flex  bg-gray-100">
@@ -87,7 +117,7 @@ const AdminPanel = () => {
                     </button>
                     <button
                         className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => console.log('Sign out logic here')}
+                        onClick={() => handleLogout()}
                     >
                         Sign out
                     </button>

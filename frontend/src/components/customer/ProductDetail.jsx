@@ -3,15 +3,14 @@ import React, { useState } from "react";
 function ProductDetail() {
     // Default main image URL
     const defaultImage =
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/shirt/z/g/0/xxl-green-formal-youthfirst-original-imah8pvggfwyancp.jpeg?q=70";
-
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/k6isqzmhi50otd3txopa.avif"
     // Array of image URLs for thumbnails (using different URLs for demonstration)
     const images = [
         defaultImage,
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/shirt/r/g/y/3xl-met-veb-formal-corelpink-m-jadouncreation-original-imah5bzzzwurmzz6.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/shirt/s/v/k/xxl-frml-st2-vebnor-original-imah89h9ayzfwpxu.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/shirt/w/m/n/4xl-met-veb-formal-s-grey-l-jadouncreation-original-imah5bzzguqydbmp.jpeg?q=70",
-        "https://rukminim2.flixcart.com/image/612/612/xif0q/shirt/o/w/j/l-nvk-sprd-refresh-original-imagwruz3gk7ucpy.jpeg?q=70",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/wyndtj959emxshw7v7f7.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zcm0mapzcbbh5pn0kg0j.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/ia47nr7wyrsfaafx4vya.avif",
+        "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zupfkd9wwjcfz7vp8wxn.avif",
     ];
 
     // State for the currently selected (big) image
