@@ -21,6 +21,8 @@ const addProduct = async (req, res) => {
         discountPercentage,
         material,
         gender,
+        color,
+        size
 
     } = req.body;
 
@@ -93,7 +95,9 @@ const addProduct = async (req, res) => {
             variants,
             totalStock: totalStockNumber,
             imageUrls,
-            imagePublicIds
+            imagePublicIds,
+            color,
+            size
         });
 
 

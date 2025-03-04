@@ -26,7 +26,7 @@ function ProductCard({ product }) {
         //alt={title}
         className="w-full h-90 object-cover mb-2 mx-auto rounded-2xl"
       />
-      <h3 className="text-base font-semibold text-gray-800">{product?.name}</h3>
+      <h3 className="text-base font-semibold text-gray-800 line-clamp-1">{product?.name}</h3>
       {/* Rating */}
       <div className="flex items-center mt-1">
         <div className="text-yellow-500 mr-2">

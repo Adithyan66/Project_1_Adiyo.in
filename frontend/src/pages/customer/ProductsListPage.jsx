@@ -16,37 +16,16 @@ import { setProductList } from "../../store/slices/listProductsSlice.js"
 
 function ProductsListPage() {
 
-    const dispatch = useDispatch()
+    const [searchTerm, setSearchTerm] = useState("");
 
-    const productsList = useSelector((state) => state.listProducts.productlist)
-
-
-
-    useEffect(() => {
-
-        const fetchProduct = async () => {
-            const response = await axios.get("http://localhost:3333/user/product-list")
-
-
-
-            dispatch(setProductList(response.data.products))
-
-            console.log("from response", response.data.products)
-            console.log("from state", productsList);
-
-        }
-
-        fetchProduct()
-
-    }, [])
 
 
 
     return (
         <div>
-            <Navbar />
+            <Navbar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <div className='mt-[95px]'>
-                <ProductLists />
+                <ProductLists searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             </div>
             <Newsletter />
             <Footer />

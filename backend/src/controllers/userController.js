@@ -305,21 +305,96 @@ const googleLogin = async (req, res) => {
 
 const productList = async (req, res) => {
 
+
     try {
-        const products = await Product.find({});
-        res.status(200).json({
-            status: true,
-            message: 'Product list fetched successfully',
-            products
+        // Build the query object to exclude blocked/unlisted products
+        const query = { isBlocked: false, isListed: true };
+
+        // ======= Search =======
+        if (req.query.search) {
+            // Search in the product name (adjust as necessary)
+            query.name = { $regex: req.query.search, $options: "i" };
+        }
+
+        // ======= Filters =======
+        // Category filter (if provided)
+        if (req.query.category) {
+            query.category = req.query.category;
+        }
+
+        // Price Range filter
+        if (req.query.minPrice || req.query.maxPrice) {
+            query.discountPrice = {};
+            if (req.query.minPrice) {
+                query.discountPrice.$gte = Number(req.query.minPrice);
+            }
+            if (req.query.maxPrice) {
+                query.discountPrice.$lte = Number(req.query.maxPrice);
+            }
+        }
+
+        // Color filter (allowing multiple values if comma separated)
+        if (req.query.color) {
+            // Split the comma separated string into an array
+            const colors = req.query.color.split(",");
+            query.color = { $in: colors };
+        }
+
+        // Size filter (allowing multiple values)
+        if (req.query.size) {
+            const sizes = req.query.size.split(",");
+            query.size = { $in: sizes };
+        }
+
+        // Dress Style filter
+        if (req.query.dressStyle) {
+            query.dressStyle = req.query.dressStyle;
+        }
+
+        // ======= Sorting =======
+        let sortCriteria = {};
+        switch (req.query.sort) {
+            case "price_low_high":
+                sortCriteria.price = 1;
+                break;
+            case "price_high_low":
+                sortCriteria.price = -1;
+                break;
+            case "name_a_z":
+                sortCriteria.name = 1;
+                break;
+            case "name_z_a":
+                sortCriteria.name = -1;
+                break;
+            default:
+                // Default sort logic can be added here if needed
+                break;
+        }
+
+        // ======= Pagination =======
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page - 1) * limit;
+
+        // Execute the query with sorting, skipping, and limiting
+        const products = await Product.find(query)
+            .sort(sortCriteria)
+            .skip(skip)
+            .limit(limit);
+
+        // Get the total count for pagination information
+        const totalProducts = await Product.countDocuments(query);
+
+        // Return the paginated data along with pagination info
+        res.json({
+            page,
+            totalPages: Math.ceil(totalProducts / limit),
+            totalProducts,
+            products,
         });
-
-
     } catch (error) {
-        res.status(400).json({
-            status: false,
-            message: 'Server error'
-        })
-
+        console.error("Error fetching products:", error);
+        res.status(500).json({ message: "Server error" });
     }
 
 }
@@ -380,6 +455,38 @@ const profile = async (req, res) => {
 }
 
 
+const productDetail = async (req, res) => {
+
+
+    try {
+        const { id } = req.params;
+
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({
+                status: false,
+                message: "Product not found"
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "product detail fetched succesfully",
+            product
+        })
+
+    } catch (error) {
+
+        console.error("Error fetching product:", error);
+
+        res.status(500).json({
+            status: false,
+            message: "server error on fetching"
+        });
+    }
+}
+
 export {
     signUp,
     login,
@@ -389,5 +496,6 @@ export {
     googleLogin,
     productList,
     logout,
-    profile
+    profile,
+    productDetail
 };

@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { FiSearch } from "react-icons/fi";
 
 const initialCustomersData = [
-    // First group (IDs 1-10)
     { id: 1, name: "Joyal Kuriakose", customerID: "110564", products: 73, sales: 7306, status: "Active", registrationDate: "2023-01-01" },
     { id: 2, name: "Achu K Mohanan", customerID: "110564", products: 289, sales: 7306, status: "Blocked", registrationDate: "2023-01-02" },
     { id: 3, name: "Abhinav K", customerID: "110564", products: 23, sales: 7306, status: "Active", registrationDate: "2023-01-03" },
@@ -13,7 +12,6 @@ const initialCustomersData = [
     { id: 8, name: "Bob", customerID: "110564", products: 78, sales: 7306, status: "Active", registrationDate: "2023-01-08" },
     { id: 9, name: "Charlie", customerID: "110564", products: 59, sales: 7306, status: "Active", registrationDate: "2023-01-09" },
     { id: 10, name: "David", customerID: "110564", products: 99, sales: 7306, status: "Blocked", registrationDate: "2023-01-10" },
-    // Second group (IDs 11-20)
     { id: 11, name: "Joyal Kuriakose", customerID: "110565", products: 73, sales: 7306, status: "Active", registrationDate: "2023-01-11" },
     { id: 12, name: "Achu K Mohanan", customerID: "110565", products: 289, sales: 7306, status: "Blocked", registrationDate: "2023-01-12" },
     { id: 13, name: "Abhinav K", customerID: "110565", products: 23, sales: 7306, status: "Active", registrationDate: "2023-01-13" },
@@ -24,7 +22,6 @@ const initialCustomersData = [
     { id: 18, name: "Bob", customerID: "110565", products: 78, sales: 7306, status: "Active", registrationDate: "2023-01-18" },
     { id: 19, name: "Charlie", customerID: "110565", products: 59, sales: 7306, status: "Active", registrationDate: "2023-01-19" },
     { id: 20, name: "David", customerID: "110565", products: 99, sales: 7306, status: "Blocked", registrationDate: "2023-01-20" },
-    // Third group (repeat for multiple pages)
     { id: 21, name: "Joyal Kuriakose", customerID: "110565", products: 73, sales: 7306, status: "Active", registrationDate: "2023-01-21" },
     { id: 22, name: "Achu K Mohanan", customerID: "110565", products: 289, sales: 7306, status: "Blocked", registrationDate: "2023-01-22" },
     { id: 23, name: "Abhinav K", customerID: "110565", products: 23, sales: 7306, status: "Active", registrationDate: "2023-01-23" },
@@ -35,7 +32,6 @@ const initialCustomersData = [
     { id: 28, name: "Bob", customerID: "110565", products: 78, sales: 7306, status: "Active", registrationDate: "2023-01-28" },
     { id: 29, name: "Charlie", customerID: "110565", products: 59, sales: 7306, status: "Active", registrationDate: "2023-01-29" },
     { id: 30, name: "David", customerID: "110565", products: 99, sales: 7306, status: "Blocked", registrationDate: "2023-01-30" },
-    // (You can add more objects similarly to simulate additional pages)
 ];
 
 const Customers = ({ setSelectedSection }) => {
@@ -46,19 +42,16 @@ const Customers = ({ setSelectedSection }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
 
-    // Filter customers based on search query
     const filteredCustomers = initialCustomersData.filter((customer) =>
         customer.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    // Calculate pagination values
     const totalItems = filteredCustomers.length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const indexOfLastItem = currentPage * pageSize;
     const indexOfFirstItem = indexOfLastItem - pageSize;
     const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
 
-    // Helper function to get a dynamic range of page numbers
 
 
 
@@ -84,7 +77,6 @@ const Customers = ({ setSelectedSection }) => {
         return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
     };
 
-    // Handlers
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value);
         setCurrentPage(1);

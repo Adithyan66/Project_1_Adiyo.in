@@ -78,7 +78,6 @@ function App() {
         />
 
         <Route path="/products-list" element={<ProductsListPage />} />
-        {/* <Route path="/product-detail" element={<ProductDetailsPage />} /> */}
         <Route path="/product-detail/:id" element={<ProductDetailsPage />} />
 
 
@@ -99,14 +98,7 @@ function App() {
 
       </Routes >
 
-
-      {/* <ToastContainer
-        position="top-center"
-        autoClose={5000}
-        style={{ backgroundColor: '#333', color: '#fff' }}
-      /> */}
-
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
+      <ToastContainer position="top-center" autoClose={1000} hideProgressBar />
 
     </>
   );

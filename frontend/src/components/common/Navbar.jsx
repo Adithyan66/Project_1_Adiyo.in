@@ -9,7 +9,7 @@ import { setActiveForm, setLoginPopup } from "../../store/slices/authModalSlice.
 import { useDispatch } from "react-redux";
 
 
-function Navbar() {
+function Navbar({ setSearchTerm, toProductPage }) {
 
   const dispatch = useDispatch();
 
@@ -41,7 +41,7 @@ function Navbar() {
     <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md px-4 sm:px-6 lg:px-8 p-3">
       <div className="flex items-center justify-between h-16">
         <NavBrand />
-        <SearchBar />
+        <SearchBar setSearchTerm={setSearchTerm} toProductPage={toProductPage} />
         <NavButtons onUserClick={() => setIsOpen(!isOpen)} />
         {isOpen && <UserPopupMenu popupRef={popupRef} />}
       </div>

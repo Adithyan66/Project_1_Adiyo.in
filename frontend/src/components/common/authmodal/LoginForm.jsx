@@ -2,6 +2,7 @@ import React from 'react'
 import { useState } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 
 import { Eye, ShowEye } from "../../../icons/icons";
 
@@ -29,15 +30,27 @@ function LoginForm() {
     const [password, setPassword] = useState("");
 
 
+    const validateForm = () => {
+        if (!email || !password) {
+            toast.error("Fields cannot be empty!");
+            return false;
+        }
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error("Please enter a valid email address");
+            return false;
+        }
+        return true;
+    };
+
+
 
 
     const handleSubmit = async (e) => {
 
         e.preventDefault();
 
-        if (!email || !password) {
-
-            console.error("Fields cannot be empty!");
+        if (!validateForm()) {
             return;
         }
 
@@ -54,18 +67,28 @@ function LoginForm() {
 
             Cookies.set("token", response.data.token, { expires: 7, path: "/" })
 
-            dispatch(loginSuccess({
-                user: response.data.user,
-                token: response.data.token,
-                role: response.data.role
-            }));
-            console.log("role is = ", response.data.role)
+            if (response.data.success) {
 
-            if (response.data.role === "admin") {
-                navigate("/admin")
+                dispatch(setLoginPopup(false));
+
+                dispatch(loginSuccess({
+                    user: response.data.user,
+                    token: response.data.token,
+                    role: response.data.role
+                }));
+                if (response.data.role === "admin") {
+                    navigate("/admin")
+                } else if (response.data.role === "seller") {
+                    navigate("/seller")
+                }
+                toast.success("logged in succesfully")
             }
 
+            console.log("role is = ", response.data.role)
+
+
         } catch (err) {
+            toast.error("invalid credentials")
 
             console.error("Error:", err.response?.data || err.message);
         }

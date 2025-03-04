@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router";
 
-function SearchBar() {
+
+function SearchBar({ toProductPage, setSearchTerm }) {
+
+
+
+
   return (
     <div className="flex justify-center flex-1">
       <div className="relative w-[550px]">
@@ -15,6 +21,8 @@ function SearchBar() {
           type="text"
           placeholder="Search for products..."
           className="w-full rounded-full bg-gray-100 pl-10 pr-4 py-3 text-sm focus:outline-none"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          onClick={() => toProductPage()}
         />
       </div>
     </div>

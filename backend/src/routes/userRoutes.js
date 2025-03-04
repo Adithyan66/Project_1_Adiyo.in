@@ -13,7 +13,8 @@ import {
     googleLogin,
     productList,
     logout,
-    profile
+    profile,
+    productDetail
 } from "../controllers/userController.js"
 
 
@@ -26,7 +27,10 @@ router.post("/google-login", googleLogin)
 router.post("/logout", logout)
 router.get("/profile", profile)
 
+
+
 router.get("/product-list", productList)
+router.get("/product/:id", productDetail)
 
 
 

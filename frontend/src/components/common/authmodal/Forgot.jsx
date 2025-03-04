@@ -5,10 +5,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 
+
+
 import { Eye, ShowEye } from "../../../icons/icons";
 import OtpVerification from "./OtpVerification";
 import { useDispatch } from "react-redux";
 import { setActiveForm, setLoginPopup } from "../../../store/slices/authModalSlice.js";
+import { toast } from "react-toastify";
 
 
 
@@ -40,11 +43,19 @@ function Forgot() {
         setMessage("");
         setError("");
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            toast.error("Please enter a valid email address");
+            return false;
+        }
+
         try {
 
             const response = await axios.post(`http://localhost:3333/user/forgot-password`, { email });
 
-            setMessage(response.data.message);
+            // setMessage(response.data.message);
+
+            toast.success(response.data.message)
 
             setOtpSent(response.data.status);
 
@@ -65,10 +76,22 @@ function Forgot() {
 
 
     const handleResetPassword = async (e) => {
+
         e.preventDefault();
         setLoading(true);
         setMessage("");
         setError("");
+
+        if (password.length < 6) {
+            toast.error("Password should be at least 6 characters long");
+            return false;
+        }
+
+        if (password !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return false;
+        }
+
 
         try {
             const response = await axios.post(`http://localhost:3333/user/reset-password`, {
@@ -80,13 +103,15 @@ function Forgot() {
             console.log("response", response);
 
             if (response.data.status) {
+
                 setMessage(response.data.message || "Password reset successfully. Please log in.");
 
                 dispatch(setLoginPopup(false));
-                console.log("loginpopup",);
 
+                toast.success("Password reset successfully. Please log in.")
 
             } else {
+                toast.error("Failed to reset password.")
                 setError(response.data.message || "Failed to reset password.");
             }
         } catch (error) {
