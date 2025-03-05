@@ -1,8 +1,33 @@
-import React, { useState } from 'react';
+import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 
-const ProductPage = () => {
-    // Track which tab is currently active
+const ProductPage = ({ product }) => {
+
     const [activeTab, setActiveTab] = useState('details');
+
+    const {
+        sku,
+        name,
+        shortDescription,
+        description,
+        brand,
+        category,
+        subCategory,
+        price,
+        discountPrice,
+        discountPercentage,
+        material,
+        careInstructions,
+        gender,
+        variants,
+        totalStock: totalStockNumber,
+        imageUrls,
+        imagePublicIds,
+        color,
+        size,
+        createdAt,
+        dressStyle,
+    } = product;
 
     return (
         <div className="max-w-screen-lg mx-auto px-4 py-8 mt-[50px]">
@@ -34,80 +59,83 @@ const ProductPage = () => {
             </div>
 
             {/* Conditionally render the active tab */}
-            {activeTab === 'details' && <ProductDetails />}
-            {activeTab === 'reviews' && <RatingAndReviews />}
+            {activeTab === 'details' && <ProductDetails product={product} />}
+            {activeTab === 'reviews' && <RatingAndReviews product={product} />}
             {activeTab === 'faq' && <FAQ />}
         </div>
     );
 };
 
 /* ------------------ Product Details Tab ------------------ */
-const ProductDetails = () => {
+const ProductDetails = ({ product }) => {
+
+    const {
+        _id,
+        sku,
+        name,
+        shortDescription,
+        description,
+        brand,
+        category,
+        subCategory,
+        price,
+        discountPrice,
+        discountPercentage,
+        material,
+        careInstructions,
+        gender,
+        variants,
+        totalStock: totalStockNumber,
+        imageUrls,
+        imagePublicIds,
+        color,
+        size,
+        createdAt,
+        dressStyle,
+    } = product;
+
+
     return (
         <div>
             <h2 className="text-2xl font-bold mb-4">Product Details</h2>
             <p className="text-gray-700 mb-4">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent nec eros eu nunc egestas gravida.
-                Vivamus vel mi in dui tincidunt placerat et vel massa. In eget tortor in elit ultrices scelerisque.
+                {description}
             </p>
             <ul className="list-disc list-inside space-y-2">
-                <li>Feature 1: Lorem ipsum dolor sit amet</li>
+                {/* <li>Feature 1: Lorem ipsum dolor sit amet</li>
                 <li>Feature 2: Suspendisse potenti</li>
-                <li>Feature 3: Sed vulputate, augue a fringilla tincidunt</li>
+                <li>Feature 3: Sed vulputate, augue a fringilla tincidunt</li> */}
+                {careInstructions.map((instruction) => <li>{instruction}</li>
+                )}
             </ul>
         </div>
     );
 };
 
-/* ------------------ Rating & Reviews Tab ------------------ */
-const RatingAndReviews = () => {
-    // Sample reviews data
-    const reviews = [
-        {
-            name: 'Samantha O.',
-            date: 'August 14, 2023',
-            rating: 5,
-            content:
-                '“I absolutely love this t-shirt! The design is unique and the fabric feels so comfortable. As a fellow designer, I appreciate the detail in its design. It’s become my favorite go-to shirt.”',
-        },
-        {
-            name: 'Alex M.',
-            date: 'August 12, 2023',
-            rating: 4,
-            content:
-                '“The t-shirt exceeded my expectations! The colors are vibrant and the print quality is fantastic. One star off because it’s a bit long for me, but otherwise great!”',
-        },
-        {
-            name: 'Ethan R.',
-            date: 'August 10, 2023',
-            rating: 5,
-            content:
-                '“A must-have for anyone who appreciates good design. The minimalist yet stylish pattern caught my eye right from the start. I can see the designer’s touch in every aspect of this product.”',
-        },
-        {
-            name: 'Olivia P.',
-            date: 'August 08, 2023',
-            rating: 4,
-            content:
-                '“As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt incorporates those principles but could use a slightly thicker fabric. Overall, a great purchase!”',
-        },
-        {
-            name: 'Liam K.',
-            date: 'August 05, 2023',
-            rating: 3,
-            content:
-                '“This t-shirt is a fusion of comfort and creativity. The fabric is soft, and the design sparks conversation. I just wish there were more color options available. Great job on the design, though!”',
-        },
-        {
-            name: 'Ava H.',
-            date: 'August 01, 2023',
-            rating: 4,
-            content:
-                '“I am not just wearing a t-shirt; it’s like a piece of design philosophy. The intricate details and thoughtful layout of the design make this a conversation starter.”',
-        },
-    ];
+const RatingAndReviews = ({ product }) => {
 
-    // Helper function to render stars
+    const [reviews, setReviews] = useState([]);
+
+    const { _id } = product;
+
+    useEffect(() => {
+
+        const fetchReview = async () => {
+
+            const response = await axios.get(`http://localhost:3333/user/${_id}/reviews`)
+
+            setReviews(response.data.reviews)
+
+            console.log("reviews ", response.data.reviews);
+
+        }
+
+        fetchReview()
+
+    }, [_id]);
+
+
+
     const renderStars = (rating) => {
         return Array.from({ length: 5 }, (_, i) => (
             <span key={i} className={i < rating ? 'text-yellow-500' : 'text-gray-300'}>
@@ -116,11 +144,17 @@ const RatingAndReviews = () => {
         ));
     };
 
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+    };
+
+
     return (
         <div>
             {/* Top Section: Title, Sort Dropdown, Write a Review Button */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
-                <h2 className="text-2xl font-bold mb-2 sm:mb-0">All Reviews (451)</h2>
+                <h2 className="text-2xl font-bold mb-2 sm:mb-0">All Reviews ({reviews.length})</h2>
                 <div className="flex items-center space-x-4">
                     {/* Sort dropdown */}
                     <select className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none">
@@ -129,9 +163,9 @@ const RatingAndReviews = () => {
                         <option value="highest">Highest Rated</option>
                         <option value="lowest">Lowest Rated</option>
                     </select>
-                    <button className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 text-sm">
+                    {/* <button className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800 text-sm">
                         Write a Review
-                    </button>
+                    </button> */}
                 </div>
             </div>
 
@@ -141,13 +175,13 @@ const RatingAndReviews = () => {
                     <div key={idx} className="bg-white border border-gray-200 rounded p-4 shadow-sm">
                         {/* Reviewer Name and Rating */}
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-800">{review.name}</h3>
+                            <h3 className="font-semibold text-gray-800">{review.userId.username}</h3>
                             <div className="flex space-x-1">{renderStars(review.rating)}</div>
                         </div>
                         {/* Review Content */}
-                        <p className="text-sm text-gray-600 mb-4">{review.content}</p>
+                        <p className="text-sm text-gray-600 mb-4">{review.comment}</p>
                         {/* Date */}
-                        <p className="text-xs text-gray-400">Posted on {review.date}</p>
+                        <p className="text-xs text-gray-400">Posted on {formatDate(review.createdAt)}</p>
                     </div>
                 ))}
             </div>
@@ -162,7 +196,8 @@ const RatingAndReviews = () => {
     );
 };
 
-/* ------------------ FAQ Tab ------------------ */
+
+
 const FAQ = () => {
     const faqs = [
         {

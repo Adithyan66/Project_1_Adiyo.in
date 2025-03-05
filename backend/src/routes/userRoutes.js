@@ -14,8 +14,11 @@ import {
     productList,
     logout,
     profile,
-    productDetail
-} from "../controllers/userController.js"
+    productDetail,
+    addReview,
+    getReviews
+} from
+    "../controllers/userController.js"
 
 
 router.post("/signUp", signUp)
@@ -25,12 +28,14 @@ router.post("/validate-otp", validateOTP)
 router.post("/reset-password", resetPassword)
 router.post("/google-login", googleLogin)
 router.post("/logout", logout)
+router.post("/:productId/addreviews", addReview)
+
+
+
 router.get("/profile", profile)
-
-
-
 router.get("/product-list", productList)
 router.get("/product/:id", productDetail)
+router.get("/:productId/reviews", getReviews)
 
 
 

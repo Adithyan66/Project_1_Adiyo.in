@@ -12,6 +12,7 @@ import { OAuth2Client } from 'google-auth-library';
 
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js"
+import Review from "../models/reviewModel.js";
 
 
 
@@ -303,90 +304,205 @@ const googleLogin = async (req, res) => {
 
 
 
+// const productList = async (req, res) => {
+
+
+//     try {
+//         const query = { isBlocked: false, isListed: true };
+
+//         if (req.query.search) {
+//             query.name = { $regex: req.query.search, $options: "i" };
+//         }
+
+//         if (req.query.category) {
+//             query.category = req.query.category;
+//         }
+
+//         if (req.query.minPrice || req.query.maxPrice) {
+//             query.discountPrice = {};
+//             if (req.query.minPrice) {
+//                 query.discountPrice.$gte = Number(req.query.minPrice);
+//             }
+//             if (req.query.maxPrice) {
+//                 query.discountPrice.$lte = Number(req.query.maxPrice);
+//             }
+//         }
+
+//         if (req.query.color) {
+//             const colors = req.query.color.split(",");
+//             query.color = { $in: colors };
+//         }
+
+//         if (req.query.size) {
+//             const sizes = req.query.size.split(",");
+//             query.size = { $in: sizes };
+//         }
+
+//         if (req.query.dressStyle) {
+//             query.dressStyle = req.query.dressStyle;
+//         }
+
+//         let sortCriteria = {};
+//         switch (req.query.sort) {
+//             case "price_low_high":
+//                 sortCriteria.price = 1;
+//                 break;
+//             case "price_high_low":
+//                 sortCriteria.price = -1;
+//                 break;
+//             case "name_a_z":
+//                 sortCriteria.name = 1;
+//                 break;
+//             case "name_z_a":
+//                 sortCriteria.name = -1;
+//                 break;
+//             default:
+//                 break;
+//         }
+
+//         const page = parseInt(req.query.page, 10) || 1;
+//         const limit = parseInt(req.query.limit, 10) || 10;
+//         const skip = (page - 1) * limit;
+
+//         const products = await Product.find(query)
+//             .sort(sortCriteria)
+//             .skip(skip)
+//             .limit(limit);
+
+//         const totalProducts = await Product.countDocuments(query);
+
+//         res.status(200).json({
+//             status: true,
+//             message: "fetched succesfully",
+//             page,
+//             totalPages: Math.ceil(totalProducts / limit),
+//             totalProducts,
+//             products,
+//         });
+
+//     } catch (error) {
+//         res.status(500).json({
+//             status: false,
+//             message: "Server error"
+//         });
+//     }
+
+//}
+
+
 const productList = async (req, res) => {
-
-
     try {
-        // Build the query object to exclude blocked/unlisted products
-        const query = { isBlocked: false, isListed: true };
+        // Build a base match object for top-level fields.
+        const match = {};  // Use an empty object if you don't want to filter by isBlocked/isListed
 
-        // ======= Search =======
+        // Search by name
         if (req.query.search) {
-            // Search in the product name (adjust as necessary)
-            query.name = { $regex: req.query.search, $options: "i" };
+            match.name = { $regex: req.query.search, $options: "i" };
         }
 
-        // ======= Filters =======
-        // Category filter (if provided)
+        // Filter by category and subCategory
         if (req.query.category) {
-            query.category = req.query.category;
+            match.category = req.query.category;
+        }
+        if (req.query.subCategory) {
+            match.subCategory = req.query.subCategory;
         }
 
-        // Price Range filter
+        // --- Nested filtering on colors array ---
+
+        // Price filter on discountPrice (nested in colors)
         if (req.query.minPrice || req.query.maxPrice) {
-            query.discountPrice = {};
+            const priceFilter = {};
             if (req.query.minPrice) {
-                query.discountPrice.$gte = Number(req.query.minPrice);
+                priceFilter.$gte = Number(req.query.minPrice);
             }
             if (req.query.maxPrice) {
-                query.discountPrice.$lte = Number(req.query.maxPrice);
+                priceFilter.$lte = Number(req.query.maxPrice);
+            }
+            // Match if at least one color has a discountPrice in range.
+            match.colors = { $elemMatch: { discountPrice: priceFilter } };
+        }
+
+        // Color filter: if provided, match if any color variant has a matching color.
+        if (req.query.color) {
+            const colorsArray = req.query.color.split(",");
+            if (match.colors) {
+                match.colors.$elemMatch = {
+                    ...match.colors.$elemMatch,
+                    color: { $in: colorsArray },
+                };
+            } else {
+                match.colors = { $elemMatch: { color: { $in: colorsArray } } };
             }
         }
 
-        // Color filter (allowing multiple values if comma separated)
-        if (req.query.color) {
-            // Split the comma separated string into an array
-            const colors = req.query.color.split(",");
-            query.color = { $in: colors };
-        }
-
-        // Size filter (allowing multiple values)
+        // Size filter: check if any color variant has one of the sizes.
         if (req.query.size) {
-            const sizes = req.query.size.split(",");
-            query.size = { $in: sizes };
+            const sizesArray = req.query.size.split(",");
+            const sizeCondition = {
+                $or: [
+                    { "variants.small.size": { $in: sizesArray } },
+                    { "variants.medium.size": { $in: sizesArray } },
+                    { "variants.large.size": { $in: sizesArray } },
+                    { "variants.extraLarge.size": { $in: sizesArray } }
+                ],
+            };
+            if (match.colors) {
+                match.colors.$elemMatch = {
+                    ...match.colors.$elemMatch,
+                    ...sizeCondition,
+                };
+            } else {
+                match.colors = { $elemMatch: sizeCondition };
+            }
         }
 
-        // Dress Style filter
-        if (req.query.dressStyle) {
-            query.dressStyle = req.query.dressStyle;
+        // --- Build Aggregation Pipeline ---
+        const pipeline = [
+            { $match: match },
+            {
+                $addFields: {
+                    minDiscountPrice: { $min: "$colors.discountPrice" },
+                },
+            },
+        ];
+
+        let sortStage = {};
+        if (req.query.sort) {
+            switch (req.query.sort) {
+                case "price_low_high":
+                    sortStage = { minDiscountPrice: 1 };
+                    break;
+                case "price_high_low":
+                    sortStage = { minDiscountPrice: -1 };
+                    break;
+                case "name_a_z":
+                    sortStage = { name: 1 };
+                    break;
+                case "name_z_a":
+                    sortStage = { name: -1 };
+                    break;
+                default:
+                    break;
+            }
+        }
+        if (Object.keys(sortStage).length > 0) {
+            pipeline.push({ $sort: sortStage });
         }
 
-        // ======= Sorting =======
-        let sortCriteria = {};
-        switch (req.query.sort) {
-            case "price_low_high":
-                sortCriteria.price = 1;
-                break;
-            case "price_high_low":
-                sortCriteria.price = -1;
-                break;
-            case "name_a_z":
-                sortCriteria.name = 1;
-                break;
-            case "name_z_a":
-                sortCriteria.name = -1;
-                break;
-            default:
-                // Default sort logic can be added here if needed
-                break;
-        }
-
-        // ======= Pagination =======
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 10;
         const skip = (page - 1) * limit;
+        pipeline.push({ $skip: skip }, { $limit: limit });
 
-        // Execute the query with sorting, skipping, and limiting
-        const products = await Product.find(query)
-            .sort(sortCriteria)
-            .skip(skip)
-            .limit(limit);
+        const products = await Product.aggregate(pipeline);
+        const countPipeline = [{ $match: match }, { $count: "total" }];
+        const countResult = await Product.aggregate(countPipeline);
+        const totalProducts = countResult[0] ? countResult[0].total : 0;
 
-        // Get the total count for pagination information
-        const totalProducts = await Product.countDocuments(query);
-
-        // Return the paginated data along with pagination info
-        res.json({
+        res.status(200).json({
+            status: true,
+            message: "Fetched successfully",
             page,
             totalPages: Math.ceil(totalProducts / limit),
             totalProducts,
@@ -394,10 +510,12 @@ const productList = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({
+            status: false,
+            message: "Server error",
+        });
     }
-
-}
+};
 
 
 const logout = async (req, res) => {
@@ -487,6 +605,76 @@ const productDetail = async (req, res) => {
     }
 }
 
+
+const addReview = async (req, res) => {
+
+    try {
+        const { userId, rating, comment } = req.body;
+
+        const productId = req.params.productId;
+
+
+        const existingReview = await Review.findOne({ productId, userId });
+
+        if (existingReview) {
+
+            return res.status(400).json({
+                status: false,
+                message: "You have already reviewed this product."
+            });
+        }
+
+        const review = new Review({ productId, userId, rating, comment });
+
+        await review.save();
+
+        res.status(201).json({
+            status: true,
+            message: "Review added successfully"
+            , review
+        });
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+    }
+
+
+}
+
+
+const getReviews = async (req, res) => {
+
+    try {
+
+        const reviews = await Review.find({ productId: req.params.productId }).populate("userId", "username");
+
+
+
+
+
+        res.status(200).json({
+            status: true,
+            message: "review fetched succesfully",
+            reviews
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: "error on server"
+        });
+    }
+
+
+}
+
+
+
 export {
     signUp,
     login,
@@ -497,5 +685,7 @@ export {
     productList,
     logout,
     profile,
-    productDetail
+    productDetail,
+    addReview,
+    getReviews
 };

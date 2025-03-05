@@ -5,15 +5,6 @@ function ProductCard({ product }) {
 
   const navigate = useNavigate()
 
-  // const discountPercentage =
-  //   oldPrice && Math.round(((oldPrice - price) / oldPrice) * 100);
-
-  // const image = product?.imageUrls[0]
-  // const [description,
-  //   name,
-  //   discountPrice,
-  //   discountPercentage,
-  // ] = product
 
   const rating = 3.5;
 
@@ -22,7 +13,7 @@ function ProductCard({ product }) {
       onClick={() => navigate(`/product-detail/${product._id}`)}
     >
       <img
-        src={product?.imageUrls[0]}
+        src={product?.colors[0].images[0]}
         //alt={title}
         className="w-full h-90 object-cover mb-2 mx-auto rounded-2xl"
       />
@@ -37,14 +28,14 @@ function ProductCard({ product }) {
       </div>
       {/* Price Section */}
       <span className="bg-gray-400 w-1/4 text-center py-2 text-white text-xs ml-2 px-1 py-0.5 rounded">
-        {product?.discountPercentage}% off
+        {Math.ceil(product?.colors[0].discountPercentage)}% off
       </span>
       <div className="mt-2 text-gray-800">
-        <span className="font-bold text-3xl">₹{product?.discountPrice}</span>
-        {product?.price && (
+        <span className="font-bold text-3xl">₹{product?.minDiscountPrice}</span>
+        {product?.colors[0].basePrice && (
           <>
             <span className="text-xl text-gray-500 ml-2 line-through">
-              ₹{product?.price}
+              ₹{product?.colors[0].basePrice}
             </span>
 
           </>

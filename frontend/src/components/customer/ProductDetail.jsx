@@ -1,88 +1,45 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import { useParams } from "react-router-dom";
-
-
-// function ProductDetail() {
-
-//     const [selectedImage, setSelectedImage] = useState();
-
-
-//     const { id } = useParams();
-//     const [product, setProduct] = useState(null);
 
 
 
-//     useEffect(() => {
 
-//         const fetchProduct = async () => {
+// import React from "react";
+// import ReactImageMagnify from "react-image-magnify";
 
-//             try {
-//                 console.log("starthing fetching");
-
-//                 const response = await axios.get(`http://localhost:3333/user/product/${id}`);
-
-//                 setProduct(response.data.product);
-
-//                 setSelectedImage(response.data.product.imageUrls[0])
-
-//                 console.log(product);
-
-//             } catch (err) {
-//                 console.log(err);
-
-//             }
-//         };
-
-//         fetchProduct();
-
-//     }, [id]);
-
-//     useEffect(() => {
-//         console.log(product);
-
-//     })
-
-//     if (product.length > 0) {
-
-//         const {
-//             sku,
-//             name,
-//             shortDescription,
-//             description,
-//             brand,
-//             category,
-//             subCategory,
-//             price,
-//             discountPrice,
-//             discountPercentage,
-//             material,
-//             careInstructions,
-//             gender,
-//             variants,
-//             totalStock: totalStockNumber,
-//             imageUrls,
-//             imagePublicIds,
-//             color,
-//             size,
-//             createdAt,
-//             dressStyle,
-//         } = product
-//     }
+// function ProductDetail({ product, selectedImage, setSelectedImage }) {
+//     const {
+//         name,
+//         shortDescription,
+//         price,
+//         discountPrice,
+//         discountPercentage,
+//         imageUrls,
+//         size,
+//     } = product;
 
 //     return (
-
 //         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
 //             {/* Main container: 2 columns on medium+ screens */}
 //             <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
-//                 {/* LEFT COLUMN: One main image on top + thumbnails */}
+//                 {/* LEFT COLUMN: Main image + thumbnails */}
 //                 <div className="flex flex-col items-center">
-//                     {/* Main Image Container with fixed height */}
+//                     {/* Main Image Container with overflow-hidden */}
 //                     <div className="relative w-full h-135 bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center">
-//                         <img
-//                             src={selectedImage}
-//                             alt="Main Product"
-//                             className="w-full h-full object-cover"
+//                         <ReactImageMagnify
+//                             {...{
+//                                 smallImage: {
+//                                     alt: "Product image",
+//                                     isFluidWidth: true,
+//                                     src: selectedImage,
+//                                 },
+//                                 largeImage: {
+//                                     src: selectedImage,
+//                                     width: 1400,
+//                                     height: 1400,
+//                                 },
+//                                 enlargedImagePortalId: "zoom-portal",
+//                                 enlargedImagePosition: "beside",
+//                                 enlargedImageContainerDimensions: { width: "150%", height: "100%" },
+//                             }}
 //                         />
 //                     </div>
 
@@ -95,78 +52,42 @@
 //                                     } rounded p-1 cursor-pointer`}
 //                                 onMouseEnter={() => setSelectedImage(image)}
 //                             >
-//                                 <img
-//                                     src={image}
-//                                     alt={`Thumb${index + 1}`}
-//                                     className="w-20 h-auto"
-//                                 />
+//                                 <img src={image} alt={`Thumb${index + 1}`} className="w-20 h-auto" />
 //                             </div>
 //                         ))}
 //                     </div>
 //                 </div>
 
-//                 {/* RIGHT COLUMN: Product Info */}
 //                 <div>
-//                     {/* Title & Rating */}
-//                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
-//                         {name}
-//                     </h1>
+//                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{name}</h1>
 //                     <div className="flex items-center space-x-2 mt-2">
 //                         <div className="text-yellow-500 text-lg">★★★★☆</div>
 //                         <span className="text-gray-600 text-sm">4.5/5</span>
 //                     </div>
-
-//                     {/* Price & Discount */}
 //                     <div className="mt-4 flex items-center space-x-2">
 //                         <span className="text-2xl font-semibold">₹ {discountPrice}</span>
 //                         <span className="text-gray-500 line-through">₹ {price}</span>
-//                         <span className="text-red-500 text-sm font-semibold">-{Math.ceil(discountPercentage)}%</span>
+//                         <span className="text-red-500 text-sm font-semibold">
+//                             -{Math.ceil(discountPercentage)}%
+//                         </span>
 //                     </div>
-
-//                     {/* Description */}
-//                     <p className="mt-4 text-gray-700 leading-relaxed">
-//                         {description}
-//                     </p>
-
+//                     <p className="mt-4 text-gray-700 leading-relaxed">{shortDescription}</p>
 //                     <hr className="border-t border-gray-300 my-4" />
-
-//                     {/* Select Colors */}
-//                     {/* <div className="mt-6">
-//                         <h3 className="font-semibold text-gray-800">Select Colors</h3>
-//                         <div className="flex space-x-2 mt-2">
-//                             <div className="w-6 h-6 rounded-full bg-green-500 border border-gray-300 cursor-pointer" />
-//                             <div className="w-6 h-6 rounded-full bg-blue-500 border border-gray-300 cursor-pointer" />
-//                             <div className="w-6 h-6 rounded-full bg-red-500 border border-gray-300 cursor-pointer" />
-//                         </div>
-//                     </div>
-
-//                     <hr className="border-t border-gray-300 my-4" /> */}
-
-//                     {/* Choose Size */}
 //                     <div className="mt-6">
 //                         <h3 className="font-semibold text-gray-800">Choose Size</h3>
 //                         <div className="flex space-x-3 mt-2">
-//                             {/* <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-//                                 Small
-//                             </button>
-//                             <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-//                                 Medium
-//                             </button>
-//                             <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-//                                 Large
-//                             </button>
-//                             <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-//                                 X-Large
-//                             </button> */}
-//                             {size.map((siz) => <button className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100">
-//                                 {siz}
-//                             </button>)}
+//                             {size &&
+//                                 size.map((siz, index) => (
+//                                     <button
+//                                         key={index}
+//                                         className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+//                                     >
+//                                         {siz}
+//                                     </button>
+//                                 ))}
 //                         </div>
 //                     </div>
-
 //                     <hr className="border-t border-gray-300 my-4" />
-
-//                     {/* Delivery Info */}
 //                     <div className="mt-6">
 //                         <h3 className="font-semibold text-gray-800">Delivery to</h3>
 //                         <div className="flex items-center space-x-2 mt-2">
@@ -185,8 +106,6 @@
 //                             <span className="text-sm">(3.5)</span>
 //                         </p>
 //                     </div>
-
-//                     {/* Action Buttons */}
 //                     <div className="mt-6 flex space-x-4">
 //                         <button className="border border-black text-black px-8 py-3 text-lg rounded-md hover:bg-black hover:text-white transition-colors">
 //                             Add to Cart
@@ -206,141 +125,154 @@
 
 
 
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import ReactImageMagnify from "react-image-magnify";
 
-function ProductDetail() {
-    const { id } = useParams();
-    const [product, setProduct] = useState(null);
-    const [selectedImage, setSelectedImage] = useState(null);
+function ProductDetail({ product }) {
+
+    const [selectedColorIndex, setSelectedColorIndex] = useState(0);
+
+    const [selectedImage, setSelectedImage] = useState("");
+
 
     useEffect(() => {
-        const fetchProduct = async () => {
-            try {
-                console.log("Starting to fetch");
-                const response = await axios.get(`http://localhost:3333/user/product/${id}`);
 
-                if (response.data && response.data.product) {
-                    const fetchedProduct = response.data.product;
-                    setProduct(fetchedProduct);
+        if (product.colors && product.colors.length > 0) {
 
-                    if (fetchedProduct.imageUrls && fetchedProduct.imageUrls.length > 0) {
-                        setSelectedImage(fetchedProduct.imageUrls[0]);
-                    }
-                }
-            } catch (err) {
-                console.error("Error fetching product:", err);
-            }
-        };
+            const firstImage = product.colors[selectedColorIndex].images[0];
 
-        fetchProduct();
-    }, [id]);
+            setSelectedImage(firstImage);
+        }
+    }, [product, selectedColorIndex]);
 
-    // Log product only when it changes
-    useEffect(() => {
-        console.log("Product state updated:", product);
-    }, [product]);
 
-    // Render a loading state if product data is not yet available
-    if (!product) {
-        return <div>Loading...</div>;
-    }
+    const selectedColor =
+        product.colors && product.colors.length > 0
+            ? product.colors[selectedColorIndex]
+            : null;
 
-    // Destructure the product details safely
-    const {
-        sku,
-        name,
-        shortDescription,
-        description,
-        brand,
-        category,
-        subCategory,
-        price,
-        discountPrice,
-        discountPercentage,
-        material,
-        careInstructions,
-        gender,
-        variants,
-        totalStock: totalStockNumber,
-        imageUrls,
-        imagePublicIds,
-        color,
-        size,
-        createdAt,
-        dressStyle,
-    } = product;
+
+    const availableSizes =
+        selectedColor && selectedColor.variants
+            ? Object.values(selectedColor.variants)
+                .filter((variant) => parseInt(variant.stock, 10) > 0)
+                .map((variant) => variant.size)
+            : [];
+
+    console.log("product", product);
+
 
     return (
+
         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
-            {/* Main container: 2 columns on medium+ screens */}
+            {/* Product Title */}
+
+
+
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+
                 {/* LEFT COLUMN: Main image + thumbnails */}
                 <div className="flex flex-col items-center">
-                    {/* Main Image Container */}
+                    {/* Main Image Container with zoom */}
                     <div className="relative w-full h-135 bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center">
-                        <img
-                            src={selectedImage}
-                            alt="Main Product"
-                            className="w-full h-full object-cover"
+                        <ReactImageMagnify
+                            {...{
+                                smallImage: {
+                                    alt: "Product image",
+                                    isFluidWidth: true,
+                                    src: selectedImage,
+                                },
+                                largeImage: {
+                                    src: selectedImage,
+                                    width: 1400,
+                                    height: 1400,
+                                },
+                                enlargedImagePortalId: "zoom-portal",
+                                enlargedImagePosition: "beside",
+                                enlargedImageContainerDimensions: { width: "150%", height: "100%" },
+                            }}
                         />
                     </div>
 
-                    {/* Thumbnails */}
+
+
+                    {/* Thumbnails for selected color */}
                     <div className="flex space-x-4 mt-4">
-                        {imageUrls.map((image, index) => (
-                            <div
-                                key={index}
-                                className={`border ${selectedImage === image ? "border-black" : "border-gray-300"} rounded p-1 cursor-pointer`}
-                                onMouseEnter={() => setSelectedImage(image)}
-                            >
-                                <img
-                                    src={image}
-                                    alt={`Thumb${index + 1}`}
-                                    className="w-20 h-auto"
-                                />
-                            </div>
-                        ))}
+                        {selectedColor &&
+                            selectedColor.images.map((image, index) => (
+                                <div
+                                    key={index}
+                                    className={`border ${selectedImage === image ? "border-black" : "border-gray-300"
+                                        } rounded p-1 cursor-pointer`}
+                                    onMouseEnter={() => setSelectedImage(image)}
+                                >
+                                    <img src={image} alt={`Thumb${index + 1}`} className="w-20 h-auto" />
+                                </div>
+                            ))}
                     </div>
                 </div>
 
                 {/* RIGHT COLUMN: Product Info */}
                 <div>
-                    {/* Title & Rating */}
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{name}</h1>
+                    {/* Rating - Static or computed elsewhere */}
+                    <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{product.name}</h1>
                     <div className="flex items-center space-x-2 mt-2">
                         <div className="text-yellow-500 text-lg">★★★★☆</div>
                         <span className="text-gray-600 text-sm">4.5/5</span>
                     </div>
 
-                    {/* Price & Discount */}
-                    <div className="mt-4 flex items-center space-x-2">
-                        <span className="text-2xl font-semibold">₹ {discountPrice}</span>
-                        <span className="text-gray-500 line-through">₹ {price}</span>
-                        <span className="text-red-500 text-sm font-semibold">
-                            -{Math.ceil(discountPercentage)}%
-                        </span>
-                    </div>
+                    {/* Pricing from selected color variant */}
+                    {selectedColor && (
+                        <div className="mt-4 flex items-center space-x-2">
+                            <span className="text-2xl font-semibold">₹ {selectedColor.discountPrice}</span>
+                            <span className="text-gray-500 line-through">₹ {selectedColor.basePrice}</span>
+                            <span className="text-red-500 text-sm font-semibold">
+                                -{Math.ceil(selectedColor.discountPercentage)}%
+                            </span>
+                        </div>
+                    )}
 
-                    {/* Description */}
-                    <p className="mt-4 text-gray-700 leading-relaxed">{description}</p>
+                    {/* Short Description */}
+                    <p className="mt-4 text-gray-700 leading-relaxed">{product.shortDescription}</p>
 
                     <hr className="border-t border-gray-300 my-4" />
 
-                    {/* Choose Size */}
+                    {/* Color Selection */}
+                    {product.colors && product.colors.length > 1 && (
+                        <div className="flex items-center space-x-4 my-4">
+                            <h3 className="font-semibold text-gray-800">Choose Color</h3>
+
+                            {product.colors.map((col, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => setSelectedColorIndex(index)}
+                                    className={`px-4 py-2 border rounded ${index === selectedColorIndex ? "border-black" : "border-gray-300"
+                                        }`}
+                                >
+                                    {col.color}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                    <hr className="border-t border-gray-300 my-4" />
+
+                    {/* Size Selection (based on available sizes for the selected color) */}
                     <div className="mt-6">
                         <h3 className="font-semibold text-gray-800">Choose Size</h3>
                         <div className="flex space-x-3 mt-2">
-                            {size &&
-                                size.map((siz, index) => (
+                            {availableSizes.length > 0 ? (
+                                availableSizes.map((siz, index) => (
                                     <button
                                         key={index}
                                         className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
                                     >
                                         {siz}
                                     </button>
-                                ))}
+                                ))
+                            ) : (
+                                <p className="text-gray-600">Out of stock</p>
+                            )}
                         </div>
                     </div>
 
@@ -377,6 +309,8 @@ function ProductDetail() {
                     </div>
                 </div>
             </div>
+
+
         </div>
     );
 }
