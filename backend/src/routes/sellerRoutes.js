@@ -12,6 +12,5 @@ const upload = multer({ dest: "uploads/" });
 
 
 router.post("/add-products", upload.any(), addProduct);
-// router.post("/add-products", addProduct)
 
 export default router;

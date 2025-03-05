@@ -37,9 +37,7 @@ function ProductDetailsPage() {
 
     }, [id]);
 
-    // useEffect(() => {
-    //     console.log("Product state updated:", product);
-    // }, [product]);
+
 
     if (!product) {
         return <div>Loading...</div>;

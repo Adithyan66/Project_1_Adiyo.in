@@ -6,6 +6,7 @@ import connectDB from "./config/db.js";
 
 import userRouter from "./routes/userRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js"
 
 
 
@@ -30,6 +31,7 @@ app.use(
 
 connectDB();
 
+app.use("/admin", adminRoutes)
 app.use("/seller", sellerRoutes)
 app.use("/user", userRouter);
 

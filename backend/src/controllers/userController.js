@@ -8,6 +8,7 @@ import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
 
 import { OAuth2Client } from 'google-auth-library';
+import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
 
 
 import User from "../models/userModel.js";
@@ -17,6 +18,7 @@ import Review from "../models/reviewModel.js";
 
 
 const signUp = async (req, res) => {
+
     try {
         const { username, email, password, role } = req.body;
 
@@ -33,24 +35,37 @@ const signUp = async (req, res) => {
             return res.status(400).json({ success: false, message: "User already exists" });
         }
 
+        const userId = await generateUniqueUserId(role)
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const user = await User.create({
             username,
             email,
+            userId,
             password: hashedPassword,
             role: role || "customer",
         });
 
-        console.log("Created:", user);
+        const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
+
+        res.cookie("jwt", token, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "Lax",
+            maxAge: 30 * 24 * 60 * 60 * 1000,
+        });
+
 
         res.status(201).json({
             success: true,
-            message: "User created successfully, please sign in",
+            message: "User created successfull",
+            token: token,
+            role: user.role,
             user: {
                 _id: user._id,
-                name: user.username,
+                username: user.username,
                 email: user.email,
                 role: user.role,
             },
@@ -302,92 +317,6 @@ const googleLogin = async (req, res) => {
 };
 
 
-
-
-// const productList = async (req, res) => {
-
-
-//     try {
-//         const query = { isBlocked: false, isListed: true };
-
-//         if (req.query.search) {
-//             query.name = { $regex: req.query.search, $options: "i" };
-//         }
-
-//         if (req.query.category) {
-//             query.category = req.query.category;
-//         }
-
-//         if (req.query.minPrice || req.query.maxPrice) {
-//             query.discountPrice = {};
-//             if (req.query.minPrice) {
-//                 query.discountPrice.$gte = Number(req.query.minPrice);
-//             }
-//             if (req.query.maxPrice) {
-//                 query.discountPrice.$lte = Number(req.query.maxPrice);
-//             }
-//         }
-
-//         if (req.query.color) {
-//             const colors = req.query.color.split(",");
-//             query.color = { $in: colors };
-//         }
-
-//         if (req.query.size) {
-//             const sizes = req.query.size.split(",");
-//             query.size = { $in: sizes };
-//         }
-
-//         if (req.query.dressStyle) {
-//             query.dressStyle = req.query.dressStyle;
-//         }
-
-//         let sortCriteria = {};
-//         switch (req.query.sort) {
-//             case "price_low_high":
-//                 sortCriteria.price = 1;
-//                 break;
-//             case "price_high_low":
-//                 sortCriteria.price = -1;
-//                 break;
-//             case "name_a_z":
-//                 sortCriteria.name = 1;
-//                 break;
-//             case "name_z_a":
-//                 sortCriteria.name = -1;
-//                 break;
-//             default:
-//                 break;
-//         }
-
-//         const page = parseInt(req.query.page, 10) || 1;
-//         const limit = parseInt(req.query.limit, 10) || 10;
-//         const skip = (page - 1) * limit;
-
-//         const products = await Product.find(query)
-//             .sort(sortCriteria)
-//             .skip(skip)
-//             .limit(limit);
-
-//         const totalProducts = await Product.countDocuments(query);
-
-//         res.status(200).json({
-//             status: true,
-//             message: "fetched succesfully",
-//             page,
-//             totalPages: Math.ceil(totalProducts / limit),
-//             totalProducts,
-//             products,
-//         });
-
-//     } catch (error) {
-//         res.status(500).json({
-//             status: false,
-//             message: "Server error"
-//         });
-//     }
-
-//}
 
 
 const productList = async (req, res) => {

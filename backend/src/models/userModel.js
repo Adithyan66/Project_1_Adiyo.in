@@ -1,23 +1,63 @@
+
+// const userSchema = new mongoose.Schema({
+//     username: {
+//         type: String,
+//         required: true
+//     },
+//     email: {
+//         type: String,
+//         required: true
+//     },
+//     password: {
+//         type: String,
+//     },
+//     role: {
+//         type: String,
+//         enum: ["admin", "customer", "seller", "delivery"],
+//         default: "customer",
+//     },
+//     resetPasswordOTP: {
+//         type: String,
+//     },
+//     resetPasswordExpires: {
+//         type: Date,
+//     },
+//     resetPasswordToken: {
+//         type: String
+//     },
+//     googleId: {
+//         type: String
+//     }
+// })
+
+// const User = mongoose.model("User", userSchema);
+
+// export default User;
+
+
+
+
+
 import mongoose from "mongoose"
 
 const userSchema = new mongoose.Schema({
+
+    userId: {
+        type: String,
+        unique: true,
+    },
     username: {
         type: String,
-        required: true
+        required: true,
     },
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true
     },
     password: {
         type: String,
-    },
-    role: {
-        type: String,
-        enum: ["admin", "customer", "seller", "delivery"],
-        default: "customer",
-    },
-    resetPasswordOTP: {
+    }, resetPasswordOTP: {
         type: String,
     },
     resetPasswordExpires: {
@@ -28,40 +68,37 @@ const userSchema = new mongoose.Schema({
     },
     googleId: {
         type: String
-    }
-})
+    },
+    address: String,
+    phone: String,
+    status: {
+        type: String,
+        enum: ['Active', 'Blocked'],
+        default: 'Active',
+    },
+    role: {
+        type: String,
+        enum: ["admin", "customer", "seller", "delivery"],
+        default: 'customer',
+    },
+    registrationDate: {
+        type: Date,
+        default: Date.now,
+    },
+    avatar: String,
+    lastTransaction: Date,
+    lastOnline: Date,
+    products: {
+        type: Number,
+        default: 0,
+    },
+    sales: {
+        type: Number,
+        default: 0.0,
+    },
+});
 
 const User = mongoose.model("User", userSchema);
 
 export default User;
 
-
-
-
-
-// const mongoose = require("mongoose");
-
-// const UserSchema = new mongoose.Schema({
-//   name: { type: String, required: true },
-//   email: { type: String, required: true, unique: true },
-//   phone: { type: String, unique: true },
-//   password: { type: String, required: true },
-//   address: [
-//     {
-//       type: { type: String, enum: ["billing", "shipping"], required: true },
-//       street: String,
-//       city: String,
-//       state: String,
-//       zip: String,
-//       country: String,
-//     }
-//   ],
-//   role: { type: String, enum: ["user", "admin"], default: "user" },
-//   status: { type: String, enum: ["active", "inactive", "banned"], default: "active" },
-//   cart: [{ productId: mongoose.Schema.Types.ObjectId, quantity: Number }],
-//   wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-//   orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }],
-//   lastLogin: { type: Date },
-// }, { timestamps: true });
-
-// module.exports = mongoose.model("User", UserSchema);
