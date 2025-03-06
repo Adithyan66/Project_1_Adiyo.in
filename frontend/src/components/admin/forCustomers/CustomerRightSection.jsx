@@ -7,19 +7,9 @@ import lastonline from "../../../assets/images/lastonline.png";
 import LastTransaction from "../../../assets/images/Last Transaction.png";
 
 
-export default function CustomerDetails() {
-    // Example customer data
-    const customer = {
-        name: "Adithyan Binu",
-        id: "ID-07221",
-        status: "Active",
-        avatar: "https://assets.gqindia.com/photos/653a68cf4233545fe8acb9b4/4:3/w_1440,h_1080,c_limit/Movies-turned-down-by-Leo-star-Vijay.jpg",
-        email: "joyalkurikose7@gmail.com",
-        address: "Thekkathasammoottil, Kizhathade, Karcha, India, 673571",
-        phone: "+91 7026660287",
-        lastTransaction: "07 Dec 2023",
-        lastonline: "07 Dec 2023",
-    };
+export default function CustomerRightSection({ customer }) {
+
+
 
     // Example stats
     const totalOrders = 2400;
@@ -29,6 +19,111 @@ export default function CustomerDetails() {
 
     // Example transactions (could be longer)
     const transactions = [
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
+        {
+            orderId: "30020",
+            product: "t shirt",
+            amount: 321,
+            status: "Processing",
+            date: "12 Dec 2023",
+        },
         {
             orderId: "30020",
             product: "t shirt",
@@ -63,8 +158,20 @@ export default function CustomerDetails() {
         setCurrentTxPage(1); // Reset to first page
     };
 
+    const date = new Date(customer.registrationDate);
+    const formattedDate = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+    });
+    console.log(formattedDate); // Output: "March 5, 2025"
+
+    console.log("customer dataq", customer);
+
+
+
     return (
-        <div className="p-4 md:p-6 bg-gray-50 ">
+        <div className="p-4 md:p-6 bg-gray-50  w-full min-h-[850px] ">
             {/* Top bar: "Customer Details" + "Block" button */}
             <div className="flex items-center justify-between mb-6">
                 <h1 className="text-2xl font-bold">Customer Details</h1>
@@ -79,11 +186,11 @@ export default function CustomerDetails() {
                     {/* Black header + profile picture */}
                     <div className="relative">
                         {/* Black rectangle at the top */}
-                        <div className="h-20 bg-black rounded-t"></div>
+                        <div className="h-40 bg-black rounded-t"></div>
                         {/* Circular frame for the avatar, overlapping the black area */}
-                        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-20 h-20 rounded-full overflow-hidden border-4 border-white">
+                        <div className="absolute top-10 left-1/2 transform -translate-x-1/2 w-40 h-40 rounded-full overflow-hidden border-4 border-white">
                             <img
-                                src={customer.avatar}
+                                src="https://m.media-amazon.com/images/I/71Zg6RRQzsL._SY741_.jpg"
                                 alt="Profile"
                                 className="w-full h-full object-cover"
                             />
@@ -92,7 +199,7 @@ export default function CustomerDetails() {
 
                     {/* Card content below the black header */}
                     <div className="px-4 pt-12 pb-4 text-center">
-                        <h2 className="text-lg font-medium">{customer.name}</h2>
+                        <h2 className="text-lg font-medium">{customer.username}</h2>
                         <span
                             className={`inline-block mt-1 text-sm px-2 py-1 rounded-full ${customer.status === "Active"
                                 ? "bg-green-100 text-green-700"
@@ -112,8 +219,8 @@ export default function CustomerDetails() {
                                     className="h-8 w-8 mt-1"
                                 />
                                 <div className="ml-4">
-                                    <p className="font-semibold">Customer ID:</p>
-                                    <p>{customer.id}</p>
+                                    <p className="font-semibold ">Customer ID:</p>
+                                    <p className="text-gray-700   ml-2">{customer.userId}</p>
                                 </div>
                             </div>
 
@@ -126,7 +233,7 @@ export default function CustomerDetails() {
                                 />
                                 <div className="ml-4">
                                     <p className="font-semibold">Email:</p>
-                                    <p>{customer.email}</p>
+                                    <p className="text-gray-700   ml-2">{customer.email}</p>
                                 </div>
                             </div>
 
@@ -139,7 +246,7 @@ export default function CustomerDetails() {
                                 />
                                 <div className="ml-4">
                                     <p className="font-semibold">Address:</p>
-                                    <p>{customer.address}</p>
+                                    <p className="text-gray-700   ml-2">{customer.address}</p>
                                 </div>
                             </div>
 
@@ -157,6 +264,17 @@ export default function CustomerDetails() {
                             </div>
 
                             {/* Last Transaction */}
+                            <div className="flex">
+                                <img
+                                    src={LastTransaction}
+                                    alt="Transaction icon"
+                                    className="h-8 w-8 mt-1"
+                                />
+                                <div className="ml-4">
+                                    <p className="font-semibold">Registration Date:</p>
+                                    <p>{formattedDate}</p>
+                                </div>
+                            </div>
                             <div className="flex">
                                 <img
                                     src={LastTransaction}

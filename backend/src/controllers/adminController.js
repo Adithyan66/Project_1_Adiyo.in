@@ -3,13 +3,12 @@ import User from "../models/userModel.js";
 
 
 
-const customersList = async (req, res) => {
+export const customersList = async (req, res) => {
 
     try {
 
         const customers = await User.find({ role: "customer" })
 
-        console.log("customers ", customers);
 
 
         res.status(200).json({
@@ -27,4 +26,26 @@ const customersList = async (req, res) => {
     }
 }
 
-export { customersList }
+
+export const customerDetails = async (req, res) => {
+
+    try {
+
+        const id = req.params.customerId
+
+        const customer = await User.findById(id)
+
+        res.status(200).json({
+            status: true,
+            message: "customer details fetched succesfully",
+            customer
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: "server error"
+        })
+
+    }
+}

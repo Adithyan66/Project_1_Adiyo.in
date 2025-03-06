@@ -6,16 +6,10 @@ import { useNavigate } from 'react-router-dom';
 
 import Sellers from './dashboard/Sellers';
 import Customers from './dashboard/Customers';
-import CustomerDetails from './dashboard/CustomerDetails';
+import CustomerDetails from './forCustomers/CustomerRightSection';
 
 
 import { logout } from '../../store/slices/userSlice';
-
-
-
-
-
-
 
 
 const AdminPanel = () => {

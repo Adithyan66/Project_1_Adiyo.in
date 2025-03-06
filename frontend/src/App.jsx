@@ -20,18 +20,8 @@ import ProductDetailsPage from "./pages/customer/ProductDetailsPage";
 import ProductsListPage from "./pages/customer/ProductsListPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
-
-
-
-
-
-
-
-
-
-
-
-
+import CustomerMoreDetailPage from './pages/admin/CustomerMoreDetailPage';
+import CustomerDetailsPage from './components/admin/forCustomers/CustomerDetails';
 
 
 
@@ -89,6 +79,25 @@ function App() {
               <AdminDashboardPage />
             </AdminProtected>
           } />
+
+
+        <Route path="/admin/:id/customer-details/"
+          element={
+            <AdminProtected>
+              <CustomerMoreDetailPage />
+            </AdminProtected>
+          } />
+
+
+        <Route path="/admin/customers/"
+          element={
+            <AdminProtected>
+              <CustomerDetailsPage />
+            </AdminProtected>
+          } />
+
+
+
 
         <Route path="/seller"
           element={

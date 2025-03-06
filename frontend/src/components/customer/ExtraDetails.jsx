@@ -175,13 +175,13 @@ const RatingAndReviews = ({ product }) => {
                     <div key={idx} className="bg-white border border-gray-200 rounded p-4 shadow-sm">
                         {/* Reviewer Name and Rating */}
                         <div className="flex items-center justify-between mb-2">
-                            <h3 className="font-semibold text-gray-800">{review.userId.username}</h3>
-                            <div className="flex space-x-1">{renderStars(review.rating)}</div>
+                            <h3 className="font-semibold text-gray-800">{review?.userId?.username}</h3>
+                            <div className="flex space-x-1">{renderStars(review?.rating)}</div>
                         </div>
                         {/* Review Content */}
                         <p className="text-sm text-gray-600 mb-4">{review.comment}</p>
                         {/* Date */}
-                        <p className="text-xs text-gray-400">Posted on {formatDate(review.createdAt)}</p>
+                        <p className="text-xs text-gray-400">Posted on {formatDate(review?.createdAt)}</p>
                     </div>
                 ))}
             </div>

@@ -321,25 +321,21 @@ const googleLogin = async (req, res) => {
 
 const productList = async (req, res) => {
     try {
-        // Build a base match object for top-level fields.
-        const match = {};  // Use an empty object if you don't want to filter by isBlocked/isListed
+        const match = {};
 
-        // Search by name
         if (req.query.search) {
             match.name = { $regex: req.query.search, $options: "i" };
         }
 
-        // Filter by category and subCategory
         if (req.query.category) {
             match.category = req.query.category;
         }
-        if (req.query.subCategory) {
-            match.subCategory = req.query.subCategory;
+        if (req.query.dressStyle) {
+
+            match.subCategory = req.query.dressStyle;
         }
 
-        // --- Nested filtering on colors array ---
 
-        // Price filter on discountPrice (nested in colors)
         if (req.query.minPrice || req.query.maxPrice) {
             const priceFilter = {};
             if (req.query.minPrice) {
@@ -348,11 +344,9 @@ const productList = async (req, res) => {
             if (req.query.maxPrice) {
                 priceFilter.$lte = Number(req.query.maxPrice);
             }
-            // Match if at least one color has a discountPrice in range.
             match.colors = { $elemMatch: { discountPrice: priceFilter } };
         }
 
-        // Color filter: if provided, match if any color variant has a matching color.
         if (req.query.color) {
             const colorsArray = req.query.color.split(",");
             if (match.colors) {
@@ -365,17 +359,20 @@ const productList = async (req, res) => {
             }
         }
 
-        // Size filter: check if any color variant has one of the sizes.
         if (req.query.size) {
+
             const sizesArray = req.query.size.split(",");
+            console.log(sizesArray);
+
             const sizeCondition = {
                 $or: [
                     { "variants.small.size": { $in: sizesArray } },
                     { "variants.medium.size": { $in: sizesArray } },
                     { "variants.large.size": { $in: sizesArray } },
                     { "variants.extraLarge.size": { $in: sizesArray } }
-                ],
+                ]
             };
+
             if (match.colors) {
                 match.colors.$elemMatch = {
                     ...match.colors.$elemMatch,
@@ -385,6 +382,43 @@ const productList = async (req, res) => {
                 match.colors = { $elemMatch: sizeCondition };
             }
         }
+
+        // if (req.query.size) {
+        //     const sizesArray = req.query.size.split(",");
+        //     console.log(sizesArray);
+
+        //     // Use relative paths here because we're inside the colors array element
+        //     const sizeCondition = {
+        //         $or: [
+        //             { "variants.small.size": { $in: sizesArray } },
+        //             { "variants.medium.size": { $in: sizesArray } },
+        //             { "variants.large.size": { $in: sizesArray } },
+        //             { "variants.extraLarge.size": { $in: sizesArray } }
+        //         ]
+        //     };
+
+        //     if (match.colors && match.colors.$elemMatch) {
+        //         // Combine existing conditions with the new size condition explicitly using $and
+        //         match.colors.$elemMatch = {
+        //             $and: [
+        //                 match.colors.$elemMatch,
+        //                 sizeCondition
+        //             ]
+        //         };
+        //     } else {
+        //         match.colors = { $elemMatch: sizeCondition };
+        //     }
+        //     const testMatch = {
+        //         colors: { $elemMatch: sizeCondition }
+        //     };
+        //     const results = await Product.find(testMatch);
+        //     console.log("testing", results);
+
+
+        // }
+
+
+
 
         // --- Build Aggregation Pipeline ---
         const pipeline = [

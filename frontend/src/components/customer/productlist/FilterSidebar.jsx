@@ -35,7 +35,7 @@ function FilterSidebar({
         "Olive",
         "Teal"
     ];
-    const availableSizes = ["S", "M", "L", "XL"];
+    const availableSizes = ["Small", "Medium", "Large", "Extra Large"];
     const availableStyles = ["All", "Casual", "Formal"];
 
     // Toggle color checkboxes
@@ -155,9 +155,9 @@ function FilterSidebar({
 
             {/* Dress Style */}
             <div className="mb-4">
-                <h3 className="font-semibold mb-2">Dress Style</h3>
+                <h3 className="font-semibold mb-2">Dress Catagory</h3>
                 <div className="flex flex-col gap-2">
-                    {["Casual", "Formal", "Party", "Gym"].map((style) => {
+                    {["Shirt", "Pant", "Kurtha", "Jogger", "Coat", "T-Shirt", "Shorts", "Track Pants"].map((style) => {
                         const isSelected = selectedStyle === style;
                         return (
                             <button
