@@ -61,7 +61,11 @@ function OtpVerification({ email, onVerified, setResetToken }) {
 
             if (response.data.success) {
 
-                setResetToken(response.data.resetToken);
+                if (response.data.resetToken) {
+
+                    setResetToken(response.data.resetToken);
+                }
+
                 toast.success("OTP verified ")
                 onVerified();
 
@@ -120,3 +124,8 @@ function OtpVerification({ email, onVerified, setResetToken }) {
 }
 
 export default OtpVerification;
+
+
+
+
+

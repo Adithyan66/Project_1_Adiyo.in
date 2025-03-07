@@ -20,9 +20,6 @@ const transporter = nodemailer.createTransport({
 });
 
 
-
-
-
 transporter.verify((error, success) => {
     if (error) {
         console.error("Error connecting to SMTP server:", error);
@@ -40,7 +37,7 @@ const sendOTPEmail = async (email, otp) => {
         from: "adithyanbinu666@gmail.com",
         to: email,
         subject: 'Password Reset OTP',
-        text: `Your OTP is: ${otp}. It will expire in 15 minutes.`,
+        text: `Your OTP is: ${otp}. It will expire in 10 minutes.`,
     };
     await transporter.sendMail(mailOptions);
 };

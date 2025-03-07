@@ -14,6 +14,7 @@ import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js"
 import Review from "../models/reviewModel.js";
+import Otp from "../models/otpModel.js";
 
 
 
@@ -88,8 +89,14 @@ const login = async (req, res) => {
     }
     try {
         const user = await User.findOne({ email });
+        console.log(user);
+
         if (!user) {
             return res.status(400).json({ success: false, message: "User not found" });
+        }
+
+        if (!user.isActive) {
+            return res.status(400).json({ success: false, message: "User is blocked" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
@@ -127,43 +134,35 @@ const login = async (req, res) => {
     }
 };
 
-
-
 const forgotPassword = async (req, res) => {
-
 
     const { email } = req.body;
 
-
-
-
     try {
+
         const user = await User.findOne({ email });
 
-
-        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user) return res.status(404).json({
+            status: false,
+            message: 'User not found'
+        });
 
         const otp = generateOTP();
 
+        const otpRecord = new Otp({
+            email,
+            otp,
+        });
 
-
-        user.resetPasswordOTP = otp;
-        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
-        await user.save();
-
-
-        console.log("user data is ", user);
+        await otpRecord.save();
 
         await sendOTPEmail(email, otp);
 
         res.json({
-            otp,
             status: true,
             message: 'OTP sent to your email.'
         });
-
     } catch (error) {
-
         console.error(error);
         res.status(500).json({
             status: false,
@@ -173,45 +172,105 @@ const forgotPassword = async (req, res) => {
 };
 
 
+export const signupOTP = async (req, res) => {
 
+    const { email } = req.body;
+
+    try {
+
+        const user = await User.findOne({ email });
+
+        if (user) return res.status(404).json({
+            status: false,
+            message: 'email already exixt'
+        });
+
+        const otp = generateOTP();
+
+        const otpRecord = new Otp({
+            email,
+            otp,
+        });
+
+        await otpRecord.save();
+
+        await sendOTPEmail(email, otp);
+
+        res.json({
+            status: true,
+            message: 'OTP sent to your email.'
+        });
+
+
+    } catch (error) {
+
+        console.error(error);
+        res.status(500).json({
+            status: false,
+            message: 'Server error'
+        });
+
+    }
+}
 
 const validateOTP = async (req, res) => {
-
-    console.log("validate otp reached");
-
-
     const { email, otp } = req.body;
     try {
-        const user = await User.findOne({ email });
-        if (!user)
-            return res.status(404).json({ message: 'User not found' });
 
-        // Validate OTP and its expiration
-        if (
-            user.resetPasswordOTP !== otp ||
-            user.resetPasswordExpires < Date.now()
-        ) {
-            return res
-                .status(400)
-                .json({ message: 'Invalid or expired OTP' });
+        const otpRecord = await Otp.findOne({ email });
+        if (!otpRecord) {
+            return res.status(404).json({ message: 'Email not found or OTP expired' });
         }
 
 
-        const resetToken = generateResetToken();
-        user.resetPasswordToken = resetToken;
-        await user.save();
+        if (otpRecord.otp !== otp) {
+            return res.status(400).json({ message: 'Invalid OTP' });
+        }
+
+
+        const expirationTime = 10 * 60 * 1000;
+        if (Date.now() - otpRecord.createdAt.getTime() > expirationTime) {
+            return res.status(400).json({ message: 'OTP expired' });
+        }
+
+
+        const user = await User.findOne({ email });
+        if (user) {
+            const resetToken = generateResetToken();
+            user.resetPasswordToken = resetToken;
+            await user.save();
+
+
+            await otpRecord.deleteOne();
+
+            return res.json({
+                success: true,
+                message: 'OTP validated successfully',
+                resetToken,
+            });
+        }
+
+        // if (!user) {
+        //     return res.status(404).json({ message: 'User not found' });
+        // }
+        // user.resetPasswordToken = resetToken;
+        //await user.save();
+
+
+
+        await otpRecord.deleteOne();
+
 
         res.json({
             success: true,
-            message: 'OTP validated successfully. Use the reset token to update your password.',
-            resetToken,
+            message: 'OTP validated successfully',
         });
+
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
     }
 };
-
 
 
 
@@ -285,6 +344,14 @@ const googleLogin = async (req, res) => {
 
         user = await User.findOne({ email });
 
+        if (!user.isActive) {
+            return res.status(400).json({
+                success: false,
+                message: 'User is Blocked'
+            });
+
+        }
+
 
 
         const jwtToken = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
@@ -319,6 +386,7 @@ const googleLogin = async (req, res) => {
 
 
 
+
 const productList = async (req, res) => {
     try {
         const match = {};
@@ -331,10 +399,8 @@ const productList = async (req, res) => {
             match.category = req.query.category;
         }
         if (req.query.dressStyle) {
-
             match.subCategory = req.query.dressStyle;
         }
-
 
         if (req.query.minPrice || req.query.maxPrice) {
             const priceFilter = {};
@@ -360,7 +426,6 @@ const productList = async (req, res) => {
         }
 
         if (req.query.size) {
-
             const sizesArray = req.query.size.split(",");
             console.log(sizesArray);
 
@@ -383,53 +448,54 @@ const productList = async (req, res) => {
             }
         }
 
-        // if (req.query.size) {
-        //     const sizesArray = req.query.size.split(",");
-        //     console.log(sizesArray);
-
-        //     // Use relative paths here because we're inside the colors array element
-        //     const sizeCondition = {
-        //         $or: [
-        //             { "variants.small.size": { $in: sizesArray } },
-        //             { "variants.medium.size": { $in: sizesArray } },
-        //             { "variants.large.size": { $in: sizesArray } },
-        //             { "variants.extraLarge.size": { $in: sizesArray } }
-        //         ]
-        //     };
-
-        //     if (match.colors && match.colors.$elemMatch) {
-        //         // Combine existing conditions with the new size condition explicitly using $and
-        //         match.colors.$elemMatch = {
-        //             $and: [
-        //                 match.colors.$elemMatch,
-        //                 sizeCondition
-        //             ]
-        //         };
-        //     } else {
-        //         match.colors = { $elemMatch: sizeCondition };
-        //     }
-        //     const testMatch = {
-        //         colors: { $elemMatch: sizeCondition }
-        //     };
-        //     const results = await Product.find(testMatch);
-        //     console.log("testing", results);
-
-
-        // }
-
-
-
-
         // --- Build Aggregation Pipeline ---
         const pipeline = [
             { $match: match },
+            // Compute minDiscountPrice based on the original colors array (will be recomputed later)
             {
                 $addFields: {
                     minDiscountPrice: { $min: "$colors.discountPrice" },
                 },
-            },
+            }
         ];
 
+        // If a color filter is provided, project only the matching color variants
+        if (req.query.color) {
+            const colorsArray = req.query.color.split(",");
+            pipeline.push({
+                $project: {
+                    name: 1,
+                    shortDescription: 1,
+                    description: 1,
+                    brand: 1,
+                    category: 1,
+                    subCategory: 1,
+                    sku: 1,
+                    material: 1,
+                    careInstructions: 1,
+                    // Filter colors array to include only those matching the provided colors
+                    colors: {
+                        $filter: {
+                            input: "$colors",
+                            as: "color",
+                            cond: { $in: ["$$color.color", colorsArray] }
+                        }
+                    },
+                    // Pass through any other fields you need
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            });
+
+            // Recompute the price based on the filtered colors array
+            pipeline.push({
+                $addFields: {
+                    minDiscountPrice: { $min: "$colors.discountPrice" },
+                }
+            });
+        }
+
+        // Sorting stage based on query
         let sortStage = {};
         if (req.query.sort) {
             switch (req.query.sort) {
@@ -481,6 +547,7 @@ const productList = async (req, res) => {
 };
 
 
+
 const logout = async (req, res) => {
 
     res.cookie("token", "", { expires: new Date(0), httpOnly: true, path: "/" })
@@ -510,9 +577,18 @@ const profile = async (req, res) => {
         const _id = decoded.userId
         console.log("decoded userId =", _id);
 
-        const user = await User.findOne({ _id })
 
-        console.log("final user", user);
+
+        const user = await User.findOne({ _id })
+        console.log("before check", user);
+
+        if (!user.isActive) {
+            console.log("after check", user);
+            return res.status(401).json({
+                status: false,
+                message: "invalid user"
+            })
+        }
 
         return res.status(200).json({
             status: true,

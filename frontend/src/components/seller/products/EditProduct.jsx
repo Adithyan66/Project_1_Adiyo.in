@@ -1,220 +1,201 @@
 
 
-
-
+import React, { useState, useEffect } from "react";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import ImagePreview from "../../common/ImagePreview";
+import { toast } from "react-toastify";
 
-const AddProduct = () => {
-    // Common Product Fields
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+function EditProduct() {
+    const navigate = useNavigate();
+    const productId = useSelector(
+        (state) => state.sellerSideSelected.editProductID
+    );
+
+    const [loading, setLoading] = useState(true);
+
+    const [sku, setSku] = useState("");
     const [productName, setProductName] = useState("");
     const [shortDescription, setShortDescription] = useState("");
     const [productDescription, setProductDescription] = useState("");
     const [brand, setBrand] = useState("");
-    const [category, setCategory] = useState(""); // e.g., Mens Wear, Boys
-    const [subCategory, setSubCategory] = useState(""); // fixed options below
+    const [category, setCategory] = useState("");
+    const [subCategory, setSubCategory] = useState("");
     const [material, setMaterial] = useState("");
     const [careInstructions, setCareInstructions] = useState([]);
+    const [totalQuantity, setTotalQuantity] = useState(0);
+    const [colors, setColors] = useState([]);
 
-    // SKU state (shown in realtime)
-    const [sku, setSku] = useState("");
-
-    // Colors: Array of variations. Each variation has its own data.
-    const [colors, setColors] = useState([
-        {
-            color: "",
-            // 5 image slots per color variation.
-            images: [null, null, null, null, null],
-            basePrice: "",
-            discountPrice: "",
-            discountPercentage: "",
-            // Variants: added "Extra Large" along with others.
-            variants: {
-                small: { size: "Small", stock: "" },
-                medium: { size: "Medium", stock: "" },
-                large: { size: "Large", stock: "" },
-                extraLarge: { size: "Extra Large", stock: "" },
-            },
-        },
-    ]);
-
-    // Compute SKU on the fly whenever brand or productName changes.
     useEffect(() => {
+        async function fetchProductDetails() {
+            try {
+                const response = await axios.get(
+                    `${API_BASE_URL}/seller/products/${productId}`
+                );
+                const product = response.data.product;
 
-        const generateSku = () => {
-            const brandPart = brand ? brand.replace(/\s+/g, "").toUpperCase() : "BRAND";
-            const productPart =
-                productName
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .toUpperCase() || "PROD";
-            const randomPart = Math.floor(1000 + Math.random() * 9000);
-            return `${brandPart}-${productPart}-${randomPart}`;
-        };
-        setSku(generateSku());
-    }, [brand, productName]);
-
-    // Handle dynamic changes for each color variation.
-    const handleColorChange = (index, field, value) => {
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            newColors[index] = { ...newColors[index], [field]: value };
-            return newColors;
-        });
-    };
-
-    // Handle image change for a specific color and image slot.
-    const handleColorImageChange = (colorIndex, imageIndex, file, event) => {
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            const images = [...newColors[colorIndex].images];
-            images[imageIndex] = file;
-            newColors[colorIndex].images = images;
-            return newColors;
-        });
-        event.target.value = "";
-    };
-
-    // Handle variant (size & stock) changes per color.
-    const handleVariantChange = (colorIndex, variantKey, value) => {
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            newColors[colorIndex].variants[variantKey].stock = value;
-            return newColors;
-        });
-    };
-
-    // Discount logic for each color variation.
-    const handleBasePriceChange = (index, value) => {
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            newColors[index].basePrice = value;
-            // Recalculate discount if discountPrice is set.
-            const base = parseFloat(value);
-            const discountPrice = parseFloat(newColors[index].discountPrice);
-            if (!isNaN(base) && !isNaN(discountPrice) && base > 0) {
-                newColors[index].discountPercentage = (
-                    ((base - discountPrice) / base) *
-                    100
-                ).toFixed(2);
+                // Pre-populate form fields from fetched product details
+                setSku(product.sku || "");
+                setProductName(product.name || "");
+                setShortDescription(product.shortDescription || "");
+                setProductDescription(product.description || "");
+                setBrand(product.brand || "");
+                setCategory(product.category || "");
+                setSubCategory(product.subCategory || "");
+                setMaterial(product.material || "");
+                setCareInstructions(product.careInstructions || []);
+                setTotalQuantity(product.totalQuantity || 0);
+                // Ensure that each color object contains imagePublicIds if available
+                setColors(product.colors || []);
+            } catch (error) {
+                console.error("Error fetching product details:", error);
+            } finally {
+                setLoading(false);
             }
-            return newColors;
-        });
-    };
+        }
 
-    const handleDiscountPriceChange = (index, value) => {
-        // Enforce discountPrice <= 999.
-        if (parseFloat(value) > 999) return;
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            newColors[index].discountPrice = value;
-            const base = parseFloat(newColors[index].basePrice);
-            const discountPrice = parseFloat(value);
-            if (!isNaN(base) && !isNaN(discountPrice) && base > 0) {
-                newColors[index].discountPercentage = (
-                    ((base - discountPrice) / base) *
-                    100
-                ).toFixed(2);
-            }
-            return newColors;
-        });
-    };
+        if (productId) {
+            fetchProductDetails();
+        }
+    }, [productId]);
 
-    // Add a new color variation section.
+    // Functions for handling color variations and dynamic variants
     const addNewColor = () => {
-        setColors((prevColors) => [
-            ...prevColors,
+        setColors([
+            ...colors,
             {
                 color: "",
                 images: [null, null, null, null, null],
                 basePrice: "",
                 discountPrice: "",
                 discountPercentage: "",
-                variants: {
-                    small: { size: "Small", stock: "" },
-                    medium: { size: "Medium", stock: "" },
-                    large: { size: "Large", stock: "" },
-                    extraLarge: { size: "Extra Large", stock: "" },
-                },
+                variants: {},
+                // Optionally, if there are no previous images, imagePublicIds may be empty:
+                imagePublicIds: [],
             },
         ]);
     };
 
-    // Clear a color variation form (reset its fields), but ensure at least one remains.
-    const clearColorVariant = (index) => {
-        if (colors.length === 1) return;
+    const clearColorVariant = (colIndex) => {
+        setColors(colors.filter((_, index) => index !== colIndex));
+    };
+
+    const handleColorChange = (colIndex, key, value) => {
         setColors((prevColors) => {
-            const newColors = [...prevColors];
-            newColors.splice(index, 1);
-            return newColors;
+            const updatedColors = [...prevColors];
+            updatedColors[colIndex] = { ...updatedColors[colIndex], [key]: value };
+            return updatedColors;
         });
     };
 
-    // Calculate total quantity from all color variants across all sizes.
-    const totalQuantity = colors.reduce((total, col) => {
-        const colorStock = Object.values(col.variants).reduce((acc, variant) => {
-            const stockNum = parseInt(variant.stock, 10);
-            return acc + (isNaN(stockNum) ? 0 : stockNum);
-        }, 0);
-        return total + colorStock;
-    }, 0);
+    const handleColorImageChange = (colIndex, imgIndex, file) => {
+        setColors((prevColors) => {
+            const updatedColors = [...prevColors];
+            const currentImages = updatedColors[colIndex].images;
+            currentImages[imgIndex] = file;
+            updatedColors[colIndex] = { ...updatedColors[colIndex], images: currentImages };
+            return updatedColors;
+        });
+    };
+
+    const handleBasePriceChange = (colIndex, value) => {
+        setColors((prevColors) => {
+            const updatedColors = [...prevColors];
+            updatedColors[colIndex] = { ...updatedColors[colIndex], basePrice: value };
+            return updatedColors;
+        });
+    };
+
+    const handleDiscountPriceChange = (colIndex, value) => {
+        setColors((prevColors) => {
+            const updatedColors = [...prevColors];
+            const basePrice = Number(updatedColors[colIndex].basePrice) || 0;
+            const discountPrice = Number(value);
+            const discountPercentage =
+                basePrice > 0 ? Math.round(((basePrice - discountPrice) / basePrice) * 100) : 0;
+            updatedColors[colIndex] = {
+                ...updatedColors[colIndex],
+                discountPrice: value,
+                discountPercentage,
+            };
+            return updatedColors;
+        });
+    };
+
+    const handleVariantChange = (colIndex, variantKey, value) => {
+        setColors((prevColors) => {
+            const updatedColors = [...prevColors];
+            const currentVariants = { ...updatedColors[colIndex].variants };
+            currentVariants[variantKey] = {
+                size: variantKey,
+                stock: Number(value),
+            };
+            updatedColors[colIndex] = { ...updatedColors[colIndex], variants: currentVariants };
+            return updatedColors;
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // Prepare the form data.
         const formData = new FormData();
+
+        // Append simple text fields
+        formData.append("sku", sku);
         formData.append("name", productName);
         formData.append("shortDescription", shortDescription);
         formData.append("description", productDescription);
         formData.append("brand", brand);
         formData.append("category", category);
         formData.append("subCategory", subCategory);
-        formData.append("sku", sku);
         formData.append("material", material);
         formData.append("careInstructions", JSON.stringify(careInstructions));
+        formData.append("totalQuantity", totalQuantity);
 
-        // Process colors data: Calculate totalStock for each color.
-        const colorsData = colors.map((col) => {
-            const totalStock = Object.values(col.variants).reduce((acc, variant) => {
-                const stockNum = parseInt(variant.stock, 10);
-                return acc + (isNaN(stockNum) ? 0 : stockNum);
-            }, 0);
-            return { ...col, totalStock };
+        // Create a new colors array excluding the image file objects
+        // (but keep the existing imagePublicIds, variants, etc.)
+        const colorsForJson = colors.map((color) => {
+            const { images, ...rest } = color;
+            return rest;
         });
-        formData.append("colors", JSON.stringify(colorsData));
+        formData.append("colors", JSON.stringify(colorsForJson));
 
-        // Append images for each color variation.
-        colors.forEach((col, colorIndex) => {
-            col.images.forEach((img, imgIndex) => {
-                if (img) {
-                    // Naming: color0_image0, color0_image1, etc.
-                    formData.append(`color${colorIndex}_image${imgIndex}`, img,
-                        `${Date.now()}_${Math.random().toString(36).substring(2)}_${img.name}`
+        // Append image files separately with a naming convention: color{i}_image
+        colors.forEach((color, i) => {
+            color.images.forEach((imgFile) => {
+                if (imgFile instanceof File) {
+                    formData.append(
+                        `color${i}_image`,
+                        imgFile,
+                        `${Date.now()}_${Math.random().toString(36).substring(2)}_${imgFile.name}`
                     );
                 }
             });
         });
 
+
         try {
-            const response = await axios.post(
-                "http://localhost:3333/seller/add-products",
+
+            const response = await axios.put(
+                `${API_BASE_URL}/seller/edit-product/${productId}`,
                 formData,
-                {
-                    headers: { "Content-Type": "multipart/form-data" },
-                }
+                { headers: { "Content-Type": "multipart/form-data" } }
             );
-            console.log("Product added successfully:", response.data);
+            console.log("Updated product:", response.data.product);
+            toast.success("product updated")
+
         } catch (error) {
-            console.error("Error adding product:", error);
+            console.error("Error updating product:", error);
         }
     };
 
+    if (loading) return <div>Loading...</div>;
+
     return (
         <div className="mx-auto p-6 bg-white rounded shadow max-w-6xl">
-            <h1 className="text-2xl font-bold mb-4">Add Product</h1>
-            {/* Real-time SKU display */}
+            <h1 className="text-2xl font-bold mb-4">Edit Product</h1>
             <div className="mb-4">
                 <label className="block font-medium">SKU (Auto-generated):</label>
                 <input
@@ -297,7 +278,6 @@ const AddProduct = () => {
                             className="w-full border border-gray-300 rounded px-3 py-2"
                         >
                             <option value="">Select a sub category</option>
-                            {/* Extended subcategory options */}
                             <option value="Shirt">Shirt</option>
                             <option value="Pant">Pant</option>
                             <option value="Kurtha">Kurtha</option>
@@ -357,7 +337,6 @@ const AddProduct = () => {
                         </div>
                     </div>
                     <div className="w-1/2 flex flex-col justify-end">
-                        {/* Total Quantity Field (read-only) */}
                         <label className="block font-medium mb-1">Total Quantity</label>
                         <input
                             type="number"
@@ -374,7 +353,6 @@ const AddProduct = () => {
                     {colors.map((col, colIndex) => (
                         <div key={colIndex} className="mb-6 p-4 border rounded relative">
                             <h3 className="font-semibold mb-2">Variation #{colIndex + 1}</h3>
-                            {/* Clear button (if more than one color exists) */}
                             {colors.length > 1 && (
                                 <button
                                     type="button"
@@ -384,10 +362,7 @@ const AddProduct = () => {
                                     Clear
                                 </button>
                             )}
-
-                            {/* Color Selection */}
                             <div className="mb-4">
-
                                 <div className="w-1/2">
                                     <label className="block font-medium mb-1">Color</label>
                                     <select
@@ -418,8 +393,6 @@ const AddProduct = () => {
                                     </select>
                                 </div>
                             </div>
-
-                            {/* Images Upload for this color (5 images) */}
                             <div className="mb-4">
                                 <label className="block font-medium mb-2">Upload 5 Images</label>
                                 <div className="flex flex-wrap gap-4">
@@ -429,11 +402,7 @@ const AddProduct = () => {
                                             className="relative flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded cursor-pointer"
                                         >
                                             {imgFile ? (
-                                                <img
-                                                    src={URL.createObjectURL(imgFile)}
-                                                    alt="Preview"
-                                                    className="object-cover w-full h-full rounded"
-                                                />
+                                                <ImagePreview file={imgFile} />
                                             ) : (
                                                 <span className="text-gray-400 text-sm">Add Image</span>
                                             )}
@@ -446,8 +415,7 @@ const AddProduct = () => {
                                                         handleColorImageChange(
                                                             colIndex,
                                                             imgIndex,
-                                                            e.target.files[0],
-                                                            e
+                                                            e.target.files[0]
                                                         );
                                                     }
                                                 }}
@@ -456,8 +424,6 @@ const AddProduct = () => {
                                     ))}
                                 </div>
                             </div>
-
-                            {/* Pricing for this color */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                                 <div>
                                     <label className="block font-medium mb-1">Base Price</label>
@@ -498,28 +464,31 @@ const AddProduct = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* Variants for this color */}
                             <div>
                                 <label className="block font-medium mb-1">
                                     Variants (Size & Stock)
                                 </label>
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                    {Object.entries(col.variants).map(([key, variant]) => (
-                                        <div key={key}>
-                                            <p className="text-sm mb-1">{variant.size}</p>
-                                            <input
-                                                type="number"
-                                                value={variant.stock}
-                                                onChange={(e) =>
-                                                    handleVariantChange(colIndex, key, e.target.value)
-                                                }
-                                                placeholder="Stock"
-                                                min="0"
-                                                className="w-full border border-gray-300 rounded px-2 py-1"
-                                            />
-                                        </div>
-                                    ))}
+                                    {col.variants &&
+                                        Object.entries(col.variants).map(([key, variant]) => (
+                                            <div key={key}>
+                                                <p className="text-sm mb-1">{variant.size}</p>
+                                                <input
+                                                    type="number"
+                                                    value={variant.stock}
+                                                    onChange={(e) =>
+                                                        handleVariantChange(
+                                                            colIndex,
+                                                            key,
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    placeholder="Stock"
+                                                    min="0"
+                                                    className="w-full border border-gray-300 rounded px-2 py-1"
+                                                />
+                                            </div>
+                                        ))}
                                 </div>
                             </div>
                         </div>
@@ -537,7 +506,7 @@ const AddProduct = () => {
                 <div className="flex justify-end space-x-4">
                     <button
                         type="button"
-                        onClick={() => console.log("Cancel clicked")}
+                        onClick={() => navigate("/products")}
                         className="border border-gray-400 px-4 py-2 rounded hover:bg-gray-100"
                     >
                         Cancel
@@ -552,6 +521,6 @@ const AddProduct = () => {
             </form>
         </div>
     );
-};
+}
 
-export default AddProduct;
+export default EditProduct;

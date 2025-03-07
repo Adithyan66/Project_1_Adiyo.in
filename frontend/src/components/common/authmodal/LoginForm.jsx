@@ -88,7 +88,7 @@ function LoginForm() {
 
 
         } catch (err) {
-            toast.error("invalid credentials")
+            toast.error(err.response?.data.message)
 
             console.error("Error:", err.response?.data || err.message);
         }

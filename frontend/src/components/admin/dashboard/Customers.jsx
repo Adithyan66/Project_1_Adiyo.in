@@ -1,130 +1,20 @@
 
 
-// import axios from "axios";
-// import React, { useEffect, useState } from "react";
-// import { useNavigate } from "react-router-dom";
-
-// const API_BASE_URL = import.meta.env.VITE_API_URL;
-
-
-
-
-// const Customers = ({ setSelectedSection }) => {
-
-//     const navigate = useNavigate()
-
-//     const [customers, setCustomers] = useState([]);
-
-//     useEffect(() => {
-//         const fetchCustomerData = async () => {
-//             try {
-//                 const response = await axios.get(`${API_BASE_URL}/admin/customers-list`);
-//                 console.log("Customer data:", response.data);
-//                 // Assuming response.data.customers holds the customer array.
-//                 setCustomers(response.data.customers);
-//             } catch (error) {
-//                 console.error("Error fetching customer data:", error);
-//             }
-//         };
-
-//         fetchCustomerData();
-//     }, []);
-
-//     useEffect(() => {
-//         console.log(customers[0]._id);
-
-//     })
-
-//     return (
-//         <div className="w-full">
-//             <h2 className="text-2xl font-bold mb-4">Customers</h2>
-//             <div className="overflow-x-auto w-full">
-//                 <table className="w-full text-left border-collapse">
-//                     <thead>
-//                         <tr className="bg-black text-white">
-//                             <th className="py-3 px-4">Name</th>
-//                             <th className="py-3 px-4">Customer ID</th>
-//                             <th className="py-3 px-4">Registration Date</th>
-//                             <th className="py-3 px-4">Total Orders</th>
-//                             <th className="py-3 px-4">Total Amount Spent</th>
-//                             <th className="py-3 px-4">Status</th>
-//                             <th className="py-3 px-4"></th>
-
-//                         </tr>
-//                     </thead>
-//                     <tbody className="bg-white">
-//                         {customers.length > 0 ? (
-//                             customers.map((customer) => (
-//                                 <tr key={customer.id} className="border-b hover:bg-gray-50">
-//                                     <td className="py-3 px-4 flex items-center space-x-2">
-//                                         <img
-//                                             src={`https://i.pravatar.cc/40?u=${customer.id}`}
-//                                             alt="avatar"
-//                                             className="w-8 h-8 rounded-full"
-//                                         />
-//                                         <span>{customer.username}</span>
-//                                     </td>
-//                                     <td className="py-3 px-4">{customer.userId}</td>
-//                                     <td className="py-3 px-4">{customer.registrationDate}</td>
-//                                     <td className="py-3 px-4">{customer.products}</td>
-//                                     <td className="py-3 px-4">
-//                                         ₹ {customer.sales ? customer.sales.toLocaleString() : 0}
-//                                     </td>
-//                                     <td className="py-3 px-4">
-//                                         <span
-//                                             className={`px-3 py-1 rounded-full text-sm font-medium ${customer.status === "Active"
-//                                                 ? "bg-green-100 text-green-700"
-//                                                 : "bg-red-100 text-red-700"
-//                                                 }`}
-//                                         >
-//                                             {customer.status}
-//                                         </span>
-//                                     </td>
-//                                     <td className="py-3 px-4">
-//                                         <button
-//                                             className="bg-gray-200 text-black px-3 py-1 rounded hover:bg-gray-300"
-//                                             onClick={() => navigate(`/admin/${customer._id}/customer-details/`)}
-//                                         >
-//                                             More
-//                                         </button>
-//                                     </td>
-//                                 </tr>
-//                             ))
-//                         ) : (
-//                             <tr>
-//                                 <td colSpan="7" className="py-4 text-center">
-//                                     No customers found.
-//                                 </td>
-//                             </tr>
-//                         )}
-//                     </tbody>
-//                 </table>
-//             </div>
-//         </div>
-//     );
-// };
-
-// export default Customers;
-
-
-
-
-
-
-
-
-
-
-
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FiSearch } from "react-icons/fi"; // Optional: using react-icons for search icon
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const Customers = ({ setSelectedSection }) => {
-    const navigate = useNavigate();
+const Customers = () => {
+    // State for customers, search query, pagination, and page size
+    const [searchQuery, setSearchQuery] = useState("");
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     const [customers, setCustomers] = useState([]);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCustomerData = async () => {
@@ -146,69 +36,186 @@ const Customers = ({ setSelectedSection }) => {
         }
     }, [customers]);
 
+    // Filter customers based on search query
+    const filteredCustomers = customers.filter((customer) =>
+        customer.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Calculate pagination values
+    const totalItems = filteredCustomers.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
+    const indexOfLastItem = currentPage * pageSize;
+    const indexOfFirstItem = indexOfLastItem - pageSize;
+    const currentCustomers = filteredCustomers.slice(indexOfFirstItem, indexOfLastItem);
+
+    // Helper function to get a dynamic range of page numbers
+    const getPageNumbers = () => {
+        let startPage, endPage;
+        if (totalPages <= 5) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            if (currentPage <= 3) {
+                startPage = 1;
+                endPage = 5;
+            } else if (currentPage + 2 >= totalPages) {
+                startPage = totalPages - 4;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - 2;
+                endPage = currentPage + 2;
+            }
+        }
+        return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+    };
+
+    // Handlers
+    const handleSearchChange = (e) => {
+        setSearchQuery(e.target.value);
+        setCurrentPage(1); // Reset to first page on new search
+    };
+
+    const handlePageSizeChange = (e) => {
+        setPageSize(Number(e.target.value));
+        setCurrentPage(1); // Reset to first page when page size changes
+    };
+
+    const goToPage = (page) => {
+        setCurrentPage(page);
+    };
+
     return (
-        <div className="w-full">
-            <h2 className="text-2xl font-bold mb-4">Customers</h2>
-            <div className="overflow-x-auto w-full">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-black text-white">
-                            <th className="py-3 px-4">Name</th>
-                            <th className="py-3 px-4">Customer ID</th>
-                            <th className="py-3 px-4">Registration Date</th>
-                            <th className="py-3 px-4">Total Orders</th>
-                            <th className="py-3 px-4">Total Amount Spent</th>
-                            <th className="py-3 px-4">Status</th>
-                            <th className="py-3 px-4"></th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white">
-                        {customers.length > 0 ? (
-                            customers.map((customer) => (
-                                <tr key={customer._id} className="border-b hover:bg-gray-50">
-                                    <td className="py-3 px-4 flex items-center space-x-2">
-                                        <img
-                                            src={`https://i.pravatar.cc/40?u=${customer._id}`}
-                                            alt="avatar"
-                                            className="w-8 h-8 rounded-full"
-                                        />
-                                        <span>{customer.username}</span>
-                                    </td>
-                                    <td className="py-3 px-4">{customer.userId}</td>
-                                    <td className="py-3 px-4">{customer.registrationDate}</td>
-                                    <td className="py-3 px-4">{customer.products}</td>
-                                    <td className="py-3 px-4">
-                                        ₹ {customer.sales ? customer.sales.toLocaleString() : 0}
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <span
-                                            className={`px-3 py-1 rounded-full text-sm font-medium ${customer.status === "Active"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-red-100 text-red-700"
-                                                }`}
-                                        >
-                                            {customer.status}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4">
-                                        <button
-                                            className="bg-gray-200 text-black px-3 py-1 rounded hover:bg-gray-300"
-                                            onClick={() => navigate(`/admin/${customer._id}/customer-details/`)}
-                                        >
-                                            More
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan="7" className="py-4 text-center">
-                                    No customers found.
+        <div className="w-full p-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold mb-2 sm:mb-0">Customers</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                    {/* Search box */}
+                    <div className="relative">
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            className="pl-8 pr-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-black"
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                        />
+                        <FiSearch className="absolute left-2 top-2 text-gray-400" />
+                    </div>
+
+                    <button className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
+                        Filters
+                    </button>
+                </div>
+            </div>
+
+            <table className="w-full text-left border-collapse">
+                <thead>
+                    <tr className="bg-black text-white">
+                        <th className="py-3 px-4">Name</th>
+                        <th className="py-3 px-4">Customer ID</th>
+                        <th className="py-3 px-4">Registration Date</th>
+                        <th className="py-3 px-4">Total Orders</th>
+                        <th className="py-3 px-4">Total Amount Spent</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4"></th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white">
+                    {currentCustomers.length > 0 ? (
+                        currentCustomers.map((customer) => (
+                            <tr key={customer._id} className="border-b hover:bg-gray-50">
+                                <td className="py-3 px-4 flex items-center space-x-2">
+                                    <img
+                                        src={`https://i.pravatar.cc/40?u=${customer._id}`}
+                                        alt="avatar"
+                                        className="w-8 h-8 rounded-full"
+                                    />
+                                    <span>{customer.username}</span>
+                                </td>
+                                <td className="py-3 px-4">{customer.userId}</td>
+                                <td className="py-3 px-4">{customer.registrationDate}</td>
+                                <td className="py-3 px-4">{customer.products}</td>
+                                <td className="py-3 px-4">
+                                    ₹ {customer.sales ? customer.sales.toLocaleString() : 0}
+                                </td>
+                                <td className="py-3 px-4">
+                                    <span
+                                        className={`w-25 px-5 py-3 rounded-full text-sm font-medium text-center ${customer.isActive
+                                            ? "bg-green-100 text-green-700"
+                                            : "bg-red-100 text-red-700"
+                                            }`}
+                                    >
+                                        {customer.isActive ? "Active" : "Blocked"}
+                                    </span>
+                                </td>
+                                <td className="py-3 px-4">
+                                    <button
+                                        className="bg-gray-200 text-black px-3 py-1 rounded hover:bg-gray-300"
+                                        onClick={() => navigate(`/admin/${customer._id}/customer-details/`)}
+                                    >
+                                        More
+                                    </button>
                                 </td>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="7" className="py-4 text-center">
+                                No customers found.
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+
+            {/* Pagination & Page Size */}
+            <div className="flex flex-col sm:flex-row sm:justify-between items-center mt-4 gap-2">
+                {/* Show results dropdown */}
+                <div className="text-sm">
+                    <label htmlFor="pageSizeSelect" className="mr-2">
+                        Show results:
+                    </label>
+                    <select
+                        id="pageSizeSelect"
+                        value={pageSize}
+                        onChange={handlePageSizeChange}
+                        className="border rounded p-1"
+                    >
+                        <option value={2}>2</option>
+                        <option value={5}>5</option>
+                        <option value={10}>10</option>
+                    </select>
+                </div>
+
+                {/* Pagination controls */}
+                <div className="flex items-center space-x-1">
+                    {/* Previous button */}
+                    <button
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded disabled:opacity-50"
+                    >
+                        &lt;
+                    </button>
+                    {/* Page numbers */}
+                    {getPageNumbers().map((pageNum) => (
+                        <button
+                            key={pageNum}
+                            onClick={() => goToPage(pageNum)}
+                            className={`px-3 py-1 rounded-xl ${currentPage === pageNum ? "bg-black text-white" : ""
+                                }`}
+                        >
+                            {pageNum}
+                        </button>
+                    ))}
+                    {/* Next button */}
+                    <button
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages || totalPages === 0}
+                        className="px-3 py-1 rounded disabled:opacity-50"
+                    >
+                        &gt;
+                    </button>
+                </div>
             </div>
         </div>
     );

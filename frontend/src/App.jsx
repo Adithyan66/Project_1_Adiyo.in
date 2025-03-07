@@ -5,7 +5,8 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
-import { ToastContainer } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import Cookies from 'js-cookie';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -22,6 +23,8 @@ import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
 import CustomerMoreDetailPage from './pages/admin/CustomerMoreDetailPage';
 import CustomerDetailsPage from './components/admin/forCustomers/CustomerDetails';
+import CustomersListPage from './pages/admin/CustomersListPage';
+import SellersListPage from './pages/admin/SellersListPage';
 
 
 
@@ -46,12 +49,30 @@ function App() {
           role: response.data.role
         }));
 
+        console.log("try worked");
+
+
       } catch (error) {
-        console.log("Error persisting login", error);
+
+        console.log("catch worked");
+        dispatch(logout())
+        const token = Cookies.get('token');
+
+        if (token) {
+
+          toast.error(error.response.data.message)
+
+          await axios.post(
+            "http://localhost:3333/user/logout",
+            {},
+            { withCredentials: true })
+        }
+
       }
     };
 
     persistLogin();
+
   }, [dispatch, navigate]);
 
 
@@ -60,51 +81,29 @@ function App() {
       <Routes>
 
 
-        <Route path="/"
-          element={
-            <UserOnlyProtected>
-              <LandingPage />
-            </UserOnlyProtected>
-          }
-        />
+        <Route path="/" element={<UserOnlyProtected>   <LandingPage /> </UserOnlyProtected>} />
 
         <Route path="/products-list" element={<ProductsListPage />} />
+
         <Route path="/product-detail/:id" element={<ProductDetailsPage />} />
 
 
 
-        <Route path="/admin"
-          element={
-            <AdminProtected>
-              <AdminDashboardPage />
-            </AdminProtected>
-          } />
 
 
-        <Route path="/admin/:id/customer-details/"
-          element={
-            <AdminProtected>
-              <CustomerMoreDetailPage />
-            </AdminProtected>
-          } />
+        <Route path="/admin/dashboard" element={<AdminProtected><AdminDashboardPage />  </AdminProtected>} />
 
+        <Route path="/admin/customers/" element={<AdminProtected> <CustomersListPage />   </AdminProtected>} />
 
-        <Route path="/admin/customers/"
-          element={
-            <AdminProtected>
-              <CustomerDetailsPage />
-            </AdminProtected>
-          } />
+        <Route path="/admin/:id/customer-details/" element={<AdminProtected><CustomerMoreDetailPage /> </AdminProtected>} />
+
+        <Route path="/admin/sellers" element={<AdminProtected><SellersListPage /></AdminProtected>} />
 
 
 
 
-        <Route path="/seller"
-          element={
-            <SellerProtected>
-              <SellerDashboardPage />
-            </SellerProtected>
-          } />
+
+        <Route path="/seller" element={<SellerProtected>  <SellerDashboardPage />  </SellerProtected>} />
 
       </Routes >
 

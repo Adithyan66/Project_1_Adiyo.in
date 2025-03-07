@@ -24,7 +24,7 @@ export const UserOnlyProtected = ({ children }) => {
     const { role } = useSelector((state) => state.user);
 
     if (role === "admin") {
-        return <Navigate to="/admin" />
+        return <Navigate to="/admin/dashboard" />
     } else if (role === "seller") {
         return <Navigate to="/seller" />
     }

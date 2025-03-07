@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 import { logout } from "../../store/slices/userSlice"
+import { setActiveSelection } from '../../store/slices/sellerSideSelectedSlice';
 
-import Products from './dashboard/Products';
-import AddProduct from './dashboard/AddProduct';
-
-
-
+import Products from './products/Products';
+import AddProduct from './products/AddProduct';
+import EditProduct from './products/EditProduct';
 
 
 
@@ -19,6 +18,7 @@ const SellerPanel = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
+    const leftSection = useSelector((state) => state.sellerSideSelected.activeSelection)
 
     const handleLogout = async () => {
         try {
@@ -45,21 +45,13 @@ const SellerPanel = () => {
     const renderContent = () => {
         switch (selectedSection) {
             case 'dashboard':
-                return <Dashboard />;
+            // return <Dashboard />;
             case 'products':
                 return <Products setSelectedSection={setSelectedSection} />;
-            case 'customers':
-                return <Customers />;
-            case 'delivery':
-                return <DeliveryAgent />;
-            case 'manageProducts':
-                return <ManageProducts />;
-            case 'editCoupon':
-                return <EditCoupon />;
-            case "CustomerDetails":
-                return <CustomerDetails />;
             case "addProduct":
-                return <AddProduct />;
+                return <AddProduct setSelectedSection={setSelectedSection} />;
+            case "editProduct":
+                return <EditProduct setSelectedSection={setSelectedSection} />
             default:
                 return <Dashboard />;
         }
@@ -72,38 +64,49 @@ const SellerPanel = () => {
                 <h2 className="text-xl font-bold mb-6">Seller</h2>
                 <nav className="space-y-2">
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'dashboard' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'dashboard' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('dashboard')}
+                        onClick={() => {
+                            dispatch(setActiveSelection("dashboard"))
+                            setSelectedSection('dashboard')
+                        }}
                     >
                         Dashboard
                     </button>
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'products' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'products' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('products')}
-                    >
+                        onClick={() => {
+                            dispatch(setActiveSelection("products"))
+                            setSelectedSection('products')
+                        }}                    >
                         Products
                     </button>
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'customers' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'orders' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('')}
-                    >
+                        onClick={() => {
+                            dispatch(setActiveSelection("orders"))
+                            setSelectedSection('orders')
+                        }}                    >
                         Orders
                     </button>
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'delivery' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'salesreport' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('delivery')}
-                    >
+                        onClick={() => {
+                            dispatch(setActiveSelection("salesreport"))
+                            setSelectedSection('salesreport')
+                        }}                    >
                         Sales report
                     </button>
                     <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'manageProducts' ? 'bg-gray-200' : ''
+                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'refund/return' ? 'bg-gray-200' : ''
                             }`}
-                        onClick={() => setSelectedSection('manageProducts')}
-                    >
+                        onClick={() => {
+                            dispatch(setActiveSelection("refund/return"))
+                            setSelectedSection('refund/return')
+                        }}                    >
                         Refund/return
                     </button>
 
@@ -123,36 +126,5 @@ const SellerPanel = () => {
         </div>
     );
 };
-
-// Below are placeholder components for demonstration.
-// Replace them with your actual components/content.
-const Dashboard = () => (
-    <div>
-        <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-        <p>Dashboard content goes here.</p>
-    </div>
-);
-
-
-const DeliveryAgent = () => (
-    <div>
-        <h2 className="text-2xl font-bold mb-4">Delivery Agent</h2>
-        <p>Delivery agent content goes here.</p>
-    </div>
-);
-
-const ManageProducts = () => (
-    <div>
-        <h2 className="text-2xl font-bold mb-4">Manage Products</h2>
-        <p>Manage products content goes here.</p>
-    </div>
-);
-
-const EditCoupon = () => (
-    <div>
-        <h2 className="text-2xl font-bold mb-4">Edit Coupon</h2>
-        <p>Edit coupon content goes here.</p>
-    </div>
-);
 
 export default SellerPanel;

@@ -2,7 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
     loginPopup: false,
-    activeForm: "login", // options: "login", "signup", "forgot", "reset"
+    activeForm: "login",
 };
 
 const authModalSlice = createSlice({

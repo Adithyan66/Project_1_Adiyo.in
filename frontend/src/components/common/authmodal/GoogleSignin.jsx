@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from '../../../store/slices/userSlice'
+import { setLoginPopup } from '../../../store/slices/authModalSlice.js';
 
 
 function GoogleSignIn() {
@@ -11,8 +13,6 @@ function GoogleSignIn() {
     const user = useSelector(state => state.user);
 
     useEffect(() => {
-
-        /* global google */
 
         google.accounts.id.initialize({
             client_id: '126702860628-8fng3hfq2itrvbrf73l53ralg11f814q.apps.googleusercontent.com',
@@ -32,16 +32,20 @@ function GoogleSignIn() {
 
             .then((res) => {
 
-                console.log('Server response:', res.data.user);
-
                 dispatch(loginSuccess({ user: res.data.user, token: res.data.token, role: res.data.role }));
-
-                console.log("User:", user);
 
                 Cookies.set("token", res.data.token, { expires: 7, path: "/" })
 
+                toast.success(res.data.message)
+
+                dispatch(setLoginPopup(false));
+
             })
             .catch((err) => {
+
+                toast.error(err.response.data.message)
+
+                dispatch(setLoginPopup(false));
 
                 console.error('Error:', err);
 

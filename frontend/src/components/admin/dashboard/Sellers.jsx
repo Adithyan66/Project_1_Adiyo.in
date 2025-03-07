@@ -75,7 +75,7 @@ const Sellers = () => {
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full p-10">
             {/* Top bar: Title, Search, Requests, Filters */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold mb-2 sm:mb-0">Sellers</h2>
