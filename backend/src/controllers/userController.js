@@ -391,6 +391,8 @@ const productList = async (req, res) => {
     try {
         const match = {};
 
+        match.deletedAt = null;
+
         if (req.query.search) {
             match.name = { $regex: req.query.search, $options: "i" };
         }

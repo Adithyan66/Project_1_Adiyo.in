@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import mongoose from "mongoose";
 
 const variantSchema = new mongoose.Schema({
@@ -13,7 +8,6 @@ const variantSchema = new mongoose.Schema({
 
 const colorSchema = new mongoose.Schema({
     color: { type: String, required: true },
-    // Exactly 5 image URLs (you can store URLs from your image hosting service)
     images: {
         type: [String],
         validate: {
@@ -27,38 +21,32 @@ const colorSchema = new mongoose.Schema({
     basePrice: { type: Number, required: true },
     discountPrice: { type: Number, required: true, max: [999, "Discount price must not exceed 999"] },
     discountPercentage: { type: Number, required: true },
-    // Variants: each color has its own set of sizes with stock information
     variants: {
         small: { type: variantSchema, required: true },
         medium: { type: variantSchema, required: true },
         large: { type: variantSchema, required: true },
         extraLarge: { type: variantSchema, required: true },
     },
-    // Optionally, you can store a computed total stock for this color
     totalStock: { type: Number, default: 0 },
 });
 
-// Main Product Schema
-const productSchema = new mongoose.Schema(
-    {
-        name: { type: String, required: true },
-        shortDescription: { type: String },
-        description: { type: String },
-        brand: { type: String, required: true },
-        category: { type: String, required: true },
-        // Extended subcategories based on men's and boys' clothing
-        subCategory: {
-            type: String,
-            required: true,
-            enum: ["Shirt", "Pant", "Kurtha", "Jogger", "Coat", "T-Shirt", "Shorts", "Track Pants"],
-        },
-        // SKU is auto-generated from brand, product name initials, and random numbers
-        sku: { type: String, required: true, unique: true },
-        material: { type: String },
-        careInstructions: [String],
-        // Array of color variations (each with its own images, pricing, and variants)
-        colors: [colorSchema],
+const productSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    shortDescription: { type: String },
+    description: { type: String },
+    brand: { type: String, required: true },
+    category: { type: String, required: true },
+    subCategory: {
+        type: String,
+        required: true,
+        enum: ["Shirt", "Pant", "Kurtha", "Jogger", "Coat", "T-Shirt", "Shorts", "Track Pants"],
     },
+    sku: { type: String, required: true, unique: true },
+    material: { type: String },
+    careInstructions: [String],
+    colors: [colorSchema],
+    deletedAt: { type: Date, default: null }
+},
     { timestamps: true }
 );
 

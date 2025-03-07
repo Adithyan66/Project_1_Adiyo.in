@@ -180,7 +180,6 @@ export const productDetails = async (req, res) => {
 
 
 
-
 export const editProduct = async (req, res) => {
     const {
         name,
@@ -195,6 +194,7 @@ export const editProduct = async (req, res) => {
         totalQuantity,
     } = req.body;
 
+    // Parse careInstructions JSON
     let parsedCareInstructions;
     try {
         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
@@ -202,6 +202,7 @@ export const editProduct = async (req, res) => {
         return res.status(400).json({ status: false, message: "Invalid careInstructions format" });
     }
 
+    // Parse colors JSON which includes existing image URLs and public IDs
     let colorsData;
     try {
         colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
@@ -209,64 +210,74 @@ export const editProduct = async (req, res) => {
         return res.status(400).json({ status: false, message: "Invalid colors data format" });
     }
 
-    // Group files by color index. Expect field names like "color0_image"
-    const filesByColor = {};
+    // Group files by color index and image index.
+    // Expect field names like "color0_image_1", "color1_image_3", etc.
+    const filesByColorAndIndex = {};
     if (req.files && req.files.length > 0) {
         req.files.forEach((file) => {
-            const match = file.fieldname.match(/color(\d+)_image/);
+            const match = file.fieldname.match(/color(\d+)_image_(\d+)/);
             if (match) {
-                const colorIndex = match[1]; // e.g., "0", "1", etc.
-                if (!filesByColor[colorIndex]) {
-                    filesByColor[colorIndex] = [];
+                const colorIndex = Number(match[1]);
+                const imageIndex = Number(match[2]);
+                if (!filesByColorAndIndex[colorIndex]) {
+                    filesByColorAndIndex[colorIndex] = {};
                 }
-                filesByColor[colorIndex].push(file);
+                filesByColorAndIndex[colorIndex][imageIndex] = file;
             }
         });
     }
 
-    // For any color variant where new images are uploaded,
-    // you might want to enforce a rule like exactly 5 images if desired.
-    for (let i = 0; i < colorsData.length; i++) {
-        if (filesByColor[i] && filesByColor[i].length !== 5) {
-            return res.status(400).json({
-                status: false,
-                message: `If updating color variant at index ${i}, please provide exactly 5 images`
-            });
-        }
-    }
-
     try {
-        // Process each color variant that has new images.
+        // For each color variant, update only the images that are provided.
         for (let i = 0; i < colorsData.length; i++) {
-            if (filesByColor[i]) {
-                // Delete old images if they exist.
-                if (colorsData[i].imagePublicIds && Array.isArray(colorsData[i].imagePublicIds)) {
-                    for (const publicId of colorsData[i].imagePublicIds) {
+            if (filesByColorAndIndex[i]) {
+                const imageUpdates = filesByColorAndIndex[i];
+                // Ensure images arrays exist; if not, initialize them.
+                if (!Array.isArray(colorsData[i].images)) {
+                    colorsData[i].images = [];
+                }
+                if (!Array.isArray(colorsData[i].imagePublicIds)) {
+                    colorsData[i].imagePublicIds = [];
+                }
+                // Process each image index provided for this color variant.
+                for (const imageIndex in imageUpdates) {
+                    const file = imageUpdates[imageIndex];
+                    // If there is an old image at this index, delete it from Cloudinary.
+                    if (
+                        colorsData[i].imagePublicIds &&
+                        colorsData[i].imagePublicIds[imageIndex]
+                    ) {
                         try {
-                            await cloudinary.uploader.destroy(publicId);
+                            await cloudinary.uploader.destroy(colorsData[i].imagePublicIds[imageIndex]);
                         } catch (error) {
-                            console.error(`Error deleting image with publicId ${publicId}:`, error);
+                            console.error(`Error deleting image with publicId ${colorsData[i].imagePublicIds[imageIndex]}:`, error);
                         }
                     }
-                }
 
-                // Upload new images
-                const colorFiles = filesByColor[i];
-                const cloudinaryResults = await Promise.all(
-                    colorFiles.map((file) =>
-                        cloudinary.uploader.upload(file.path, { folder: "Adiyo/productsImages" })
-                    )
-                );
-                const imageUrls = cloudinaryResults.map((result) => result.secure_url);
-                const imagePublicIds = cloudinaryResults.map((result) => result.public_id);
-                // Update the colorsData for this variant with the new images.
-                colorsData[i].images = imageUrls;
-                colorsData[i].imagePublicIds = imagePublicIds;
-                // Remove local files after upload.
-                colorFiles.forEach((file) => fs.unlinkSync(file.path));
+                    const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
+                        folder: "Adiyo/productsImages",
+                        resource_type: "auto",
+                        use_filename: true,
+                        unique_filename: true,
+                        overwrite: true,
+                        transformation: [], // Empty transformation array to override defaults
+                        flags: "attachment" // Forces Cloudinary to keep the original file as-is
+                    });
+                    // Upload the new image.
+                    // const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
+                    //     folder: "Adiyo/productsImages",
+                    //     transformation: [{ quality: "100" }]
+                    // });
+                    // Update only the specific index for this color variant.
+                    colorsData[i].images[imageIndex] = cloudinaryResult.secure_url;
+                    colorsData[i].imagePublicIds[imageIndex] = cloudinaryResult.public_id;
+                    // Remove the local file after upload.
+                    fs.unlinkSync(file.path);
+                }
             }
         }
 
+        // Update the product with the new data (only changed images are updated)
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
             {
@@ -299,3 +310,32 @@ export const editProduct = async (req, res) => {
         res.status(500).json({ status: false, message: "Server error" });
     }
 };
+
+
+
+export const deleteProduct = async (req, res) => {
+    try {
+        const productId = req.params.id;
+        const product = await Product.findByIdAndUpdate(
+            productId,
+            { deletedAt: new Date() },
+            { new: true }
+        );
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: 'Product soft deleted successfully',
+            product
+        });
+
+    } catch (error) {
+
+        console.error('Error soft deleting product:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+
+}
