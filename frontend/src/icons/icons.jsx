@@ -26,16 +26,16 @@ export const AdiyoPlusZoneIcon = ({ className = "w-6 h-6 mr-2" }) => (
     </svg>
 );
 
-export const OrdersIcon = ({ className = "w-6 h-6 mr-2" }) => (
-    <svg
-        className={className}
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 32 32"
-        fill="currentColor"
-    >
-        <path d="m86.864 59.496-7-12A1 1 0 0 0 79 47h-9V10a5.006 5.006 0 0 0-5-5H23a5.006 5.006 0 0 0-5 5v14a1 1 0 0 0 1 1h7v22H9a1 1 0 0 0-.864.496l-7 12A1 1 0 0 0 2 61h6v21a1 1 0 0 0 1 1h70a1 1 0 0 0 1-1V61h6a1 1 0 0 0 .864-1.504zM20 23V10a3 3 0 0 1 6 0v13zm8 1V10a5.263 5.263 0 0 0-1.002-3H65a3.003 3.003 0 0 1 3 3v37H28zM9.574 49H29.26l-5.833 10H3.74zM10 61h14a1 1 0 0 0 .864-.496L30 51.699V81H10zm68 20H32V51.699l5.136 8.805A1 1 0 0 0 38 61h40zM38.574 59l-5.833-10h45.685l5.833 10z" />
-    </svg>
-);
+// export const OrdersIcon = ({ className = "w-6 h-6 mr-2" }) => (
+//     <svg
+//         className={className}
+//         xmlns="http://www.w3.org/2000/svg"
+//         viewBox="0 0 32 32"
+//         fill="currentColor"
+//     >
+//         <path d="m86.864 59.496-7-12A1 1 0 0 0 79 47h-9V10a5.006 5.006 0 0 0-5-5H23a5.006 5.006 0 0 0-5 5v14a1 1 0 0 0 1 1h7v22H9a1 1 0 0 0-.864.496l-7 12A1 1 0 0 0 2 61h6v21a1 1 0 0 0 1 1h70a1 1 0 0 0 1-1V61h6a1 1 0 0 0 .864-1.504zM20 23V10a3 3 0 0 1 6 0v13zm8 1V10a5.263 5.263 0 0 0-1.002-3H65a3.003 3.003 0 0 1 3 3v37H28zM9.574 49H29.26l-5.833 10H3.74zM10 61h14a1 1 0 0 0 .864-.496L30 51.699V81H10zm68 20H32V51.699l5.136 8.805A1 1 0 0 0 38 61h40zM38.574 59l-5.833-10h45.685l5.833 10z" />
+//     </svg>
+// );
 
 export const RewardsIcon = ({ className = "w-6 h-6 mr-2" }) => (
     <svg
@@ -146,3 +146,133 @@ export const Logout = ({ className = "w-6 h-6" }) => (
 
 
 
+export const Dashboard = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 52 52"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        <rect x="6" y="6" width="18" height="18" rx="3" ry="3" />
+        <rect x="28" y="6" width="18" height="18" rx="3" ry="3" />
+        <rect x="6" y="28" width="18" height="18" rx="3" ry="3" />
+        <rect x="28" y="28" width="18" height="18" rx="3" ry="3" />
+    </svg>
+);
+
+
+
+
+export const ProductsIcon = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 52 52"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* Box outline */}
+        <rect x="10" y="14" width="32" height="24" />
+        {/* Top flap */}
+        <path d="M10 14l16-8 16 8" />
+        {/* Vertical divider */}
+        <line x1="26" y1="6" x2="26" y2="38" />
+    </svg>
+);
+
+
+
+export const OrdersIcon = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 52 52"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* Clipboard top */}
+        <path d="M16 6h20a2 2 0 0 1 2 2v4H14V8a2 2 0 0 1 2-2z" />
+        {/* Clipboard body */}
+        <rect x="12" y="12" width="28" height="34" rx="2" ry="2" />
+        {/* Horizontal lines representing list items */}
+        <line x1="16" y1="22" x2="36" y2="22" />
+        <line x1="16" y1="30" x2="36" y2="30" />
+        <line x1="16" y1="38" x2="36" y2="38" />
+        {/* A checkmark on the last line to indicate completion */}
+        <polyline points="16,46 20,42 26,46" />
+    </svg>
+);
+
+
+
+
+export const SalesReportIcon = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 52 52"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* X-axis */}
+        <line x1="8" y1="44" x2="44" y2="44" />
+        {/* Y-axis */}
+        <line x1="8" y1="44" x2="8" y2="20" />
+        {/* Bar 1 */}
+        <rect x="14" y="30" width="6" height="14" />
+        {/* Bar 2 */}
+        <rect x="24" y="26" width="6" height="18" />
+        {/* Bar 3 */}
+        <rect x="34" y="22" width="6" height="22" />
+    </svg>
+);
+export const ReturnIcon = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 52 52"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* Draw a curved arrow starting from the right and curving to the top-left */}
+        <path d="M40 26 A14 14 0 1 1 26 12" />
+        {/* Arrowhead at the end of the curve */}
+        <polyline points="26,12 26,18 32,18" />
+    </svg>
+);
+
+
+export const SignOutIcon = ({ className = "w-6 h-6" }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className={className}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+    >
+        {/* Door frame */}
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+        {/* Arrow for sign out */}
+        <polyline points="16 17 21 12 16 7" />
+        <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+);

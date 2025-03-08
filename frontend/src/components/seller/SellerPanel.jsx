@@ -6,9 +6,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from "../../store/slices/userSlice"
 import { setActiveSelection } from '../../store/slices/sellerSideSelectedSlice';
 
-import Products from './products/Products';
+import { Logout, OrdersIcon, ProductsIcon, ReturnIcon, SalesReportIcon, SignOutIcon } from '../../icons/icons';
 import AddProduct from './products/AddProduct';
 import EditProduct from './products/EditProduct';
+import { Dashboard } from '../../icons/icons';
+import Products from './products/Products';
 
 
 
@@ -44,8 +46,8 @@ const SellerPanel = () => {
 
     const renderContent = () => {
         switch (selectedSection) {
-            case 'dashboard':
-            // return <Dashboard />;
+            // case 'dashboard':
+            // // return <Dashboard />;
             case 'products':
                 return <Products setSelectedSection={setSelectedSection} />;
             case "addProduct":
@@ -58,64 +60,81 @@ const SellerPanel = () => {
     };
 
     return (
-        <div className="flex  bg-gray-100">
+        <div className="flex ">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md p-5">
+            <aside className="w-64 bg-white shadow-md p-5 sticky top-5 h-[800px]">
                 <h2 className="text-xl font-bold mb-6">Seller</h2>
                 <nav className="space-y-2">
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'dashboard' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => {
-                            dispatch(setActiveSelection("dashboard"))
-                            setSelectedSection('dashboard')
-                        }}
-                    >
-                        Dashboard
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'products' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => {
-                            dispatch(setActiveSelection("products"))
-                            setSelectedSection('products')
-                        }}                    >
-                        Products
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'orders' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => {
-                            dispatch(setActiveSelection("orders"))
-                            setSelectedSection('orders')
-                        }}                    >
-                        Orders
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'salesreport' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => {
-                            dispatch(setActiveSelection("salesreport"))
-                            setSelectedSection('salesreport')
-                        }}                    >
-                        Sales report
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'refund/return' ? 'bg-gray-200' : ''
-                            }`}
-                        onClick={() => {
-                            dispatch(setActiveSelection("refund/return"))
-                            setSelectedSection('refund/return')
-                        }}                    >
-                        Refund/return
-                    </button>
 
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => handleLogout()}
-                    >
-                        Sign out
-                    </button>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'dashboard' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <Dashboard />
+                        <button
+                            className='ml-3'
+                            onClick={() => {
+                                dispatch(setActiveSelection("dashboard"))
+                                setSelectedSection('dashboard')
+                            }}>
+                            Dashboard
+                        </button>
+                    </div>
+
+                    <div className={` flex w-full text-left p-2 rounded ${leftSection === 'products' ? 'bg-black  text-white  hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <ProductsIcon />
+                        <button
+                            className='ml-3'
+                            onClick={() => {
+                                dispatch(setActiveSelection("products"))
+                                setSelectedSection('products')
+                            }}>
+                            Products
+                        </button>
+                    </div>
+
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'orders' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <OrdersIcon />
+                        <button
+                            className='ml-3'
+                            onClick={() => {
+                                dispatch(setActiveSelection("orders"))
+                                setSelectedSection('orders')
+                            }}>
+                            Orders
+                        </button>
+                    </div>
+
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'salesreport' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <SalesReportIcon />
+                        <button
+                            className='ml-3'
+                            onClick={() => {
+                                dispatch(setActiveSelection("salesreport"))
+                                setSelectedSection('salesreport')
+                            }}>
+                            Sales report
+                        </button>
+                    </div>
+
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'refund/return' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <ReturnIcon />
+                        <button
+                            className='ml-3'
+                            onClick={() => {
+                                dispatch(setActiveSelection("refund/return"))
+                                setSelectedSection('refund/return')
+                            }}>
+                            Refund/return
+                        </button>
+                    </div>
+
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === '' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                        <SignOutIcon />
+                        <button
+                            className="w-full ml-3 text-left  rounded hover:bg-gray-200"
+                            onClick={() => handleLogout()}
+                        >
+                            Sign out
+                        </button>
+                    </div>
                 </nav>
             </aside>
 

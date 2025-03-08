@@ -84,6 +84,11 @@ const Customers = () => {
         setCurrentPage(page);
     };
 
+    function formatedDate(dateString) {
+        const dateObj = new Date(dateString);
+        return dateObj.toLocaleDateString("en-GB");
+    }
+
     return (
         <div className="w-full p-10">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6">
@@ -107,65 +112,68 @@ const Customers = () => {
                 </div>
             </div>
 
-            <table className="w-full text-left border-collapse">
-                <thead>
-                    <tr className="bg-black text-white">
-                        <th className="py-3 px-4">Name</th>
-                        <th className="py-3 px-4">Customer ID</th>
-                        <th className="py-3 px-4">Registration Date</th>
-                        <th className="py-3 px-4">Total Orders</th>
-                        <th className="py-3 px-4">Total Amount Spent</th>
-                        <th className="py-3 px-4">Status</th>
-                        <th className="py-3 px-4"></th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white">
-                    {currentCustomers.length > 0 ? (
-                        currentCustomers.map((customer) => (
-                            <tr key={customer._id} className="border-b hover:bg-gray-50">
-                                <td className="py-3 px-4 flex items-center space-x-2">
-                                    <img
-                                        src={`https://i.pravatar.cc/40?u=${customer._id}`}
-                                        alt="avatar"
-                                        className="w-8 h-8 rounded-full"
-                                    />
-                                    <span>{customer.username}</span>
-                                </td>
-                                <td className="py-3 px-4">{customer.userId}</td>
-                                <td className="py-3 px-4">{customer.registrationDate}</td>
-                                <td className="py-3 px-4">{customer.products}</td>
-                                <td className="py-3 px-4">
-                                    ₹ {customer.sales ? customer.sales.toLocaleString() : 0}
-                                </td>
-                                <td className="py-3 px-4">
-                                    <span
-                                        className={`w-25 px-5 py-3 rounded-full text-sm font-medium text-center ${customer.isActive
-                                            ? "bg-green-100 text-green-700"
-                                            : "bg-red-100 text-red-700"
-                                            }`}
-                                    >
-                                        {customer.isActive ? "Active" : "Blocked"}
-                                    </span>
-                                </td>
-                                <td className="py-3 px-4">
-                                    <button
-                                        className="bg-gray-200 text-black px-3 py-1 rounded hover:bg-gray-300"
-                                        onClick={() => navigate(`/admin/${customer._id}/customer-details/`)}
-                                    >
-                                        More
-                                    </button>
+            <div className="min-h-[700px] justify-center items-center">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-black text-white">
+                            <th className="py-3 px-4 text-center">Name</th>
+                            <th className="py-3 px-4 text-center">Customer ID</th>
+                            <th className="py-3 px-4 text-center">Registration Date</th>
+                            <th className="py-3 px-4 text-center">Total Orders</th>
+                            <th className="py-3 px-4 text-center">Total Amount Spent</th>
+                            <th className="py-3 px-4 text-center">Status</th>
+                            <th className="py-3 px-4"></th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-gray-100 ">
+                        {currentCustomers.length > 0 ? (
+                            currentCustomers.map((customer) => (
+                                <tr key={customer._id} className="border-4 border-white hover:bg-gray-200">
+                                    <td className="py-3 px-4 flex items-center space-x-2">
+                                        <img
+                                            src={`https://i.pravatar.cc/40?u=${customer._id}`}
+                                            alt="avatar"
+                                            className="w-8 h-8 rounded-full"
+                                        />
+                                        <span>{customer.username}</span>
+                                    </td>
+                                    <td className="py-3 px-4">{customer.userId}</td>
+                                    <td className="py-3 px-4 text-center">{formatedDate(customer.registrationDate)}</td>
+                                    <td className="py-3 px-4 text-center">{customer.products}</td>
+                                    <td className="py-3 px-4 text-center">
+                                        ₹ {customer.sales ? customer.sales.toLocaleString() : 0}
+                                    </td>
+                                    <td className="py-3 px-4 ">
+                                        <span
+                                            className={`flex items-center justify-center w-24 h-7 rounded-full text-sm font-medium text-center border ${customer.isActive
+                                                ? "bg-green-50 text-green-700 border-green-900"
+                                                : "bg-red-50 text-red-700 border-red-700"
+                                                }`}
+                                        >
+                                            {customer.isActive ? "Active" : "Blocked"}
+                                        </span>
+
+                                    </td>
+                                    <td className="py-3 px-4">
+                                        <button
+                                            className="bg-black  text-white px-3 py-1 rounded hover:bg-gray-800 hover:cursor-pointer"
+                                            onClick={() => navigate(`/admin/${customer._id}/customer-details/`)}
+                                        >
+                                            More
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7" className="py-4 text-center">
+                                    No customers found.
                                 </td>
                             </tr>
-                        ))
-                    ) : (
-                        <tr>
-                            <td colSpan="7" className="py-4 text-center">
-                                No customers found.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                        )}
+                    </tbody>
+                </table>
+            </div>
 
             {/* Pagination & Page Size */}
             <div className="flex flex-col sm:flex-row sm:justify-between items-center mt-4 gap-2">

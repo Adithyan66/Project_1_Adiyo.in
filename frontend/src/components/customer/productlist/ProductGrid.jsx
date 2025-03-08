@@ -7,6 +7,9 @@ import { useNavigate } from "react-router-dom";
 
 import ProductCard from "../../common/ProductCard";
 
+
+
+
 function ProductGrid({ products }) {
 
 

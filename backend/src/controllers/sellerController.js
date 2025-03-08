@@ -135,7 +135,7 @@ export const getProducts = async (req, res) => {
 
     try {
 
-        const products = await Product.find()
+        const products = await Product.find({ deletedAt: null })
 
         res.status(200).json({
             status: true,

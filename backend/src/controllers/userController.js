@@ -388,6 +388,8 @@ const googleLogin = async (req, res) => {
 
 
 const productList = async (req, res) => {
+
+
     try {
         const match = {};
 
@@ -400,9 +402,10 @@ const productList = async (req, res) => {
         if (req.query.category) {
             match.category = req.query.category;
         }
-        if (req.query.dressStyle) {
-            match.subCategory = req.query.dressStyle;
+        if (req.query.subCategory) {
+            match.subCategory = req.query.subCategory;
         }
+
 
         if (req.query.minPrice || req.query.maxPrice) {
             const priceFilter = {};

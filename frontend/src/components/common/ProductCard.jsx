@@ -1,7 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+
+
+
 function ProductCard({ product }) {
+
+
 
   const navigate = useNavigate()
 
@@ -10,7 +15,9 @@ function ProductCard({ product }) {
 
   return (
     <div className="rounded-md p-4 flex flex-col bg-white shadow-sm hover:shadow-md transition-shadow"
-      onClick={() => navigate(`/product-detail/${product._id}`)}
+      onClick={() => {
+        navigate(`/product-detail/${product._id}`)
+      }}
     >
       <img
         src={product?.colors[0].images[0]}
@@ -27,7 +34,7 @@ function ProductCard({ product }) {
         <span className="text-sm text-gray-500">{rating} / 5</span>
       </div>
       {/* Price Section */}
-      <span className="bg-gray-400 w-1/4 text-center py-2 text-white text-xs ml-2 px-1 py-0.5 rounded">
+      <span className="bg-gray-400 w-1/4 text-center py-2 text-white text-xs ml-2 px-1 rounded">
         {Math.ceil(product?.colors[0].discountPercentage)}% off
       </span>
       <div className="mt-2 text-gray-800">

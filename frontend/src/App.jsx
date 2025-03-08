@@ -49,12 +49,9 @@ function App() {
           role: response.data.role
         }));
 
-        console.log("try worked");
-
 
       } catch (error) {
 
-        console.log("catch worked");
         dispatch(logout())
         const token = Cookies.get('token');
 

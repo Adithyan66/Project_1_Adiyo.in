@@ -255,7 +255,7 @@ const AddProduct = ({ setSelectedSection }) => {
                     <textarea
                         value={productDescription}
                         onChange={(e) => setProductDescription(e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 h-24"
+                        className="w-full border border-gray-300 rounded px-3 py-2 h-74"
                         placeholder="Enter detailed description"
                     />
                 </div>
@@ -527,7 +527,7 @@ const AddProduct = ({ setSelectedSection }) => {
                     <button
                         type="button"
                         onClick={addNewColor}
-                        className="bg-gray-500 text-white px-4 py-2 rounded"
+                        className="bg-gray-900 text-white px-4 py-2 rounded"
                     >
                         Add Color
                     </button>
