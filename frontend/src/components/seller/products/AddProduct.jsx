@@ -1,9 +1,10 @@
 
 
-
-
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+import { CloseIcon } from "../../../icons/icons";
 
 const AddProduct = ({ setSelectedSection }) => {
     // Common Product Fields
@@ -19,12 +20,24 @@ const AddProduct = ({ setSelectedSection }) => {
     // SKU state (shown in realtime)
     const [sku, setSku] = useState("");
 
+    // Cropping state
+    const [cropMode, setCropMode] = useState(false);
+    const [tempImage, setTempImage] = useState(null);
+    const [colorIndex, setColorIndex] = useState(0);
+    const [imageIndex, setImageIndex] = useState(0);
+    const [imgSrc, setImgSrc] = useState('');
+    const [crop, setCrop] = useState();
+    const [completedCrop, setCompletedCrop] = useState(null);
+    const [imgRef, setImgRef] = useState(null);
+
     // Colors: Array of variations. Each variation has its own data.
     const [colors, setColors] = useState([
         {
             color: "",
             // 5 image slots per color variation.
             images: [null, null, null, null, null],
+            // Store cropped images separately
+            croppedImages: [null, null, null, null, null],
             basePrice: "",
             discountPrice: "",
             discountPercentage: "",
@@ -38,9 +51,59 @@ const AddProduct = ({ setSelectedSection }) => {
         },
     ]);
 
+    // Initialize crop when an image is selected
+    function centerAspectCrop(mediaWidth, mediaHeight, aspect) {
+        return centerCrop(
+            makeAspectCrop(
+                {
+                    unit: '%',
+                    width: 90,
+                },
+                aspect,
+                mediaWidth,
+                mediaHeight,
+            ),
+            mediaWidth,
+            mediaHeight,
+        );
+    }
+
+    // function onImageLoad(e) {
+    //     const { width, height } = e.currentTarget;
+    //     setImgRef(e.currentTarget);
+    //     // Set default crop using a 4:5 aspect ratio
+    //     const defaultCrop = centerAspectCrop(width, height, 4 / 5);
+    //     setCrop(defaultCrop);
+    // }
+
+    function onImageLoad(e) {
+        const { width, height } = e.currentTarget;
+        setImgRef(e.currentTarget);
+
+        const targetAspect = 4 / 5;
+        const imageAspect = width / height;
+        const tolerance = 0.01;
+
+        let crop;
+        if (Math.abs(imageAspect - targetAspect) < tolerance) {
+            // If the image is already 4:5, select the entire image
+            crop = {
+                unit: '%',
+                x: 0,
+                y: 0,
+                width: 100,
+                height: 100,
+            };
+        } else {
+            // Otherwise, create a centered crop with a 4:5 aspect ratio
+            crop = centerAspectCrop(width, height, targetAspect);
+        }
+        setCrop(crop);
+    }
+
+
     // Compute SKU on the fly whenever brand or productName changes.
     useEffect(() => {
-
         const generateSku = () => {
             const brandPart = brand ? brand.replace(/\s+/g, "").toUpperCase() : "BRAND";
             const productPart =
@@ -64,16 +127,97 @@ const AddProduct = ({ setSelectedSection }) => {
         });
     };
 
-    // Handle image change for a specific color and image slot.
-    const handleColorImageChange = (colorIndex, imageIndex, file, event) => {
-        setColors((prevColors) => {
-            const newColors = [...prevColors];
-            const images = [...newColors[colorIndex].images];
-            images[imageIndex] = file;
-            newColors[colorIndex].images = images;
-            return newColors;
-        });
-        event.target.value = "";
+    // Handle image selection for a specific color and image slot.
+    const handleColorImageSelect = (colorIndex, imageIndex, file, event) => {
+        if (file) {
+            // Store the temporary image for cropping
+            setTempImage(file);
+
+            // Set up cropping session
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setImgSrc(e.target.result);
+                setColorIndex(colorIndex);
+                setImageIndex(imageIndex);
+                setCropMode(true);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        if (event) {
+            event.target.value = "";
+        }
+    };
+
+    // Save the cropped image
+    const handleSaveCrop = () => {
+        if (completedCrop && imgRef) {
+            const canvas = document.createElement('canvas');
+            const scaleX = imgRef.naturalWidth / imgRef.width;
+            const scaleY = imgRef.naturalHeight / imgRef.height;
+            canvas.width = completedCrop.width;
+            canvas.height = completedCrop.height;
+
+            const ctx = canvas.getContext('2d');
+
+            const pixelRatio = window.devicePixelRatio;
+            canvas.width = completedCrop.width * pixelRatio;
+            canvas.height = completedCrop.height * pixelRatio;
+            ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+            ctx.imageSmoothingQuality = 'high';
+
+            ctx.drawImage(
+                imgRef,
+                completedCrop.x * scaleX,
+                completedCrop.y * scaleY,
+                completedCrop.width * scaleX,
+                completedCrop.height * scaleY,
+                0,
+                0,
+                completedCrop.width,
+                completedCrop.height,
+            );
+
+            // Convert canvas to blob
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const croppedFile = new File([blob], `cropped_image_${Date.now()}.jpg`, {
+                        type: 'image/jpeg',
+                        lastModified: Date.now()
+                    });
+
+                    // Update the arrays with the original and cropped images
+                    setColors(prevColors => {
+                        const newColors = [...prevColors];
+                        const images = [...newColors[colorIndex].images];
+                        const croppedImages = [...newColors[colorIndex].croppedImages];
+
+                        // Store the original image
+                        images[imageIndex] = tempImage;
+
+                        // Store the cropped image
+                        croppedImages[imageIndex] = croppedFile;
+
+                        newColors[colorIndex].images = images;
+                        newColors[colorIndex].croppedImages = croppedImages;
+                        return newColors;
+                    });
+
+                    // Reset cropping state
+                    setCropMode(false);
+                    setImgSrc('');
+                    setCompletedCrop(null);
+                    setTempImage(null);
+                }
+            }, 'image/jpeg', 0.95);
+        }
+    };
+
+    const handleCancelCrop = () => {
+        setCropMode(false);
+        setImgSrc('');
+        setCompletedCrop(null);
+        setTempImage(null);
     };
 
     // Handle variant (size & stock) changes per color.
@@ -128,6 +272,7 @@ const AddProduct = ({ setSelectedSection }) => {
             {
                 color: "",
                 images: [null, null, null, null, null],
+                croppedImages: [null, null, null, null, null],
                 basePrice: "",
                 discountPrice: "",
                 discountPercentage: "",
@@ -160,6 +305,22 @@ const AddProduct = ({ setSelectedSection }) => {
         return total + colorStock;
     }, 0);
 
+    // Remove an image from a specific color and slot
+    const handleRemoveImage = (colorIndex, imageIndex) => {
+        setColors(prevColors => {
+            const newColors = [...prevColors];
+            const images = [...newColors[colorIndex].images];
+            const croppedImages = [...newColors[colorIndex].croppedImages];
+
+            images[imageIndex] = null;
+            croppedImages[imageIndex] = null;
+
+            newColors[colorIndex].images = images;
+            newColors[colorIndex].croppedImages = croppedImages;
+            return newColors;
+        });
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -174,6 +335,7 @@ const AddProduct = ({ setSelectedSection }) => {
         formData.append("sku", sku);
         formData.append("material", material);
         formData.append("careInstructions", JSON.stringify(careInstructions));
+        formData.append("totalQuantity", totalQuantity)
 
         // Process colors data: Calculate totalStock for each color.
         const colorsData = colors.map((col) => {
@@ -185,33 +347,44 @@ const AddProduct = ({ setSelectedSection }) => {
         });
         formData.append("colors", JSON.stringify(colorsData));
 
-        // Append images for each color variation.
+        // Append cropped images for each color variation (if available)
         colors.forEach((col, colorIndex) => {
-            col.images.forEach((img, imgIndex) => {
+            col.croppedImages.forEach((img, imgIndex) => {
                 if (img) {
-                    // Naming: color0_image0, color0_image1, etc.
+                    // Use cropped images
                     formData.append(`color${colorIndex}_image${imgIndex}`, img,
-                        `${Date.now()}_${Math.random().toString(36).substring(2)}_${img.name}`
+                        `${Date.now()}_${Math.random().toString(36).substring(2)}_cropped.jpg`
                     );
                 }
             });
         });
 
         try {
+
+            console.log(Array.from(formData.entries()));
+
+
+
             const response = await axios.post(
+
                 "http://localhost:3333/seller/add-products",
+
                 formData,
                 {
                     headers: { "Content-Type": "multipart/form-data" },
                 }
             );
+
             console.log("Product added successfully:", response.data);
+
         } catch (error) {
+
             console.error("Error adding product:", error);
         }
     };
 
     return (
+
         <div className="mx-auto p-6 bg-white rounded shadow max-w-6xl">
             <h1 className="text-2xl font-bold mb-4">Add Product</h1>
             {/* Real-time SKU display */}
@@ -255,7 +428,7 @@ const AddProduct = ({ setSelectedSection }) => {
                     <textarea
                         value={productDescription}
                         onChange={(e) => setProductDescription(e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-2 h-74"
+                        className="w-full border border-gray-300 rounded px-3 py-2 h-24"
                         placeholder="Enter detailed description"
                     />
                 </div>
@@ -387,7 +560,6 @@ const AddProduct = ({ setSelectedSection }) => {
 
                             {/* Color Selection */}
                             <div className="mb-4">
-
                                 <div className="w-1/2">
                                     <label className="block font-medium mb-1">Color</label>
                                     <select
@@ -421,37 +593,52 @@ const AddProduct = ({ setSelectedSection }) => {
 
                             {/* Images Upload for this color (5 images) */}
                             <div className="mb-4">
-                                <label className="block font-medium mb-2">Upload 5 Images</label>
+                                <label className="block font-medium mb-2">
+                                    Upload 5 Images (Images must be cropped before saving)
+                                </label>
                                 <div className="flex flex-wrap gap-4">
-                                    {col.images.map((imgFile, imgIndex) => (
+                                    {Array(5).fill(null).map((_, imgIndex) => (
                                         <div
                                             key={imgIndex}
-                                            className="relative flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded cursor-pointer"
+                                            className="relative flex flex-col items-center justify-center w-24 h-24 border-2 border-dashed border-gray-300 rounded"
                                         >
-                                            {imgFile ? (
-                                                <img
-                                                    src={URL.createObjectURL(imgFile)}
-                                                    alt="Preview"
-                                                    className="object-cover w-full h-full rounded"
-                                                />
+                                            {col.croppedImages[imgIndex] ? (
+                                                // Show cropped image with delete option
+                                                <div className="relative w-full h-full">
+                                                    <img
+                                                        src={URL.createObjectURL(col.croppedImages[imgIndex])}
+                                                        alt="Cropped Preview"
+                                                        className="object-cover w-full h-full rounded"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveImage(colIndex, imgIndex)}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
                                             ) : (
-                                                <span className="text-gray-400 text-sm">Add Image</span>
+                                                // Upload area
+                                                <div className="w-full h-full flex items-center justify-center cursor-pointer">
+                                                    <input
+                                                        type="file"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        accept="image/*"
+                                                        onChange={(e) => {
+                                                            if (e.target.files[0]) {
+                                                                handleColorImageSelect(
+                                                                    colIndex,
+                                                                    imgIndex,
+                                                                    e.target.files[0],
+                                                                    e
+                                                                );
+                                                            }
+                                                        }}
+                                                    />
+                                                    <span className="text-gray-400 text-sm">Add Image</span>
+                                                </div>
                                             )}
-                                            <input
-                                                type="file"
-                                                className="opacity-0 absolute w-24 h-24"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    if (e.target.files[0]) {
-                                                        handleColorImageChange(
-                                                            colIndex,
-                                                            imgIndex,
-                                                            e.target.files[0],
-                                                            e
-                                                        );
-                                                    }
-                                                }}
-                                            />
                                         </div>
                                     ))}
                                 </div>
@@ -550,6 +737,67 @@ const AddProduct = ({ setSelectedSection }) => {
                     </button>
                 </div>
             </form>
+
+            {cropMode && imgSrc && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    {/* Semi-transparent backdrop */}
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    {/* Modal container */}
+                    <div className="relative bg-white rounded-lg max-w-[620px] w-full p-4 shadow z-10">
+                        {/* Cross icon button */}
+                        <button
+                            onClick={handleCancelCrop}
+                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                        >
+                            <CloseIcon />
+
+                        </button>
+                        <h3 className="text-xl font-bold mb-4">Crop Image</h3>
+                        <p className="text-sm text-gray-500 mb-4">
+                            Drag to position  The crop maintains a 4:5 aspect ratio.
+                        </p>
+
+                        <div className="mb-4 flex justify-center">
+                            {/* Container with a fixed max-height and overflow */}
+                            <div className="max-w-[400px] ">
+                                <ReactCrop
+                                    crop={crop}
+                                    onChange={(c) => setCrop(c)}
+                                    onComplete={(c) => setCompletedCrop(c)}
+                                    aspect={4 / 5}
+                                    circularCrop={false}
+                                >
+                                    <img
+                                        src={imgSrc}
+                                        onLoad={onImageLoad}
+                                        alt="Crop Preview"
+                                        className=" w-full object-contain"
+                                    />
+                                </ReactCrop>
+                            </div>
+                        </div>
+
+
+                        <div className="flex justify-end space-x-4">
+                            <button
+                                onClick={handleCancelCrop}
+                                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveCrop}
+                                className="px-4 py-2 bg-black text-white rounded hover:bg-gray-700"
+                                disabled={!completedCrop?.width || !completedCrop?.height}
+                            >
+                                Save Crop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };

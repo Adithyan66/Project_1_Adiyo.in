@@ -44,6 +44,7 @@ const productSchema = new mongoose.Schema({
     sku: { type: String, required: true, unique: true },
     material: { type: String },
     careInstructions: [String],
+    totalQuantity: { type: Number, default: 0 },
     colors: [colorSchema],
     deletedAt: { type: Date, default: null }
 },

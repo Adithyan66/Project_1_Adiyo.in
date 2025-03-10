@@ -3,8 +3,8 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSearch } from "react-icons/fi"; // Optional: using react-icons for search icon
-
+import { FiSearch } from "react-icons/fi";
+import filterIcon from "../../../assets/images/filterIcon.png"
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Customers = () => {
@@ -106,7 +106,8 @@ const Customers = () => {
                         <FiSearch className="absolute left-2 top-2 text-gray-400" />
                     </div>
 
-                    <button className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
+                    <button className=" flex border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
+                        <img src={filterIcon} className="mr-3" alt="" />
                         Filters
                     </button>
                 </div>

@@ -16,12 +16,16 @@ export const addProduct = async (req, res) => {
         brand,
         category,
         subCategory,
-        sku, // auto-generated on the client or can be generated here
+        sku,
         material,
         careInstructions,
+        totalQuantity
     } = req.body;
 
-    // careInstructions is expected to be a JSON string
+    console.log("products data from frontend", totalQuantity);
+
+
+
     let parsedCareInstructions;
     try {
         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
@@ -32,7 +36,7 @@ export const addProduct = async (req, res) => {
         });
     }
 
-    // colors is a JSON string (array of color objects)
+
     let colorsData;
     try {
         colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
@@ -43,8 +47,7 @@ export const addProduct = async (req, res) => {
         });
     }
 
-    // Group files by color index.
-    // Expecting field names like "color0_image", "color0_image", ... "color1_image", etc.
+
     const filesByColor = {};
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({
@@ -63,7 +66,7 @@ export const addProduct = async (req, res) => {
         }
     });
 
-    // Validate that for each color variant, exactly 5 images are uploaded.
+
     for (let i = 0; i < colorsData.length; i++) {
         if (!filesByColor[i] || filesByColor[i].length !== 5) {
             return res.status(400).json({
@@ -74,8 +77,7 @@ export const addProduct = async (req, res) => {
     }
 
     try {
-        // For each color, upload the corresponding files to Cloudinary.
-        // We'll update the colorsData array with the image URLs and public IDs.
+
         for (let i = 0; i < colorsData.length; i++) {
             const colorFiles = filesByColor[i];
             const cloudinaryResults = await Promise.all(
@@ -93,7 +95,7 @@ export const addProduct = async (req, res) => {
             colorsData[i].imagePublicIds = imagePublicIds;
         }
 
-        // Create the product document using the new schema.
+
         const product = new Product({
             sku,
             name,
@@ -105,6 +107,7 @@ export const addProduct = async (req, res) => {
             material,
             careInstructions: parsedCareInstructions,
             colors: colorsData,
+            totalQuantity
         });
 
         await product.save();

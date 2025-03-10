@@ -25,6 +25,9 @@ import CustomerMoreDetailPage from './pages/admin/CustomerMoreDetailPage';
 import CustomerDetailsPage from './components/admin/forCustomers/CustomerDetails';
 import CustomersListPage from './pages/admin/CustomersListPage';
 import SellersListPage from './pages/admin/SellersListPage';
+import ManageProductsPage from './pages/admin/ManageProductsPage';
+import AdminProductEditPage from "./pages/admin/AdminProductEditPage"
+import CouponsPage from './pages/admin/CouponsPage';
 
 
 
@@ -88,13 +91,24 @@ function App() {
 
 
 
-        <Route path="/admin/dashboard" element={<AdminProtected><AdminDashboardPage />  </AdminProtected>} />
+        <Route path="/admin/dashboard" element={<AdminProtected> <AdminDashboardPage />  </AdminProtected>} />
 
         <Route path="/admin/customers/" element={<AdminProtected> <CustomersListPage />   </AdminProtected>} />
 
         <Route path="/admin/:id/customer-details/" element={<AdminProtected><CustomerMoreDetailPage /> </AdminProtected>} />
 
         <Route path="/admin/sellers" element={<AdminProtected><SellersListPage /></AdminProtected>} />
+
+        <Route path="/admin/manage-products" element={<AdminProtected><ManageProductsPage /></AdminProtected>} />
+
+        <Route path="/admin/edit-product/:productId" element={<AdminProtected><AdminProductEditPage /></AdminProtected>} />
+
+        <Route path="/admin/coupons" element={<AdminProtected><CouponsPage /></AdminProtected>} />
+
+
+
+
+
 
 
 

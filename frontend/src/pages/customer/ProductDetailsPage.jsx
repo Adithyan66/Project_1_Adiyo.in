@@ -8,7 +8,11 @@ import AlsoLikeProducts from '../../components/customer/AlsoLikeProducts'
 import Newsletter from '../../components/common/landingPage/NewsLetter'
 import Footer from '../../components/common/Footer'
 
+import { useNavigate } from "react-router-dom";
+
 function ProductDetailsPage() {
+
+    const navigate = useNavigate()
 
     const { id } = useParams();
     const [product, setProduct] = useState(null);
@@ -30,6 +34,7 @@ function ProductDetailsPage() {
                 }
             } catch (err) {
                 console.error("Error fetching product:", err);
+                navigate("/products-list")
             }
         };
 

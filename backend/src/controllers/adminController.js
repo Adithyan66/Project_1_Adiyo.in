@@ -1,5 +1,8 @@
 
 import User from "../models/userModel.js";
+import Product from "../models/productModel.js";
+import Coupon from "../models/couponModel.js";
+import { response } from "express";
 
 
 
@@ -47,8 +50,6 @@ export const customerDetails = async (req, res) => {
 
     }
 }
-
-
 
 export const blockUser = async (req, res) => {
     const { id } = req.params;
@@ -108,3 +109,157 @@ export const blockUser = async (req, res) => {
         });
     }
 };
+
+export const getProducts = async (req, res) => {
+
+    try {
+
+        const products = await Product.find({ deletedAt: null })
+
+        res.status(200).json({
+            status: true,
+            message: "products fetched succesfully",
+            products
+        })
+
+
+    } catch (error) {
+
+    }
+}
+
+export const deleteProduct = async (req, res) => {
+
+    try {
+        const productId = req.params.id;
+        const product = await Product.findByIdAndUpdate(
+            productId,
+            { deletedAt: new Date() },
+            { new: true }
+        );
+
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: 'Product soft deleted successfully',
+            product
+        });
+
+    } catch (error) {
+
+        console.error('Error soft deleting product:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+
+}
+
+export const productDetails = async (req, res) => {
+
+    const { id } = req.params;
+
+    try {
+        const product = await Product.findById(id);
+
+        if (!product) {
+            return res.status(404).json({
+                status: false,
+                message: "Product not found"
+            });
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "Product details fetched successfully",
+            product
+        });
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        res.status(500).json({
+            status: false,
+            message: "Server error"
+        });
+    }
+
+}
+
+export const addCoupon = async (req, res) => {
+
+    try {
+        const couponData = req.body;
+
+        const newCoupon = new Coupon(couponData);
+
+        await newCoupon.save()
+
+        res.status(200).json({
+            status: true,
+            message: "coupon created succesfully"
+        })
+    } catch (error) {
+        console.error("Error creating coupon:", error);
+        res.status(500).json({
+            status: false,
+            message: error.message
+        });
+
+    }
+}
+
+export const getCoupons = async (req, res) => {
+
+    try {
+
+        const coupons = await Coupon.find({ deletedAt: null })
+
+        res.status(200).json({
+            status: true,
+            message: "coupons fetched succesfully",
+            coupons
+        })
+
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: "server error"
+        })
+
+    }
+}
+
+export const deleteCoupon = async (req, res) => {
+
+    try {
+
+
+
+        const couponId = req.params.id
+
+        const coupon = await Coupon.findByIdAndUpdate(couponId,
+            { deletedAt: new Date() },
+            { new: true }
+        );
+
+        if (!coupon) {
+            return res.status(404).json({
+                status: false,
+                message: "coupon not found"
+            })
+        }
+
+        console.log("hellooo");
+
+        res.status(200).json({
+            status: true,
+            message: "coupon deleted succesfully",
+            coupon
+        })
+
+    } catch (error) {
+
+        console.error('Error soft deleting product:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}

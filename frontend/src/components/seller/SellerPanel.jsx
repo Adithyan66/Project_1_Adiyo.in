@@ -66,71 +66,77 @@ const SellerPanel = () => {
                 <h2 className="text-xl font-bold mb-6">Seller</h2>
                 <nav className="space-y-2">
 
-                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'dashboard' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'dashboard' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("dashboard"))
+                            setSelectedSection('dashboard')
+                        }}>
                         <Dashboard />
                         <button
                             className='ml-3'
-                            onClick={() => {
-                                dispatch(setActiveSelection("dashboard"))
-                                setSelectedSection('dashboard')
-                            }}>
+                        >
                             Dashboard
                         </button>
                     </div>
 
-                    <div className={` flex w-full text-left p-2 rounded ${leftSection === 'products' ? 'bg-black  text-white  hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={` flex w-full text-left p-2 rounded ${leftSection === 'products' ? 'bg-black  text-white  hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("products"))
+                            setSelectedSection('products')
+                        }}>
                         <ProductsIcon />
                         <button
                             className='ml-3'
-                            onClick={() => {
-                                dispatch(setActiveSelection("products"))
-                                setSelectedSection('products')
-                            }}>
+                        >
                             Products
                         </button>
                     </div>
 
-                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'orders' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'orders' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("orders"))
+                            setSelectedSection('orders')
+                        }}>
                         <OrdersIcon />
                         <button
                             className='ml-3'
-                            onClick={() => {
-                                dispatch(setActiveSelection("orders"))
-                                setSelectedSection('orders')
-                            }}>
+                        >
                             Orders
                         </button>
                     </div>
 
-                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'salesreport' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'salesreport' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("salesreport"))
+                            setSelectedSection('salesreport')
+                        }}>
                         <SalesReportIcon />
                         <button
                             className='ml-3'
-                            onClick={() => {
-                                dispatch(setActiveSelection("salesreport"))
-                                setSelectedSection('salesreport')
-                            }}>
+                        >
                             Sales report
                         </button>
                     </div>
 
-                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'refund/return' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === 'refund/return' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("refund/return"))
+                            setSelectedSection('refund/return')
+                        }}>
                         <ReturnIcon />
                         <button
                             className='ml-3'
-                            onClick={() => {
-                                dispatch(setActiveSelection("refund/return"))
-                                setSelectedSection('refund/return')
-                            }}>
+                        >
                             Refund/return
                         </button>
                     </div>
 
-                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === '' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}>
+                    <div className={`w-full flex text-left p-2 rounded hover:bg-gray-200 ${leftSection === '' ? 'bg-black  text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => handleLogout()}>
                         <SignOutIcon />
                         <button
                             className="w-full ml-3 text-left  rounded hover:bg-gray-200"
-                            onClick={() => handleLogout()}
+
                         >
                             Sign out
                         </button>

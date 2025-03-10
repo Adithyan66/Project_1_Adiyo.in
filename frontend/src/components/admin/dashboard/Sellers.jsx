@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { FiSearch } from "react-icons/fi"; // Optional: using react-icons for search icon
+import { FiSearch } from "react-icons/fi";
+import filterIcon from "../../../assets/images/filterIcon.png"
 
 const initialSellersData = [
     { id: 1, name: "Joyal Kuriakose", sellerID: "110564", products: 73, sales: 7306, status: "Active" },
@@ -94,29 +95,30 @@ const Sellers = () => {
                     <button className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
                         Requests
                     </button>
-                    <button className="border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
+                    <button className=" flex border border-gray-300 px-4 py-2 rounded hover:bg-gray-100">
+                        <img src={filterIcon} className="mr-3" alt="" />
                         Filters
                     </button>
                 </div>
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto w-full">
+            <div className="min-h-[700px] justify-center items-center">
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-black text-white">
-                            <th className="py-3 px-4">Name</th>
-                            <th className="py-3 px-4">Seller ID</th>
-                            <th className="py-3 px-4">Products</th>
-                            <th className="py-3 px-4">Sales</th>
-                            <th className="py-3 px-4">Status</th>
-                            <th className="py-3 px-4"></th>
+                            <th className="py-3 px-4 text-center">Name</th>
+                            <th className="py-3 px-4 text-center">Seller ID</th>
+                            <th className="py-3 px-4 text-center">Products</th>
+                            <th className="py-3 px-4 text-center">Sales</th>
+                            <th className="py-3 px-4 text-center">Status</th>
+                            <th className="py-3 px-4 text-center"></th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white">
+                    <tbody className="bg-gray-100">
                         {currentSellers.length > 0 ? (
                             currentSellers.map((seller) => (
-                                <tr key={seller.id} className="border-b hover:bg-gray-50">
+                                <tr key={seller.id} className="border-4 border-white hover:bg-gray-200">
                                     {/* Name + avatar */}
                                     <td className="py-3 px-4 flex items-center space-x-2">
                                         <img
@@ -126,10 +128,10 @@ const Sellers = () => {
                                         />
                                         <span>{seller.name}</span>
                                     </td>
-                                    <td className="py-3 px-4">{seller.sellerID}</td>
-                                    <td className="py-3 px-4">{seller.products}</td>
-                                    <td className="py-3 px-4">₹ {seller.sales.toLocaleString()}</td>
-                                    <td className="py-3 px-4">
+                                    <td className="py-3 px-4 text-center">{seller.sellerID}</td>
+                                    <td className="py-3 px-4 text-center">{seller.products}</td>
+                                    <td className="py-3 px-4 text-center">₹ {seller.sales.toLocaleString()}</td>
+                                    <td className="py-3 px-4 text-center">
                                         <span
                                             className={`px-3 py-1 rounded-full text-sm font-medium ${seller.status === "Active"
                                                 ? "bg-green-100 text-green-700"

@@ -13,6 +13,7 @@ import { logout } from '../../store/slices/userSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { setActiveSelection } from "../../store/slices/adminSideSelectedSlice"
+import { ShopIcon, CustomersListIcon, Dashboard, DeliveryTruck, ProductsIcon, Coupen } from '../../icons/icons';
 
 
 const DashBoard = () => {
@@ -45,59 +46,78 @@ const DashBoard = () => {
 
 
     return (
-        <div className="flex  bg-gray-100">
+        <div className="flex ">
             {/* Sidebar */}
-            <aside className="w-64 bg-white shadow-md p-4">
+            <aside className="w-64 bg-white shadow-md p-4 sticky top-5 h-[800px]">
                 <h2 className="text-xl font-bold mb-6">Admin</h2>
                 <nav className="space-y-2">
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'dashboard' ? 'bg-gray-200' : ''
-                            }`}
-                    // onClick={() => setSelectedSection('dashboard')}
-                    >
-                        Dashboard
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'sellers' ? 'bg-gray-200' : ''
-                            }`}
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'dashboard' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("dashboard"))
+                            navigate("/admin/sellers")
+                        }}>
+                        <Dashboard />
+                        <button
+                            className='ml-3'>
+                            Dashboard
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'sellers' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
                         onClick={() => {
                             dispatch(setActiveSelection("sellers"))
                             navigate("/admin/sellers")
-                        }}
-                    >
-                        Sellers
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'customers' ? 'bg-gray-200' : ''
-                            }`}
+                        }}>
+                        <ShopIcon />
+                        <button
+                            className='ml-3'>
+                            Sellers
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'customers' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
                         onClick={() => {
                             dispatch(setActiveSelection("customers"))
                             navigate("/admin/customers")
-                        }}
-                    >
-                        Customers
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'delivery' ? 'bg-gray-200' : ''
-                            }`}
-                    // onClick={() => setSelectedSection('delivery')}
-                    >
-                        Delivery Agent
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'manageProducts' ? 'bg-gray-200' : ''
-                            }`}
-                    //onClick={() => setSelectedSection('manageProducts')}
-                    >
-                        Manage Products
-                    </button>
-                    <button
-                        className={`w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'editCoupon' ? 'bg-gray-200' : ''
-                            }`}
-                    //  onClick={() => setSelectedSection('editCoupon')}
-                    >
-                        Edit Coupon
-                    </button>
+                        }}>
+                        <CustomersListIcon />
+                        <button
+                            className='ml-3'>
+                            Customers
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'delivery' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("delivery"))
+                            navigate("/admin/delivery")
+                        }}>
+                        <DeliveryTruck />
+                        <button
+                            className='ml-3'>
+                            Delivery Agent
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'manageProducts' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("manageProducts"))
+                            navigate("/admin/manage-products")
+                        }}>
+                        <ProductsIcon />
+                        <button
+                            className='ml-3'>
+                            Manage Products
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'editCoupon' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("editCoupon"))
+                            navigate("/admin/coupons")
+                        }}>
+                        <Coupen />
+                        <button
+                            className='ml-3'>
+                            Coupons
+                        </button>
+                    </div>
+
                     <button
                         className="w-full text-left p-2 rounded hover:bg-gray-200"
                         onClick={() => handleLogout()}

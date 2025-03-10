@@ -1,16 +1,13 @@
+
+
 import React, { useState, useEffect } from "react";
-import ReactImageMagnify from "react-image-magnify";
 import { Link } from "react-router-dom";
 import Breadcrumbs from "./BreadCrumbs";
 
-
-
-
 function ProductDetail({ product }) {
-
-
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [selectedImage, setSelectedImage] = useState("");
+    const [isHovering, setIsHovering] = useState(false);
 
     useEffect(() => {
         if (product.colors && product.colors.length > 0) {
@@ -31,45 +28,50 @@ function ProductDetail({ product }) {
                 .map((variant) => variant.size)
             : [];
 
+    // Simple Image Zoom Component
+    const SimpleImageZoom = ({ src }) => {
+        return (
+            <div
+                className="relative w-full overflow-hidden"
+                style={{ height: "500px" }}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+            >
+                <img
+                    src={src}
+                    alt="Product"
+                    className="w-full h-full object-contain transition-transform duration-300"
+                    style={{
+                        transform: isHovering ? 'scale(1.8)' : 'scale(1)',
+                        transformOrigin: 'center center'
+                    }}
+                />
+            </div>
+        );
+    };
+
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
             {/* Breadcrumbs */}
             <Breadcrumbs product={product} />
 
             {/* Main Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* LEFT COLUMN: Main image + thumbnails */}
                 <div className="flex flex-col items-center">
-                    <div className="relative w-full h-155 bg-gray-100 rounded shadow-sm overflow-hidden flex items-center justify-center">
-                        <ReactImageMagnify
-                            {...{
-                                smallImage: {
-                                    alt: "Product image",
-                                    isFluidWidth: true,
-                                    src: selectedImage,
-                                },
-                                largeImage: {
-                                    src: selectedImage,
-                                    width: 1400,
-                                    height: 1400,
-                                },
-                                enlargedImagePortalId: "zoom-portal",
-                                enlargedImagePosition: "beside",
-                                enlargedImageContainerDimensions: { width: "150%", height: "100%" },
-                            }}
-                        />
-                    </div>
+                    {/* Main Image with Simple Zoom */}
+                    <SimpleImageZoom src={selectedImage} />
 
                     {/* Thumbnails */}
-                    <div className="flex space-x-4 mt-4">
+                    <div className="flex space-x-4 mt-4 self-start">
                         {selectedColor &&
                             selectedColor.images.map((image, index) => (
                                 <div
                                     key={index}
                                     className={`border ${selectedImage === image ? "border-black" : "border-gray-300"} rounded p-1 cursor-pointer`}
-                                    onMouseEnter={() => setSelectedImage(image)}
+                                    onClick={() => setSelectedImage(image)}
                                 >
-                                    <img src={image} alt={`Thumb ${index + 1}`} className="w-20 h-auto" />
+                                    <img src={image} alt={`Thumb ${index + 1}`} className="w-20 h-auto object-cover" />
                                 </div>
                             ))}
                     </div>
@@ -97,8 +99,8 @@ function ProductDetail({ product }) {
                     <hr className="border-t border-gray-300 my-4" />
 
                     {/* Color Selection */}
-                    {product.colors && product.colors.length > 1 && (
-                        <div className="items-center space-x-4 my-4">
+                    {product.colors && product.colors.length > 0 && (
+                        <div className="my-4">
                             <h3 className="font-semibold text-gray-500 mb-4">Choose Color</h3>
                             <div className="flex space-x-3 mt-2">
                                 {product.colors.map((col, index) => (
@@ -109,25 +111,9 @@ function ProductDetail({ product }) {
                                             setSelectedImage(product.colors[index].images[0]);
                                         }}
                                         style={{ backgroundColor: col.color }}
-                                        className={`w-12 h-12 border-2 rounded-4xl ${index === selectedColorIndex ? "border-black" : "border-gray-300"}`}
+                                        className={`w-12 h-12 border-2 rounded-full ${index === selectedColorIndex ? "border-black" : "border-gray-300"}`}
                                     ></button>
                                 ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {product.colors && product.colors.length === 1 && (
-                        <div className="items-center space-x-4 my-4">
-                            <h3 className="font-semibold text-gray-500 mb-4">Choose Color</h3>
-                            <div className="flex space-x-3 mt-2">
-                                <button
-                                    onClick={() => {
-                                        setSelectedColorIndex(0);
-                                        setSelectedImage(product.colors[0].images[0]);
-                                    }}
-                                    style={{ backgroundColor: product.colors[0].color }}
-                                    className="w-12 h-12 border-2 rounded-4xl border-black"
-                                ></button>
                             </div>
                         </div>
                     )}
@@ -164,7 +150,7 @@ function ProductDetail({ product }) {
                                 placeholder="Enter pincode here"
                                 className="border border-gray-300 rounded px-3 py-2 focus:outline-none"
                             />
-                            <button className="px-4 py-2 border border-gray-300 rounded-4xl bg-gray-200 hover:bg-gray-300 hover:text-amber-50">
+                            <button className="px-4 py-2 border border-gray-300 rounded-md bg-gray-200 hover:bg-gray-300">
                                 Check
                             </button>
                         </div>
@@ -191,6 +177,5 @@ function ProductDetail({ product }) {
         </div>
     );
 }
-
 
 export default ProductDetail;
