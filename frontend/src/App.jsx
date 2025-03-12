@@ -28,6 +28,7 @@ import SellersListPage from './pages/admin/SellersListPage';
 import ManageProductsPage from './pages/admin/ManageProductsPage';
 import AdminProductEditPage from "./pages/admin/AdminProductEditPage"
 import CouponsPage from './pages/admin/CouponsPage';
+import ManageCategoryPage from './pages/admin/ManageCategoryPage';
 
 
 
@@ -105,7 +106,7 @@ function App() {
 
         <Route path="/admin/coupons" element={<AdminProtected><CouponsPage /></AdminProtected>} />
 
-
+        <Route path="/admin/manage-category" element={<AdminProtected><ManageCategoryPage /></AdminProtected>} />
 
 
 

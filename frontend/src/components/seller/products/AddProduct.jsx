@@ -5,17 +5,24 @@ import React, { useEffect, useState } from "react";
 import ReactCrop, { centerCrop, makeAspectCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { CloseIcon } from "../../../icons/icons";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
 
 const AddProduct = ({ setSelectedSection }) => {
-    // Common Product Fields
+
+
     const [productName, setProductName] = useState("");
     const [shortDescription, setShortDescription] = useState("");
     const [productDescription, setProductDescription] = useState("");
     const [brand, setBrand] = useState("");
-    const [category, setCategory] = useState(""); // e.g., Mens Wear, Boys
-    const [subCategory, setSubCategory] = useState(""); // fixed options below
+    const [category, setCategory] = useState("");
+    const [subCategory, setSubCategory] = useState("");
     const [material, setMaterial] = useState("");
     const [careInstructions, setCareInstructions] = useState([]);
+
+    const [dbCategories, setDbCategories] = useState([])
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
     // SKU state (shown in realtime)
     const [sku, setSku] = useState("");
@@ -68,13 +75,6 @@ const AddProduct = ({ setSelectedSection }) => {
         );
     }
 
-    // function onImageLoad(e) {
-    //     const { width, height } = e.currentTarget;
-    //     setImgRef(e.currentTarget);
-    //     // Set default crop using a 4:5 aspect ratio
-    //     const defaultCrop = centerAspectCrop(width, height, 4 / 5);
-    //     setCrop(defaultCrop);
-    // }
 
     function onImageLoad(e) {
         const { width, height } = e.currentTarget;
@@ -321,6 +321,37 @@ const AddProduct = ({ setSelectedSection }) => {
         });
     };
 
+
+    useEffect(() => {
+
+        const fetchDbCategories = async () => {
+
+            try {
+
+                const response = await axios.get(`${API_BASE_URL}/seller/categories`);
+
+                console.log(response.data.categories);
+
+                setDbCategories(response.data.categories);
+                setIsLoadingCategories(false);
+
+            } catch (error) {
+                console.error("Error fetching categories:", error);
+
+                setIsLoadingCategories(false);
+            }
+        };
+
+        fetchDbCategories();
+
+    }, [])
+
+    useEffect(() => {
+        setSubCategory("");
+    }, [category]);
+
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -362,8 +393,6 @@ const AddProduct = ({ setSelectedSection }) => {
         try {
 
             console.log(Array.from(formData.entries()));
-
-
 
             const response = await axios.post(
 
@@ -445,41 +474,57 @@ const AddProduct = ({ setSelectedSection }) => {
                             placeholder="Enter brand"
                         />
                     </div>
+
                     <div className="w-1/2">
                         <label className="block font-medium mb-1">Category</label>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            required
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        >
-                            <option value="">Select a category</option>
-                            <option value="Mens Wear">Mens Wear</option>
-                            <option value="Boys">Boys</option>
-                        </select>
+                        {isLoadingCategories ? (
+                            <p>Loading categories...</p>
+                        ) : (
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                required
+                                className="w-full border border-gray-300 rounded px-3 py-2"
+                            >
+                                <option value="">Select a category</option>
+                                {dbCategories.map((cat) => (
+                                    <option key={cat._id} value={cat._id}>
+                                        {cat.name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
+
                 </div>
 
                 <div className="flex space-x-4">
                     <div className="w-1/2">
                         <label className="block font-medium mb-1">Sub Category</label>
-                        <select
-                            value={subCategory}
-                            onChange={(e) => setSubCategory(e.target.value)}
-                            required
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        >
-                            <option value="">Select a sub category</option>
-                            {/* Extended subcategory options */}
-                            <option value="Shirt">Shirt</option>
-                            <option value="Pant">Pant</option>
-                            <option value="Kurtha">Kurtha</option>
-                            <option value="Jogger">Jogger</option>
-                            <option value="Coat">Coat</option>
-                            <option value="T-Shirt">T-Shirt</option>
-                            <option value="Shorts">Shorts</option>
-                            <option value="Track Pants">Track Pants</option>
-                        </select>
+                        {category ? (
+                            // Find the selected category in dbCategories to get its subcategories.
+                            <select
+                                value={subCategory}
+                                onChange={(e) => setSubCategory(e.target.value)}
+                                required
+                                className="w-full border border-gray-300 rounded px-3 py-2"
+                            >
+                                <option value="">Select a sub category</option>
+                                {(() => {
+                                    const selectedCat = dbCategories.find((cat) => cat._id === category);
+                                    if (selectedCat && selectedCat.subcategories) {
+                                        return selectedCat.subcategories.map((sub) => (
+                                            <option key={sub._id} value={sub._id}>
+                                                {sub.name}
+                                            </option>
+                                        ));
+                                    }
+                                    return null;
+                                })()}
+                            </select>
+                        ) : (
+                            <p>Please select a category first</p>
+                        )}
                     </div>
                     <div className="w-1/2">
                         <label className="block font-medium mb-1">Material</label>

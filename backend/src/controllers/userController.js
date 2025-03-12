@@ -1,5 +1,5 @@
 
-
+import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -9,6 +9,7 @@ import { generateResetToken } from '../services/tokenService.js';
 
 import { OAuth2Client } from 'google-auth-library';
 import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
+const ObjectId = mongoose.Types.ObjectId;
 
 
 import User from "../models/userModel.js";
@@ -399,13 +400,32 @@ const productList = async (req, res) => {
             match.name = { $regex: req.query.search, $options: "i" };
         }
 
+
         if (req.query.category) {
-            match.category = req.query.category;
-        }
-        if (req.query.subCategory) {
-            match.subCategory = req.query.subCategory;
+
+            try {
+                match.category = new ObjectId(req.query.category);
+            } catch (error) {
+                console.log(error.message);
+
+                return res.status(400).json({
+                    status: false,
+                    message: "Invalid category ID format."
+                });
+            }
         }
 
+
+        if (req.query.subCategory) {
+            try {
+                match.subCategory = new ObjectId(req.query.subCategory);
+            } catch (error) {
+                return res.status(400).json({
+                    status: false,
+                    message: "Invalid subCategory ID format."
+                });
+            }
+        }
 
         if (req.query.minPrice || req.query.maxPrice) {
             const priceFilter = {};
@@ -453,10 +473,9 @@ const productList = async (req, res) => {
             }
         }
 
-        // --- Build Aggregation Pipeline ---
+
         const pipeline = [
             { $match: match },
-            // Compute minDiscountPrice based on the original colors array (will be recomputed later)
             {
                 $addFields: {
                     minDiscountPrice: { $min: "$colors.discountPrice" },
@@ -464,7 +483,6 @@ const productList = async (req, res) => {
             }
         ];
 
-        // If a color filter is provided, project only the matching color variants
         if (req.query.color) {
             const colorsArray = req.query.color.split(",");
             pipeline.push({
@@ -478,7 +496,6 @@ const productList = async (req, res) => {
                     sku: 1,
                     material: 1,
                     careInstructions: 1,
-                    // Filter colors array to include only those matching the provided colors
                     colors: {
                         $filter: {
                             input: "$colors",
@@ -486,13 +503,11 @@ const productList = async (req, res) => {
                             cond: { $in: ["$$color.color", colorsArray] }
                         }
                     },
-                    // Pass through any other fields you need
                     createdAt: 1,
                     updatedAt: 1
                 }
             });
 
-            // Recompute the price based on the filtered colors array
             pipeline.push({
                 $addFields: {
                     minDiscountPrice: { $min: "$colors.discountPrice" },
@@ -500,7 +515,7 @@ const productList = async (req, res) => {
             });
         }
 
-        // Sorting stage based on query
+
         let sortStage = {};
         if (req.query.sort) {
             switch (req.query.sort) {
@@ -528,6 +543,14 @@ const productList = async (req, res) => {
         const limit = parseInt(req.query.limit, 10) || 10;
         const skip = (page - 1) * limit;
         pipeline.push({ $skip: skip }, { $limit: limit });
+
+        // Print the entire pipeline object in a formatted way:
+
+
+        // Print the last pipeline stage:
+        //console.log("Last pipeline stage:", JSON.stringify(pipeline[pipeline.length - 1], null, 2));
+
+
 
         const products = await Product.aggregate(pipeline);
         const countPipeline = [{ $match: match }, { $count: "total" }];
@@ -567,7 +590,7 @@ const profile = async (req, res) => {
 
     const token = req.cookies.token;
 
-    console.log("token from front end :", token)
+
 
     if (!token) {
         return res.status(401).json({
@@ -578,17 +601,15 @@ const profile = async (req, res) => {
     try {
         const decoded = jwt.verify(token, "secret")
 
-        console.log("decoded token =", decoded);
+
         const _id = decoded.userId
-        console.log("decoded userId =", _id);
 
 
 
         const user = await User.findOne({ _id })
-        console.log("before check", user);
 
         if (!user.isActive) {
-            console.log("after check", user);
+
             return res.status(401).json({
                 status: false,
                 message: "invalid user"

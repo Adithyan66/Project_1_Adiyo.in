@@ -1,5 +1,9 @@
 
 
+
+
+
+
 import React from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -17,6 +21,11 @@ function FilterSidebar({
     setMaxPrice,
     handleApplyFilter,
     handleResetFilter,
+    // New props:
+    dbCategories,
+    filterCategory,
+    setFilterCategory,
+    isLoadingCategories,
 }) {
     const availableColors = [
         "Red",
@@ -33,39 +42,32 @@ function FilterSidebar({
         "Maroon",
         "Navy",
         "Olive",
-        "Teal"
+        "Teal",
     ];
     const availableSizes = ["Small", "Medium", "Large", "Extra Large"];
-    const availableStyles = ["All", "Casual", "Formal"];
 
-    // Toggle color checkboxes
+    // Toggle color checkboxes.
     const handleColorChange = (color) => {
         setSelectedColors((prev) =>
             prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color]
         );
     };
 
-    // Toggle size checkboxes
+    // Toggle size checkboxes.
     const handleSizeChange = (size) => {
         setSelectedSizes((prev) =>
             prev.includes(size) ? prev.filter((s) => s !== size) : [...prev, size]
         );
     };
 
-    // Handle style change
-    const handleStyleSelect = (e) => {
-        setSelectedStyle(e.target.value);
-    };
-
-    // Handle slider changes (value is an array: [newMin, newMax])
+    // Handle slider changes.
     const handlePriceSlider = (value) => {
         setMinPrice(value[0]);
         setMaxPrice(value[1]);
     };
 
     return (
-        // The outer container is now sticky, full viewport height, with vertical scroll if needed.
-        <div className="w-74 bg-white p-4 rounded shadow sticky top-0 h-[92vh] overflow-y-auto">
+        <div className="w-74 bg-white p-4 rounded shadow sticky top-0 h-[92vh] overflow-y-auto scrollbar-hidden">
             <h2 className="text-xl font-bold mb-4">Filters</h2>
 
             <hr className="p-3 text-gray-200" />
@@ -74,7 +76,6 @@ function FilterSidebar({
             <div className="mb-6">
                 <h3 className="font-semibold mb-2">Price</h3>
                 <div className="px-1">
-                    {/* Range slider from rc-slider */}
                     <Slider
                         range
                         min={0}
@@ -84,7 +85,6 @@ function FilterSidebar({
                         onChange={handlePriceSlider}
                         allowCross={false}
                     />
-                    {/* Show numeric values */}
                     <div className="flex justify-between mt-2 text-sm">
                         <span>₹{minPrice}</span>
                         <span>₹{maxPrice}</span>
@@ -99,7 +99,6 @@ function FilterSidebar({
                 <h3 className="font-semibold mb-2">Colors</h3>
                 <div className="flex flex-wrap gap-2">
                     {availableColors.map((color) => {
-                        // Convert the color to lowercase for CSS background compatibility
                         const lowerColor = color.toLowerCase();
                         const isSelected = selectedColors.includes(color);
                         return (
@@ -133,9 +132,7 @@ function FilterSidebar({
                         return (
                             <label
                                 key={size}
-                                className={`cursor-pointer block h-10 border rounded-full px-4 py-2 text-base text-center ${isSelected
-                                    ? "bg-black text-white"
-                                    : "bg-gray-100 text-gray-600 border-gray-300"
+                                className={`cursor-pointer block h-10 border rounded-full px-4 py-2 text-base text-center ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-600 border-gray-300"
                                     }`}
                             >
                                 <input
@@ -153,28 +150,77 @@ function FilterSidebar({
 
             <hr className="p-3 text-gray-200" />
 
-            {/* Dress Style */}
             <div className="mb-4">
-                <h3 className="font-semibold mb-2">Dress Catagory</h3>
-                <div className="flex flex-col gap-2">
-                    {["Shirt", "Pant", "Kurtha", "Jogger", "Coat", "T-Shirt", "Shorts", "Track Pants"].map((style) => {
-                        const isSelected = selectedStyle === style;
-                        return (
+                <h3 className="font-semibold mb-2">Category</h3>
+                {isLoadingCategories ? (
+                    <p>Loading categories...</p>
+                ) : (
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={() => setFilterCategory("")}
+                            className={`px-4 py-2 w-full rounded border ${filterCategory === ""
+                                ? "bg-black text-white border-black"
+                                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                                }`}
+                        >
+                            All Categories
+                        </button>
+                        {dbCategories.map((cat) => (
                             <button
-                                key={style}
-                                onClick={() => setSelectedStyle(style)}
-                                className={`cursor-pointer block w-full text-left px-4 py-2 text-sm ${isSelected ? "bg-black text-white rounded-2xl" : "bg-transparent text-gray-600"
+                                key={cat._id}
+                                onClick={() => setFilterCategory(cat._id)}
+                                className={`px-4 py-2 w-full rounded border ${filterCategory === cat._id
+                                    ? "bg-black text-white border-black"
+                                    : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
                                     }`}
                             >
-                                <div className="flex justify-between items-center">
-                                    <span>{style}</span>
-                                    <span>&gt;</span>
-                                </div>
+                                {cat.name}
                             </button>
-                        );
-                    })}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
+
+
+
+            {filterCategory && (
+                <div className="mb-4">
+                    <h3 className="font-semibold mb-2">Sub Category</h3>
+                    {(() => {
+                        const selectedCat = dbCategories.find((cat) => cat._id === filterCategory);
+                        if (selectedCat && selectedCat.subcategories && selectedCat.subcategories.length > 0) {
+                            return (
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => setSelectedStyle("")}
+                                        className={`px-4 py-2 w-full rounded border ${selectedStyle === ""
+                                            ? "bg-black text-white border-black"
+                                            : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                                            }`}
+                                    >
+                                        All Sub Categories
+                                    </button>
+                                    {selectedCat.subcategories.map((sub) => (
+                                        <button
+                                            key={sub._id}
+                                            onClick={() => setSelectedStyle(sub._id)}
+                                            className={`px-4 py-2 w-full rounded border ${selectedStyle === sub._id
+                                                ? "bg-black text-white border-black"
+                                                : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
+                                                }`}
+                                        >
+                                            {sub.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            );
+                        } else {
+                            return <p>No subcategories available</p>;
+                        }
+                    })()}
+                </div>
+            )}
+
 
             <hr className="p-3 text-gray-200" />
 

@@ -13,7 +13,7 @@ import { logout } from '../../store/slices/userSlice';
 import { useSelector, useDispatch } from 'react-redux';
 
 import { setActiveSelection } from "../../store/slices/adminSideSelectedSlice"
-import { ShopIcon, CustomersListIcon, Dashboard, DeliveryTruck, ProductsIcon, Coupen } from '../../icons/icons';
+import { ShopIcon, CustomersListIcon, Dashboard, DeliveryTruck, ProductsIcon, Coupen, ManageCatogeryIcon } from '../../icons/icons';
 
 
 const DashBoard = () => {
@@ -115,6 +115,17 @@ const DashBoard = () => {
                         <button
                             className='ml-3'>
                             Coupons
+                        </button>
+                    </div>
+                    <div className={` flex w-full text-left p-2 rounded hover:bg-gray-200 ${selectedSection === 'manageCategory' ? 'bg-black text-white hover:bg-gray-800' : ' hover:bg-gray-200'}`}
+                        onClick={() => {
+                            dispatch(setActiveSelection("manageCategory"))
+                            navigate("/admin/manage-Category")
+                        }}>
+                        <ManageCatogeryIcon />
+                        <button
+                            className='ml-3'>
+                            Manage Category
                         </button>
                     </div>
 

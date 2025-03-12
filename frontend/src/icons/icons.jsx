@@ -367,4 +367,24 @@ export const Coupen = ({ className = "w-6 h-6" }) => (
 )
 
 
+export const ManageCatogeryIcon = () => (
+    <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+    >
 
+        <path
+            d="M11.99 4L2 9l9.99 5L22 9 11.99 4z"
+            fill="currentColor"
+        />
+
+        <path
+            d="M2 14l9.99 5 9.99-5-2.54-1.27-7.45 3.73-7.45-3.73L2 14z"
+            fill="currentColor"
+        />
+    </svg>
+
+)

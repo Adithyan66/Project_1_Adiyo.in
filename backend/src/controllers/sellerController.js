@@ -1,6 +1,7 @@
 
 import cloudinary from '../config/cloudinary.js';
 import Product from '../models/productModel.js';
+import Category from '../models/categoryModel.js';
 import fs from "fs";
 
 
@@ -180,9 +181,6 @@ export const productDetails = async (req, res) => {
     }
 };
 
-
-
-
 export const editProduct = async (req, res) => {
     const {
         name,
@@ -314,8 +312,6 @@ export const editProduct = async (req, res) => {
     }
 };
 
-
-
 export const deleteProduct = async (req, res) => {
     try {
         const productId = req.params.id;
@@ -341,4 +337,36 @@ export const deleteProduct = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 
+}
+
+export const getCategories = async (req, res) => {
+
+    try {
+
+        const categories = await Category.find()
+
+        if (!categories) {
+            return res.status(400).json({
+                status: false,
+                message: "Categories not found"
+            })
+        }
+
+        res.status(200).json({
+            status: true,
+            message: "categories fetched succesfully",
+            categories
+        })
+
+
+    } catch (error) {
+        console.log(error.message);
+
+        res.status(500).json({
+            status: false,
+            message: "server error"
+        }
+        )
+
+    }
 }

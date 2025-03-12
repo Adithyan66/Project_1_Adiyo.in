@@ -1,6 +1,31 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
+
 function Breadcrumbs({ product }) {
+
+    const [category, setCategory] = useState("")
+    const [subCategory, setSubCategory] = useState("")
+
+    useEffect(() => {
+
+        const fetchCategoryName = async () => {
+
+            const response = await axios.get(`${API_BASE_URL}/user/category-name/${product.category}/${product.subCategory}`)
+
+            setCategory(response.data.category)
+            setSubCategory(response.data.subCategory)
+
+        }
+
+        fetchCategoryName()
+
+    }, [])
+
     return (
         <nav className="text-sm mb-4" aria-label="Breadcrumb">
             <ol className="list-reset flex text-gray-600">
@@ -18,7 +43,7 @@ function Breadcrumbs({ product }) {
                         to={`/products-list?category=${encodeURIComponent(product.category)}`}
                         className="text-black hover:underline"
                     >
-                        {product.category}
+                        {category}
                     </Link>
                 </li>
                 <li>
@@ -29,7 +54,7 @@ function Breadcrumbs({ product }) {
                     <Link
                         to={`/products-list?subCategory=${encodeURIComponent(product.subCategory)}`}
                         className="text-black hover:underline"                    >
-                        {product.subCategory}
+                        {subCategory}
                     </Link>
                 </li>
                 <li>

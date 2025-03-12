@@ -15,6 +15,7 @@ import { setEditProductID } from "../../../store/slices/sellerSideSelectedSlice"
 import { useDispatch } from "react-redux";
 
 import AddCouponModal from "./AddCouponModal";
+import EditCouponModal from "./EditCouponModal";
 
 
 
@@ -26,7 +27,7 @@ const Coupons = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    // Use consistent variable name
+
     const [initialCouponData, setInitialCouponData] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,6 +39,15 @@ const Coupons = () => {
     });
 
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditModalOpen, setEditModalOpen] = useState(false)
+
+    const handleOpenEditModal = () => {
+        setEditModalOpen(true);
+    }
+
+    const handleCloseEditModal = () => {
+        setEditModalOpen(false)
+    }
 
     const handleOpenModal = () => {
         setIsModalOpen(true);
@@ -47,7 +57,6 @@ const Coupons = () => {
         setIsModalOpen(false);
     };
 
-    // Filter coupons based on searchQuery
     const filteredCoupons = (initialCouponData || []).filter((coupon) =>
         coupon.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -126,6 +135,7 @@ const Coupons = () => {
         setDeleteModal({ open: false, couponId: null });
     };
 
+
     const confirmDelete = async (id) => {
 
         try {
@@ -145,6 +155,7 @@ const Coupons = () => {
             handleCloseDeleteModal();
         }
     };
+
 
     if ((initialCouponData || []).length < 1) {
         return (
@@ -221,12 +232,18 @@ const Coupons = () => {
                                         <button
                                             className="text-black px-3 py-1 rounded hover:bg-gray-200"
                                             onClick={() => {
-                                                navigate(`/admin/edit-coupon/${coupon._id}`);
-                                                dispatch(setEditProductID(coupon._id));
+                                                handleOpenEditModal()
                                             }}
                                         >
                                             <img src={editicon} alt="edit" />
                                         </button>
+                                        {isEditModalOpen && (
+                                            <EditCouponModal
+                                                coupon={coupon}
+                                                handleOpenEditModal={handleOpenEditModal}
+                                                handleCloseEditModal={handleCloseEditModal}
+                                            />
+                                        )}
                                         <button
                                             className="text-black px-3 py-1 rounded hover:bg-gray-200"
                                             onClick={() => handleOpenDeleteModal(coupon._id)}
@@ -322,8 +339,9 @@ const Coupons = () => {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 fetchCoupons={fetchCoupons}
-
             />
+
+
         </div>
     );
 };

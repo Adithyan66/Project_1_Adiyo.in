@@ -31,16 +31,13 @@ const colorSchema = new mongoose.Schema({
 });
 
 const productSchema = new mongoose.Schema({
+
     name: { type: String, required: true },
     shortDescription: { type: String },
     description: { type: String },
     brand: { type: String, required: true },
-    category: { type: String, required: true },
-    subCategory: {
-        type: String,
-        required: true,
-        enum: ["Shirt", "Pant", "Kurtha", "Jogger", "Coat", "T-Shirt", "Shorts", "Track Pants"],
-    },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category", required: true },
+    subCategory: { type: mongoose.Schema.Types.ObjectId, required: true },
     sku: { type: String, required: true, unique: true },
     material: { type: String },
     careInstructions: [String],
@@ -51,6 +48,6 @@ const productSchema = new mongoose.Schema({
     { timestamps: true }
 );
 
-const Product = mongoose.model("product", productSchema)
+const Product = mongoose.model("product", productSchema);
 
 export default Product
