@@ -109,22 +109,24 @@ export const blockUser = async (req, res) => {
         });
     }
 };
-
 export const getProducts = async (req, res) => {
-
     try {
 
-        const products = await Product.find({ deletedAt: null })
+        const products = await Product.find({ deletedAt: null }).populate('category');
+
+        console.log(products);
 
         res.status(200).json({
             status: true,
             message: "products fetched succesfully",
             products
-        })
-
-
+        });
     } catch (error) {
-
+        res.status(500).json({
+            status: false,
+            message: "Failed to fetch products",
+            error: error.message
+        });
     }
 }
 

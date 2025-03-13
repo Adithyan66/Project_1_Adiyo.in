@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import Breadcrumbs from "./BreadCrumbs";
+import Breadcrumbs from "./productlist/BreadCrumbs";
 
 function ProductDetail({ product }) {
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);

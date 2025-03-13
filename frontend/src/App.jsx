@@ -6,7 +6,6 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast, ToastContainer } from 'react-toastify';
-import Cookies from 'js-cookie';
 
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -29,6 +28,7 @@ import ManageProductsPage from './pages/admin/ManageProductsPage';
 import AdminProductEditPage from "./pages/admin/AdminProductEditPage"
 import CouponsPage from './pages/admin/CouponsPage';
 import ManageCategoryPage from './pages/admin/ManageCategoryPage';
+import UserProfilePage from './pages/customer/UserProfilePage';
 
 
 
@@ -37,43 +37,80 @@ function App() {
   const dispatch = useDispatch();
   const navigate = useNavigate()
 
+  // useEffect(() => {
+
+  //   const persistLogin = async () => {
+
+  //     try {
+  //       const response = await axios.get(
+  //         "http://localhost:3333/user/profile",
+  //         { withCredentials: true }
+  //       );
+
+  //       dispatch(loginSuccess({
+  //         user: response.data.user,
+  //         token: "cookie",
+  //         role: response.data.role
+  //       }));
+
+
+  //     } catch (error) {
+
+  //       dispatch(logout())
+  //       //const token = Cookies.get('token');
+
+  //       if (token) {
+
+  //         toast.error(error.response.data.message)
+
+  //         await axios.post(
+  //           "http://localhost:3333/user/logout",
+  //           {},
+  //           { withCredentials: true })
+  //       }
+
+  //     }
+  //   };
+
+  //   persistLogin();
+
+  // }, [dispatch, navigate]);
+
+
   useEffect(() => {
-
     const persistLogin = async () => {
-
       try {
-        const response = await axios.get(
-          "http://localhost:3333/user/profile",
-          { withCredentials: true }
+        const response = await axios.get("http://localhost:3333/user/profile", {
+          withCredentials: true,
+        });
+        dispatch(
+          loginSuccess({
+            user: response.data.user,
+            token: "cookie",
+            role: response.data.role,
+          })
         );
-
-        dispatch(loginSuccess({
-          user: response.data.user,
-          token: "cookie",
-          role: response.data.role
-        }));
-
-
       } catch (error) {
 
-        dispatch(logout())
-        const token = Cookies.get('token');
+        dispatch(logout());
 
-        if (token) {
 
-          toast.error(error.response.data.message)
+        toast.error(error.response?.data?.message || 'Session expired');
 
+        // Call the logout endpoint to clear the HTTP-only cookie if necessary
+        try {
           await axios.post(
             "http://localhost:3333/user/logout",
             {},
-            { withCredentials: true })
+            { withCredentials: true }
+          );
+        } catch (logoutError) {
+          console.error("Error during logout:", logoutError);
         }
-
       }
     };
 
     persistLogin();
-
   }, [dispatch, navigate]);
 
 
@@ -88,6 +125,7 @@ function App() {
 
         <Route path="/product-detail/:id" element={<ProductDetailsPage />} />
 
+        <Route path="/user/profile" element={<UserProfilePage />} />
 
 
 

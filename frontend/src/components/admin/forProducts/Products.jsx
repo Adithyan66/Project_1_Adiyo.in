@@ -195,7 +195,7 @@ const Products = () => {
                                     <td className="py-3 px-4 ">{formatedDate(product.createdAt)}</td>
                                     <td className="py-3 px-4 text-center">₹ {product.colors[0].basePrice.toLocaleString()}</td>
                                     <td className="py-3 px-4 text-center">₹ {product.colors[0].discountPrice.toLocaleString()}</td>
-                                    <td className="py-3 px-4 text-center">{product.subCategory}</td>
+                                    <td className="py-3 px-4 text-center">{product?.category?.name}</td>
                                     <td className="py-3 px-4 text-center">{product.colors[0].totalStock}</td>
                                     <td className="py-3 px-4 text-center">{product.colors.length}</td>
                                     <td className="py-3 px-4">

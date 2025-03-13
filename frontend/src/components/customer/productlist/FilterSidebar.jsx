@@ -157,7 +157,10 @@ function FilterSidebar({
                 ) : (
                     <div className="flex flex-wrap gap-2">
                         <button
-                            onClick={() => setFilterCategory("")}
+                            onClick={() => {
+                                setSelectedStyle("")
+                                setFilterCategory("")
+                            }}
                             className={`px-4 py-2 w-full rounded border ${filterCategory === ""
                                 ? "bg-black text-white border-black"
                                 : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"
@@ -168,7 +171,10 @@ function FilterSidebar({
                         {dbCategories.map((cat) => (
                             <button
                                 key={cat._id}
-                                onClick={() => setFilterCategory(cat._id)}
+                                onClick={() => {
+                                    setSelectedStyle("")
+                                    setFilterCategory(cat._id)
+                                }}
                                 className={`px-4 py-2 w-full rounded border ${filterCategory === cat._id
                                     ? "bg-black text-white border-black"
                                     : "bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200"

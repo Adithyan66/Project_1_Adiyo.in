@@ -1,7 +1,6 @@
 import React from 'react'
 import { useState } from 'react';
 import axios from 'axios';
-import Cookies from 'js-cookie';
 import { toast } from 'react-toastify';
 
 import { Eye, ShowEye } from "../../../icons/icons";
@@ -65,7 +64,7 @@ function LoginForm() {
                 }
             );
 
-            Cookies.set("token", response.data.token, { expires: 7, path: "/" })
+            //Cookies.set("token", response.data.token, { expires: 7, path: "/" })
 
             if (response.data.success) {
 
@@ -184,17 +183,6 @@ function LoginForm() {
                 <button className="bg-gray-100  hover:bg-gray-200 transition-colors">
                     <GoogleSignIn />
                 </button>
-
-
-                {/* <button
-                    className="bg-gray-100 hover:bg-gray-200 transition-colors"
-                    onClick={handleGoogleSignIn}
-                >
-                    <img src={google} alt="Sign in with Google" />
-                </button>
- */}
-
-
 
 
 

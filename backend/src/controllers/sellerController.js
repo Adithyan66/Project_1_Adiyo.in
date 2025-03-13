@@ -5,6 +5,9 @@ import Category from '../models/categoryModel.js';
 import fs from "fs";
 
 
+import mongoose from 'mongoose';
+const ObjectId = mongoose.Types.ObjectId;
+
 
 
 
@@ -22,9 +25,6 @@ export const addProduct = async (req, res) => {
         careInstructions,
         totalQuantity
     } = req.body;
-
-    console.log("products data from frontend", totalQuantity);
-
 
 
     let parsedCareInstructions;
@@ -139,7 +139,7 @@ export const getProducts = async (req, res) => {
 
     try {
 
-        const products = await Product.find({ deletedAt: null })
+        const products = await Product.find({ deletedAt: null }).populate("category")
 
         res.status(200).json({
             status: true,
@@ -182,6 +182,7 @@ export const productDetails = async (req, res) => {
 };
 
 export const editProduct = async (req, res) => {
+
     const {
         name,
         shortDescription,
@@ -195,7 +196,7 @@ export const editProduct = async (req, res) => {
         totalQuantity,
     } = req.body;
 
-    // Parse careInstructions JSON
+
     let parsedCareInstructions;
     try {
         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
@@ -203,7 +204,6 @@ export const editProduct = async (req, res) => {
         return res.status(400).json({ status: false, message: "Invalid careInstructions format" });
     }
 
-    // Parse colors JSON which includes existing image URLs and public IDs
     let colorsData;
     try {
         colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
@@ -211,8 +211,6 @@ export const editProduct = async (req, res) => {
         return res.status(400).json({ status: false, message: "Invalid colors data format" });
     }
 
-    // Group files by color index and image index.
-    // Expect field names like "color0_image_1", "color1_image_3", etc.
     const filesByColorAndIndex = {};
     if (req.files && req.files.length > 0) {
         req.files.forEach((file) => {
@@ -261,18 +259,13 @@ export const editProduct = async (req, res) => {
                         use_filename: true,
                         unique_filename: true,
                         overwrite: true,
-                        transformation: [], // Empty transformation array to override defaults
-                        flags: "attachment" // Forces Cloudinary to keep the original file as-is
+                        transformation: [],
+                        flags: "attachment"
                     });
-                    // Upload the new image.
-                    // const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
-                    //     folder: "Adiyo/productsImages",
-                    //     transformation: [{ quality: "100" }]
-                    // });
-                    // Update only the specific index for this color variant.
+
                     colorsData[i].images[imageIndex] = cloudinaryResult.secure_url;
                     colorsData[i].imagePublicIds[imageIndex] = cloudinaryResult.public_id;
-                    // Remove the local file after upload.
+
                     fs.unlinkSync(file.path);
                 }
             }
@@ -287,8 +280,8 @@ export const editProduct = async (req, res) => {
                 shortDescription,
                 description,
                 brand,
-                category,
-                subCategory,
+                category: new ObjectId(category),
+                subCategory: new ObjectId(subCategory),
                 material,
                 careInstructions: parsedCareInstructions,
                 totalQuantity,

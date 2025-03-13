@@ -16,10 +16,11 @@ import User from "../models/userModel.js";
 import Product from "../models/productModel.js"
 import Review from "../models/reviewModel.js";
 import Otp from "../models/otpModel.js";
+import cloudinary from "../config/cloudinary.js";
 
 
 
-const signUp = async (req, res) => {
+export const signUp = async (req, res) => {
 
     try {
         const { username, email, password, role } = req.body;
@@ -52,7 +53,7 @@ const signUp = async (req, res) => {
 
         const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
 
-        res.cookie("jwt", token, {
+        res.cookie("session", token, {
             httpOnly: true,
             secure: false,
             sameSite: "Lax",
@@ -79,9 +80,7 @@ const signUp = async (req, res) => {
     }
 };
 
-
-
-const login = async (req, res) => {
+export const login = async (req, res) => {
 
     const { email, password } = req.body;
 
@@ -110,7 +109,7 @@ const login = async (req, res) => {
 
 
 
-        res.cookie("jwt", token, {
+        res.cookie("session", token, {
             httpOnly: true,
             secure: false,
             sameSite: "Lax",
@@ -135,7 +134,7 @@ const login = async (req, res) => {
     }
 };
 
-const forgotPassword = async (req, res) => {
+export const forgotPassword = async (req, res) => {
 
     const { email } = req.body;
 
@@ -171,7 +170,6 @@ const forgotPassword = async (req, res) => {
         });
     }
 };
-
 
 export const signupOTP = async (req, res) => {
 
@@ -214,7 +212,7 @@ export const signupOTP = async (req, res) => {
     }
 }
 
-const validateOTP = async (req, res) => {
+export const validateOTP = async (req, res) => {
     const { email, otp } = req.body;
     try {
 
@@ -273,9 +271,7 @@ const validateOTP = async (req, res) => {
     }
 };
 
-
-
-const resetPassword = async (req, res) => {
+export const resetPassword = async (req, res) => {
 
     console.log("reached reset password");
 
@@ -313,28 +309,31 @@ const resetPassword = async (req, res) => {
     }
 };
 
+export const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+export const googleLogin = async (req, res) => {
 
+    const idToken = req.body.token;
 
-
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-const googleLogin = async (req, res) => {
-
-    const token = req.body.token;
+    if (!idToken) {
+        return res.status(400).json({
+            success: false,
+            message: "Token not provided"
+        });
+    }
 
     try {
+        // Verify the Google ID token
         const ticket = await client.verifyIdToken({
-            idToken: token,
+            idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
-
         const payload = ticket.getPayload();
         const { sub: googleId, email, name } = payload;
 
+        // Check if user exists; if not, create a new one
         let user = await User.findOne({ email });
         if (!user) {
-
             user = new User({
                 username: name,
                 email,
@@ -343,31 +342,33 @@ const googleLogin = async (req, res) => {
             await user.save();
         }
 
-        user = await User.findOne({ email });
+        // Optional: You could re-fetch the user if needed
+        // user = await User.findOne({ email });
 
+        // If the user is blocked, stop further processing
         if (!user.isActive) {
             return res.status(400).json({
                 success: false,
                 message: 'User is Blocked'
             });
-
         }
 
+        // Sign a JWT token with the user's ID. Use an environment variable for the secret.
+        const sessionToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "30d" });
 
-
-        const jwtToken = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
-
-        res.cookie("jwt", jwtToken, {
+        // Set the token in an HTTP-only cookie
+        res.cookie("session", sessionToken, {
             httpOnly: true,
-            secure: false,
+            secure: false,      // Set to true in production (with HTTPS)
             sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,
+            maxAge: 30 * 24 * 60 * 60 * 1000,  // 30 days
         });
 
+        // Send response (Note: consider not sending the token in JSON if you're relying on cookies)
         res.status(200).json({
             success: true,
             message: 'Google login successful',
-            token: jwtToken,
+            token: sessionToken,
             role: user.role,
             user: {
                 _id: user._id,
@@ -384,11 +385,7 @@ const googleLogin = async (req, res) => {
     }
 };
 
-
-
-
-
-const productList = async (req, res) => {
+export const productList = async (req, res) => {
 
 
     try {
@@ -574,39 +571,21 @@ const productList = async (req, res) => {
     }
 };
 
+export const logout = async (req, res) => {
 
-
-const logout = async (req, res) => {
-
-    res.cookie("token", "", { expires: new Date(0), httpOnly: true, path: "/" })
+    //  res.cookie("session", "", { expires: new Date(0), httpOnly: true, path: "/" })
+    res.clearCookie("session", { path: "/" });
     res.status(200).json({
         status: true,
         message: "logout succesfully"
     })
 }
 
+export const profile = async (req, res) => {
 
-const profile = async (req, res) => {
-
-    const token = req.cookies.token;
-
-
-
-    if (!token) {
-        return res.status(401).json({
-            status: false,
-            message: "not authenticated"
-        })
-    }
     try {
-        const decoded = jwt.verify(token, "secret")
+        const user = await User.findById(req.user.userId)
 
-
-        const _id = decoded.userId
-
-
-
-        const user = await User.findOne({ _id })
 
         if (!user.isActive) {
 
@@ -627,8 +606,6 @@ const profile = async (req, res) => {
             }
         })
 
-
-
     } catch (error) {
         return res.status(401).json({
             status: false,
@@ -637,8 +614,7 @@ const profile = async (req, res) => {
     }
 }
 
-
-const productDetail = async (req, res) => {
+export const productDetail = async (req, res) => {
 
 
     try {
@@ -670,8 +646,7 @@ const productDetail = async (req, res) => {
     }
 }
 
-
-const addReview = async (req, res) => {
+export const addReview = async (req, res) => {
 
     try {
         const { userId, rating, comment } = req.body;
@@ -711,8 +686,7 @@ const addReview = async (req, res) => {
 
 }
 
-
-const getReviews = async (req, res) => {
+export const getReviews = async (req, res) => {
 
     try {
 
@@ -738,19 +712,93 @@ const getReviews = async (req, res) => {
 
 }
 
+export const profileDetails = async (req, res) => {
+
+    try {
+        const user = await User.findById(req.user.userId).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        return res.status(200).json({
+            status: true,
+            message: "fetched succesfully",
+            user
+        });
+
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+export const updateProfile = async (req, res) => {
+
+    const {
+        username,
+        firstName,
+        lastName,
+        gender,
+        dateOfBirth,
+        mobile
+    } = req.body;
+
+    try {
+        const userId = req.user.userId;
+
+        // Check if profile image was provided in the request
+        let imageUrl = undefined;
+
+        if (req.file) {
+            const profileImage = req.file.path;
+            const cloudinaryResult = await cloudinary.uploader.upload(profileImage, {
+                folder: "Adiyo/profilePic"
+            });
+            imageUrl = cloudinaryResult.secure_url;
+        }
+
+        // Create an object with the fields to update
+        const updateData = {
+            ...(username && { username }),
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+            ...(gender && { gender }),
+            ...(dateOfBirth && { dateOfBirth }),
+            ...(mobile && { mobile }),
+            ...(imageUrl && { profileImg: imageUrl }),
+            updatedAt: new Date()
+        };
+        console.log(updateData, "ith updated data ");
 
 
-export {
-    signUp,
-    login,
-    forgotPassword,
-    validateOTP,
-    resetPassword,
-    googleLogin,
-    productList,
-    logout,
-    profile,
-    productDetail,
-    addReview,
-    getReviews
+        // Update the user profile
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updateData,
+            { new: true, runValidators: true }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser
+        });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile",
+            error: error.message
+        });
+    }
 };
