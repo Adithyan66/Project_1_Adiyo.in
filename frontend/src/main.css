@@ -1,2 +1,28 @@
 @import "tailwindcss";
 
+/* Add this CSS in your stylesheet */
+.black-radio {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    outline: none;
+    position: relative;
+  }
+  
+  .black-radio:checked {
+    border-color: black;
+  }
+  
+  .black-radio:checked::after {
+    content: "";
+    width: 10px;
+    height: 10px;
+    background-color: black;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }

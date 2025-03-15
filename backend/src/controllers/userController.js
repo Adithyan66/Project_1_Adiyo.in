@@ -17,8 +17,9 @@ import Product from "../models/productModel.js"
 import Review from "../models/reviewModel.js";
 import Otp from "../models/otpModel.js";
 import cloudinary from "../config/cloudinary.js";
+import Address from "../models/addressModel.js";
 
-
+const salt = await bcrypt.genSalt(10);
 
 export const signUp = async (req, res) => {
 
@@ -40,7 +41,7 @@ export const signUp = async (req, res) => {
 
         const userId = await generateUniqueUserId(role)
 
-        const salt = await bcrypt.genSalt(10);
+        // const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const user = await User.create({
@@ -248,14 +249,6 @@ export const validateOTP = async (req, res) => {
                 resetToken,
             });
         }
-
-        // if (!user) {
-        //     return res.status(404).json({ message: 'User not found' });
-        // }
-        // user.resetPasswordToken = resetToken;
-        //await user.save();
-
-
 
         await otpRecord.deleteOne();
 
@@ -783,22 +776,386 @@ export const updateProfile = async (req, res) => {
 
         if (!updatedUser) {
             return res.status(404).json({
-                success: false,
+                status: false,
                 message: "User not found"
             });
         }
 
         return res.status(200).json({
-            success: true,
+            status: true,
             message: "Profile updated successfully",
             data: updatedUser
         });
     } catch (error) {
         console.error("Error updating profile:", error);
         return res.status(500).json({
-            success: false,
+            status: false,
             message: "Failed to update profile",
             error: error.message
+        });
+    }
+};
+
+export const changeEmailOtp = async (req, res) => {
+
+    const id = req.params.id;
+
+    try {
+        const { password, newEmail } = req.body;
+
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            return res.status(400).json({ success: false, message: "Invalid password" });
+        }
+
+        const existingUser = await User.findOne({ email: newEmail });
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "Email already exists" });
+        }
+
+        const otp = generateOTP();
+        const otpRecord = new Otp({
+            otp,
+            email: newEmail
+        });
+        await otpRecord.save();
+
+        await sendOTPEmail(newEmail, otp);
+
+        return res.status(200).json({
+            success: true,
+            message: "OTP sent successfully"
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "servor error"
+        });
+    }
+};
+
+
+export const changeEmail = async (req, res) => {
+
+    const id = req.params.id;
+
+    try {
+        const { otp, newEmail } = req.body;
+
+        const verify = await Otp.findOne({ email: newEmail });
+        if (!verify || verify.otp !== otp) {
+            return res.status(400).json({
+                success: false,
+                message: "OTP does not match"
+            });
+        }
+
+        const user = await User.findByIdAndUpdate(id, { email: newEmail }, { new: true });
+
+        return res.status(200).json({
+            success: true,
+            message: "Email ID changed successfully",
+            user
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: error.message || "Server Error"
+        });
+    }
+};
+
+
+export const changePassword = async (req, res) => {
+
+    const id = req.params.id
+
+    try {
+        const { currentPassword, newPassword } = req.body
+
+        const user = await User.findById(id)
+
+        const isMatch = await bcrypt.compare(currentPassword, user.password)
+
+        if (!isMatch) {
+
+            return res.status(400).json({
+                success: false,
+                message: "invalid credentials"
+            })
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, salt)
+
+        const updatedUser = await User.findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
+
+        res.status(200).json({
+            success: true,
+            message: "password changed succesfully",
+            updatedUser
+        })
+
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        })
+
+    }
+}
+
+
+export const saveAddress = async (req, res) => {
+
+    const userId = req.user.userId
+
+    try {
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+
+        const addressCount = await Address.countDocuments({ userId })
+
+        const isDefault = addressCount === 0 ? true : req.body.formData.isDefault || false
+
+        if (isDefault) {
+            await Address.updateMany(
+                { userId, isDefault: true },
+                { $set: { isDefault: false } }
+            )
+        }
+
+        const newAddress = new Address({
+            userId,
+            fullName: req.body.formData.fullName,
+            phoneNumber: req.body.formData.phoneNumber,
+            alternatePhone: req.body.formData.alternatePhone || '',
+            address: req.body.formData.address,
+            locality: req.body.formData.locality,
+            city: req.body.formData.city,
+            state: req.body.formData.state,
+            pincode: req.body.formData.pincode,
+            landmark: req.body.formData.landmark || '',
+            addressType: req.body.formData.addressType || 'Home',
+            isDefault,
+            isActive: true
+        });
+
+        const saveAddress = await newAddress.save()
+
+        res.status(200).json({
+            success: true,
+            message: "Address saved succesfully",
+            address: saveAddress
+        })
+
+    } catch (error) {
+
+        console.log(error);
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to save address'
+
+        })
+    }
+}
+
+
+export const getUserAddresses = async (req, res) => {
+
+    const userId = req.user.userId
+
+    try {
+
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+
+        const addresses = await Address.find({
+            userId,
+            isActive: true
+        }).sort({ isDefault: - 1, createdAt: - 1 })
+
+
+        res.status(200).json({
+            success: true,
+            message: "address fetched succesfully",
+            addresses
+        });
+
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch addresses',
+        })
+    }
+}
+
+
+
+export const editAddress = async (req, res) => {
+
+    const userId = req.user.userId;
+    const { formData } = req.body;
+    const { addressId } = req.body.formData;
+
+    try {
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+        console.log(addressId);
+
+        const existingAddress = await Address.findOne({ _id: addressId, userId });
+
+        if (!existingAddress) {
+            return res.status(404).json({
+                success: false,
+                message: 'Address not found'
+            });
+        }
+
+        // Handle setting new default address
+        if (formData.isDefault) {
+            await Address.updateMany(
+                { userId, isDefault: true },
+                { $set: { isDefault: false } }
+            );
+        }
+
+        const updatedAddress = await Address.findByIdAndUpdate(
+            addressId,
+            {
+                fullName: formData.fullName,
+                phoneNumber: formData.phoneNumber,
+                alternatePhone: formData.alternatePhone || '',
+                address: formData.address,
+                locality: formData.locality,
+                city: formData.city,
+                state: formData.state,
+                pincode: formData.pincode,
+                landmark: formData.landmark || '',
+                addressType: formData.addressType || 'Home',
+                isDefault: formData.isDefault || false
+            },
+            { new: true }
+        );
+
+        res.status(200).json({
+            success: true,
+            message: 'Address updated successfully',
+            address: updatedAddress
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Failed to update address'
+        });
+    }
+};
+
+
+export const deleteAddress = async (req, res) => {
+
+    const userId = req.user.userId;
+    const addressId = req.params.id;
+
+    try {
+
+        const address = await Address.findOne({ _id: addressId, userId });
+
+        if (!address) {
+            return res.status(404).json({
+                success: false,
+                message: 'Address not found'
+            });
+        }
+
+
+        await Address.findByIdAndDelete(addressId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Address deleted successfully'
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete address'
+        });
+    }
+};
+
+
+
+export const makeDefaultAddress = async (req, res) => {
+
+    const userId = req.user.userId;
+    const { addressId } = req.params;
+    console.log(addressId);
+
+    try {
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: 'User not authenticated'
+            });
+        }
+
+        // Set all other addresses' `isDefault` to false
+        await Address.updateMany(
+            { userId, isDefault: true },
+            { $set: { isDefault: false } }
+        );
+
+        // Set the selected address as default
+        const updatedAddress = await Address.findByIdAndUpdate(
+            addressId,
+            { isDefault: true },
+            { new: true }
+        );
+
+        if (!updatedAddress) {
+            return res.status(404).json({
+                success: false,
+                message: 'Address not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: 'Address set as default successfully',
+            address: updatedAddress
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
         });
     }
 };

@@ -3,6 +3,7 @@
 
 import { useDispatch, useSelector } from "react-redux";
 import { setLoginPopup, setActiveForm } from "../../../store/slices/authModalSlice.js"
+import { setActiveSelection } from "../../../store/slices/userSidebarSelectedSlice.js";
 import axios from "axios";
 import { useNavigate } from "react-router";
 
@@ -64,11 +65,6 @@ function UserPopupMenu({ popupRef }) {
   }
 
 
-
-
-
-
-
   return (
     <>
       <div
@@ -111,7 +107,10 @@ function UserPopupMenu({ popupRef }) {
         <a
           href="#"
           className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
-          onClick={() => navigate("/user/profile")}
+          onClick={() => {
+            dispatch(setActiveSelection("profile"))
+            navigate("/user/profile")
+          }}
         >
           <ProfileIcon /> My Profile
         </a>

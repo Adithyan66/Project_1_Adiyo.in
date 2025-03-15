@@ -29,6 +29,7 @@ import AdminProductEditPage from "./pages/admin/AdminProductEditPage"
 import CouponsPage from './pages/admin/CouponsPage';
 import ManageCategoryPage from './pages/admin/ManageCategoryPage';
 import UserProfilePage from './pages/customer/UserProfilePage';
+import ManageAddressesPage from './pages/customer/ManageAddressesPage';
 
 
 
@@ -126,6 +127,8 @@ function App() {
         <Route path="/product-detail/:id" element={<ProductDetailsPage />} />
 
         <Route path="/user/profile" element={<UserProfilePage />} />
+
+        <Route path={"/user/manage-address"} element={<ManageAddressesPage />} />
 
 
 

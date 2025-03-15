@@ -1,90 +1,315 @@
-import React from 'react';
-import { ChevronRight, ShoppingBag, Settings, Package, CreditCard, LogOut } from 'lucide-react';
 
 
 
+// import React from 'react';
+// import { useNavigate } from 'react-router';
+
+// import { ChevronRight, ShoppingBag, Settings, Package, LogOut } from 'lucide-react';
+// import { useSelector, useDispatch } from 'react-redux';
+// import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
+
+
+
+
+
+// const ProfileSideBar = () => {
+
+//     const dispatch = useDispatch()
+//     const navigate = useNavigate()
+
+//     const selectedSideBar = useSelector((state) => state.userSideSelected.activeSelection)
+
+
+
+
+//     return (
+//         <aside className="w-64 bg-white shadow-sm">
+//             {/* User Avatar and Name */}
+//             <div className="flex items-center p-4 border-b">
+//                 <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
+//                     <img
+//                         src="/api/placeholder/40/40"
+//                         alt="User avatar"
+//                         className="w-full h-full object-cover"
+//                     />
+//                 </div>
+//                 <span className="font-medium">Hello, Adhi</span>
+//             </div>
+
+//             {/* Menu Items */}
+//             <nav className="mt-2">
+//                 {/* My orders */}
+//                 <div className="mb-1">
+//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
+//                         <div className="flex items-center">
+//                             <span className="mr-3 text-gray-600"><ShoppingBag size={18} /></span>
+//                             <span className="text-sm">My orders</span>
+//                         </div>
+//                         <ChevronRight size={16} />
+//                     </div>
+//                 </div>
+
+//                 {/* Account Settings */}
+//                 <div className="mb-1">
+//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer bg-gray-50">
+//                         <div className="flex items-center">
+//                             <span className="mr-3 text-gray-600"><Settings size={18} /></span>
+//                             <span className="text-sm">Account Settings</span>
+//                         </div>
+//                     </div>
+
+//                     {/* Submenu for Account Settings */}
+//                     <div className="pl-10">
+//                         <div className={`py-2 px-4 text-sm ${selectedSideBar === 'profile' ? 'bg-black text-white' : ''}`}
+//                             onClick={() => {
+//                                 dispatch(setActiveSelection("profile"))
+//                                 navigate("/user/profile")
+//                             }}
+//                         >
+//                             Profile Information
+//                         </div>
+//                         <div className={`py-2 px-4 text-sm ${selectedSideBar === 'manageAddresses' ? 'bg-black text-white' : ''}`}
+//                             onClick={() => {
+//                                 dispatch(setActiveSelection("manageAddresses"))
+//                                 navigate("/user/manage-address")
+//                             }
+//                             }>
+//                             Manage Addresses
+//                         </div>
+//                     </div>
+//                 </div>
+
+//                 {/* My Stuffs */}
+//                 <div className="mb-1">
+//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
+//                         <div className="flex items-center">
+//                             <span className="mr-3 text-gray-600"><Package size={18} /></span>
+//                             <span className="text-sm">My Stuffs</span>
+//                         </div>
+//                         <ChevronRight size={16} />
+//                     </div>
+
+//                     {/* Submenu for My Stuffs (hidden) */}
+//                     <div className="pl-10 ">
+//                         <div className="py-2 px-4 text-sm text-gray-700">
+//                             My Coupons
+//                         </div>
+//                         <div className="py-2 px-4 text-sm text-gray-700">
+//                             My reviews & ratings
+//                         </div>
+//                         <div className="py-2 px-4 text-sm text-gray-700">
+//                             My Wallet
+//                         </div>
+//                     </div>
+//                 </div>
+
+//                 {/* Log out */}
+//                 <div className="mb-1">
+//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
+//                         <div className="flex items-center">
+//                             <span className="mr-3 text-gray-600"><LogOut size={18} /></span>
+//                             <span className="text-sm">Log out</span>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </nav>
+//         </aside>
+//     );
+// };
+
+// export default ProfileSideBar;
+
+
+
+
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router';
+import {
+    ChevronRight,
+    ChevronDown,
+    ShoppingBag,
+    Settings,
+    Package,
+    LogOut,
+    User,
+    MapPin,
+    Gift,
+    Star,
+    Wallet
+} from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
 
 const ProfileSideBar = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
+    const selectedSideBar = useSelector((state) => state.userSideSelected.activeSelection);
 
+    // State to manage expanded sections
+    const [expandedSections, setExpandedSections] = useState({
+        accountSettings: true,
+        myStuffs: false
+    });
 
-    const menuItems = [
-        { id: 1, label: 'My orders', icon: <ShoppingBag size={18} />, hasArrow: true },
-        {
-            id: 2, label: 'Account Settings', icon: <Settings size={18} />, hasArrow: false,
-            submenu: [
-                { id: 'profile', label: 'Profile Information', active: true },
-                { id: 'address', label: 'Manage Addresses', active: false }
-            ]
-        },
-        {
-            id: 3, label: 'My Stuffs', icon: <Package size={18} />, hasArrow: true,
-            submenu: [
-                { id: 'coupons', label: 'My Coupons', active: false },
-                { id: 'reviews', label: 'My reviews & ratings', active: false },
-                { id: 'wallet', label: 'My Wallet', active: false }
-            ]
-        },
-        { id: 4, label: 'Log out', icon: <LogOut size={18} />, hasArrow: false },
-    ];
+    // Toggle section expansion
+    const toggleSection = (section) => {
+        setExpandedSections({
+            ...expandedSections,
+            [section]: !expandedSections[section]
+        });
+    };
+
+    // Handle navigation and selection
+    const handleNavigation = (path, selection) => {
+        dispatch(setActiveSelection(selection));
+        navigate(path);
+    };
 
     return (
-        <aside className="w-64 bg-white shadow-sm">
-            {/* User Avatar and Name */}
-            <div className="flex items-center p-4 border-b">
-                <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
-                    <img
-                        src="/api/placeholder/40/40"
-                        alt="User avatar"
-                        className="w-full h-full object-cover"
-                    />
+        <aside className="w-72 bg-white shadow-lg rounded-lg overflow-hidden h-full">
+            {/* User Profile Section */}
+            <div className="bg-gray-50 p-6 border-b">
+                <div className="flex items-center">
+                    <div className="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-gray-500">
+                        <img
+                            src="/api/placeholder/56/56"
+                            alt="User avatar"
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <div>
+                        <div className="text-lg font-medium">Hello, Adhi</div>
+                        <div className="text-sm text-gray-500">adhi@example.com</div>
+                    </div>
                 </div>
-                <span className="font-medium">Hello, Adhi</span>
             </div>
 
             {/* Menu Items */}
-            <nav className="mt-2">
-                {menuItems.map((item) => (
-                    <div key={item.id} className="mb-1">
-                        <div className={`flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer
-              ${item.label === 'Account Settings' ? 'bg-gray-50' : ''}`}>
-                            <div className="flex items-center">
-                                <span className="mr-3 text-gray-600">{item.icon}</span>
-                                <span className="text-sm">{item.label}</span>
-                            </div>
-                            {item.hasArrow && <ChevronRight size={16} />}
+            <nav className="p-3">
+                {/* My orders */}
+                <div
+                    className="mb-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
+                    onClick={() => handleNavigation("/user/orders", "orders")}
+                >
+                    <div className="flex items-center justify-between px-4 py-3 cursor-pointer">
+                        <div className="flex items-center">
+                            <span className="mr-3 text-black bg-gray-100 p-2 rounded-lg">
+                                <ShoppingBag size={20} />
+                            </span>
+                            <span className="font-medium">My Orders</span>
                         </div>
-
-                        {/* Submenu for Account Settings */}
-                        {item.label === 'Account Settings' && (
-                            <div className="pl-10">
-                                {item.submenu.map((subItem) => (
-                                    <div
-                                        key={subItem.id}
-                                        className={`py-2 px-4 text-sm ${subItem.active ? 'bg-black text-white' : 'text-gray-700'}`}
-                                    >
-                                        {subItem.label}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Submenu for My Stuffs */}
-                        {item.label === 'My Stuffs' && (
-                            <div className="pl-10 hidden">
-                                {item.submenu.map((subItem) => (
-                                    <div
-                                        key={subItem.id}
-                                        className="py-2 px-4 text-sm text-gray-700"
-                                    >
-                                        {subItem.label}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <ChevronRight size={18} className="text-gray-500" />
                     </div>
-                ))}
+                </div>
+
+                {/* Account Settings */}
+                <div className="mb-2 rounded-lg bg-gray-50">
+                    <div
+                        className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                        onClick={() => toggleSection('accountSettings')}
+                    >
+                        <div className="flex items-center">
+                            <span className="mr-3 text-black bg-gray-100 p-2 rounded-lg">
+                                <Settings size={20} />
+                            </span>
+                            <span className="font-medium">Account Settings</span>
+                        </div>
+                        {expandedSections.accountSettings ?
+                            <ChevronDown size={18} className="text-gray-500" /> :
+                            <ChevronRight size={18} className="text-gray-500" />
+                        }
+                    </div>
+
+                    {/* Submenu for Account Settings */}
+                    {expandedSections.accountSettings && (
+                        <div className="ml-4 pl-8 border-l-2 border-gray-200 my-2">
+                            <div
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                ${selectedSideBar === 'profile' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
+                                onClick={() => handleNavigation("/user/profile", "profile")}
+                            >
+                                <User size={16} className={`mr-2 ${selectedSideBar === 'profile' ? 'text-white' : 'text-gray-500'}`} />
+                                <span>Profile Information</span>
+                            </div>
+                            <div
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                ${selectedSideBar === 'manageAddresses' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
+                                onClick={() => handleNavigation("/user/manage-address", "manageAddresses")}
+                            >
+                                <MapPin size={16} className={`mr-2 ${selectedSideBar === 'manageAddresses' ? 'text-white' : 'text-gray-500'}`} />
+                                <span>Manage Addresses</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* My Stuffs */}
+                <div className="mb-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                    <div
+                        className="flex items-center justify-between px-4 py-3 cursor-pointer"
+                        onClick={() => toggleSection('myStuffs')}
+                    >
+                        <div className="flex items-center">
+                            <span className="mr-3 text-black bg-gray-100 p-2 rounded-lg">
+                                <Package size={20} />
+                            </span>
+                            <span className="font-medium">My Stuffs</span>
+                        </div>
+                        {expandedSections.myStuffs ?
+                            <ChevronDown size={18} className="text-gray-500" /> :
+                            <ChevronRight size={18} className="text-gray-500" />
+                        }
+                    </div>
+
+                    {/* Submenu for My Stuffs */}
+                    {expandedSections.myStuffs && (
+                        <div className="ml-4 pl-8 border-l-2 border-gray-200 my-2">
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/coupons", "coupons")}
+                            >
+                                <Gift size={16} className="mr-2 text-gray-500" />
+                                <span>My Coupons</span>
+                            </div>
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/reviews", "reviews")}
+                            >
+                                <Star size={16} className="mr-2 text-gray-500" />
+                                <span>My Reviews & Ratings</span>
+                            </div>
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/wallet", "wallet")}
+                            >
+                                <Wallet size={16} className="mr-2 text-gray-500" />
+                                <span>My Wallet</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Log out */}
+                <div className="mt-6">
+                    <div className="flex items-center px-4 py-3 cursor-pointer rounded-lg hover:bg-gray-100 transition-all duration-200">
+                        <span className="mr-3 bg-red- text-black bg-gray-100 p-2 rounded-lg">
+                            <LogOut size={20} />
+                        </span>
+                        <span className="font-medium">Log out</span>
+                    </div>
+                </div>
             </nav>
+
+            {/* Support section */}
+            <div className="mt-4 p-4 border-t">
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                    <p className="text-sm text-black font-medium">Need help?</p>
+                    <button className="mt-2 text-xs bg-black text-white px-4 py-2 rounded-lg">
+                        Contact Support
+                    </button>
+                </div>
+            </div>
         </aside>
     );
 };

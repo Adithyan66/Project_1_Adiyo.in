@@ -7,6 +7,7 @@ import authModalSlice from './slices/authModalSlice.js';
 import listProductsSlice from "./slices/listProductsSlice.js"
 import adminSideSelectedSlice from './slices/adminSideSelectedSlice.js';
 import sellerSideSelectedSlice from "./slices/sellerSideSelectedSlice.js"
+import userSidebarSelectedSlice from "./slices/userSidebarSelectedSlice.js"
 
 
 const store = configureStore({
@@ -15,7 +16,8 @@ const store = configureStore({
         authModal: authModalSlice,
         listProducts: listProductsSlice,
         adminSideSelected: adminSideSelectedSlice,
-        sellerSideSelected: sellerSideSelectedSlice
+        sellerSideSelected: sellerSideSelectedSlice,
+        userSideSelected: userSidebarSelectedSlice
     }
 })
 

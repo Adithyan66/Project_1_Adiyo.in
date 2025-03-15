@@ -33,9 +33,6 @@ function OtpVerification({ email, onVerified, setResetToken }) {
     };
 
 
-
-
-
     const handleVerify = async () => {
 
         const enteredOtp = otp.join("");
@@ -55,9 +52,6 @@ function OtpVerification({ email, onVerified, setResetToken }) {
                 email,
                 otp: enteredOtp,
             });
-
-            console.log("reached here 2")
-
 
             if (response.data.success) {
 

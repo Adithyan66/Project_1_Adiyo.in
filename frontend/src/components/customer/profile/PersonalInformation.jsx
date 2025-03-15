@@ -4,16 +4,25 @@
 import React, { useEffect, useState } from 'react';
 import { Pencil } from 'lucide-react';
 import axios from 'axios';
+import EmailChangeModal from './EmailChangeModal';
+import PasswordChangeModal from './PasswordChangeModal';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const PersonalInformation = () => {
+
+
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState();
     const [imageUrl, setImageUrl] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState(null);
+
+
+    const [emailModal, setEmailModal] = useState(false)
+    const [passwordModal, setPasswordModal] = useState(false)
+    const [saveAlert, setSaveAlert] = useState(false)
 
     useEffect(() => {
         fetchProfileData();
@@ -30,14 +39,15 @@ const PersonalInformation = () => {
 
             setProfileData(response.data.user);
 
-            // If user has a profile image, update imageUrl
-            if (response.data.user?.profileImage) {
-                setImageUrl(response.data.user.profileImage);
+            if (response.data.user?.profileImg) {
+                setImageUrl(response.data.user.profileImg);
             }
 
             console.log("user is", response.data.user);
+
         } catch (error) {
             console.error("Error fetching profile data:", error);
+
             setError("Failed to load profile data. Please try again later.");
         }
     };
@@ -148,11 +158,10 @@ const PersonalInformation = () => {
                 setImageUrl(response.data.user.profileImg);
 
             } catch (error) {
-                console.log(error.data.message);
+                console.log(error.data);
 
             }
-
-
+            setSaveAlert(false)
             fetchProfileData();
             setSelectedFile(null);
             setIsEditing(false);
@@ -180,7 +189,7 @@ const PersonalInformation = () => {
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold mb-2 sm:mb-0">Personal Information</h2>
             </div>
-
+            <hr className='mb-6 text-gray-200' />
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     <span>{error}</span>
@@ -338,7 +347,7 @@ const PersonalInformation = () => {
                             <div className="flex space-x-2 mt-6">
                                 <button
                                     type="button"
-                                    onClick={handleSave}
+                                    onClick={() => setSaveAlert(true)}
                                     disabled={isSubmitting}
                                     className={`px-6 py-2 bg-black text-white rounded-md text-sm ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
@@ -414,24 +423,53 @@ const PersonalInformation = () => {
                     <button
                         type="button"
                         onClick={toggleEditMode}
-                        className="px-4 py-2 bg-black text-white rounded-md text-sm"
+                        className="px-4 py-2 bg-black text-white rounded-md text-sm hover:cursor-pointer"
                     >
                         Edit
                     </button>
                     <button
                         type="button"
-                        className="px-4 py-2 bg-gray-200 text-black rounded-md text-sm"
+                        onClick={() => setPasswordModal(true)}
+                        className="px-4 py-2 bg-gray-200 text-black rounded-md text-sm hover:cursor-pointer"
                     >
                         Change Password
                     </button>
                     <button
                         type="button"
-                        className="px-4 py-2 bg-gray-200 text-black rounded-md text-sm"
+                        className="px-4 py-2 bg-gray-200 text-black rounded-md text-sm hover:cursor-pointer"
+                        onClick={() => setEmailModal(true)}
                     >
                         Change Email ID
                     </button>
                 </div>
             )}
+
+            {emailModal && <EmailChangeModal user={profileData} setEmailModal={setEmailModal} fetchProfileData={fetchProfileData} />}
+            {passwordModal && <PasswordChangeModal user={profileData} setPasswordModal={setPasswordModal} fetchProfileData={fetchProfileData} />}
+
+
+            {saveAlert && <div className="fixed inset-0 flex items-center justify-center z-50">
+                <div className="bg-white rounded p-6 w-100 shadow-2xl border-4 border-black">
+                    <h2 className="text-xl font-bold mb-4 text-center">Confirm Changes</h2>
+                    <p className="mb-6 text-center">
+                        Are you sure want to Save the Changes?
+                    </p>
+                    <div className="flex justify-center gap-4">
+                        <button
+                            className="bg-gray-300 text-black px-4 py-2 rounded hover:cursor-pointer"
+                            onClick={() => setSaveAlert(false)}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            className="bg-black text-white px-4 py-2 rounded hover:cursor-pointer"
+                            onClick={handleSave}
+                        >
+                            Save
+                        </button>
+                    </div>
+                </div>
+            </div>}
         </div>
     );
 };
