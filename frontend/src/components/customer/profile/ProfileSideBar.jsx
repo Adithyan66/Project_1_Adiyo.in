@@ -1,127 +1,4 @@
 
-
-
-// import React from 'react';
-// import { useNavigate } from 'react-router';
-
-// import { ChevronRight, ShoppingBag, Settings, Package, LogOut } from 'lucide-react';
-// import { useSelector, useDispatch } from 'react-redux';
-// import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
-
-
-
-
-
-// const ProfileSideBar = () => {
-
-//     const dispatch = useDispatch()
-//     const navigate = useNavigate()
-
-//     const selectedSideBar = useSelector((state) => state.userSideSelected.activeSelection)
-
-
-
-
-//     return (
-//         <aside className="w-64 bg-white shadow-sm">
-//             {/* User Avatar and Name */}
-//             <div className="flex items-center p-4 border-b">
-//                 <div className="w-10 h-10 rounded-full overflow-hidden mr-3">
-//                     <img
-//                         src="/api/placeholder/40/40"
-//                         alt="User avatar"
-//                         className="w-full h-full object-cover"
-//                     />
-//                 </div>
-//                 <span className="font-medium">Hello, Adhi</span>
-//             </div>
-
-//             {/* Menu Items */}
-//             <nav className="mt-2">
-//                 {/* My orders */}
-//                 <div className="mb-1">
-//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
-//                         <div className="flex items-center">
-//                             <span className="mr-3 text-gray-600"><ShoppingBag size={18} /></span>
-//                             <span className="text-sm">My orders</span>
-//                         </div>
-//                         <ChevronRight size={16} />
-//                     </div>
-//                 </div>
-
-//                 {/* Account Settings */}
-//                 <div className="mb-1">
-//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer bg-gray-50">
-//                         <div className="flex items-center">
-//                             <span className="mr-3 text-gray-600"><Settings size={18} /></span>
-//                             <span className="text-sm">Account Settings</span>
-//                         </div>
-//                     </div>
-
-//                     {/* Submenu for Account Settings */}
-//                     <div className="pl-10">
-//                         <div className={`py-2 px-4 text-sm ${selectedSideBar === 'profile' ? 'bg-black text-white' : ''}`}
-//                             onClick={() => {
-//                                 dispatch(setActiveSelection("profile"))
-//                                 navigate("/user/profile")
-//                             }}
-//                         >
-//                             Profile Information
-//                         </div>
-//                         <div className={`py-2 px-4 text-sm ${selectedSideBar === 'manageAddresses' ? 'bg-black text-white' : ''}`}
-//                             onClick={() => {
-//                                 dispatch(setActiveSelection("manageAddresses"))
-//                                 navigate("/user/manage-address")
-//                             }
-//                             }>
-//                             Manage Addresses
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* My Stuffs */}
-//                 <div className="mb-1">
-//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
-//                         <div className="flex items-center">
-//                             <span className="mr-3 text-gray-600"><Package size={18} /></span>
-//                             <span className="text-sm">My Stuffs</span>
-//                         </div>
-//                         <ChevronRight size={16} />
-//                     </div>
-
-//                     {/* Submenu for My Stuffs (hidden) */}
-//                     <div className="pl-10 ">
-//                         <div className="py-2 px-4 text-sm text-gray-700">
-//                             My Coupons
-//                         </div>
-//                         <div className="py-2 px-4 text-sm text-gray-700">
-//                             My reviews & ratings
-//                         </div>
-//                         <div className="py-2 px-4 text-sm text-gray-700">
-//                             My Wallet
-//                         </div>
-//                     </div>
-//                 </div>
-
-//                 {/* Log out */}
-//                 <div className="mb-1">
-//                     <div className="flex items-center justify-between px-4 py-3 hover:bg-gray-100 cursor-pointer">
-//                         <div className="flex items-center">
-//                             <span className="mr-3 text-gray-600"><LogOut size={18} /></span>
-//                             <span className="text-sm">Log out</span>
-//                         </div>
-//                     </div>
-//                 </div>
-//             </nav>
-//         </aside>
-//     );
-// };
-
-// export default ProfileSideBar;
-
-
-
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
@@ -135,7 +12,8 @@ import {
     MapPin,
     Gift,
     Star,
-    Wallet
+    Wallet,
+    ShoppingCart
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
@@ -167,7 +45,7 @@ const ProfileSideBar = () => {
     };
 
     return (
-        <aside className="w-72 bg-white shadow-lg rounded-lg overflow-hidden h-full">
+        <aside className="w-72 bg-white shadow-lg rounded-lg overflow-hidden h-full sticky top-5">
             {/* User Profile Section */}
             <div className="bg-gray-50 p-6 border-b">
                 <div className="flex items-center">
@@ -245,7 +123,7 @@ const ProfileSideBar = () => {
                 </div>
 
                 {/* My Stuffs */}
-                <div className="mb-2 rounded-lg hover:bg-gray-100 transition-all duration-200">
+                <div className="mb-2 rounded-lg  transition-all duration-200">
                     <div
                         className="flex items-center justify-between px-4 py-3 cursor-pointer"
                         onClick={() => toggleSection('myStuffs')}
@@ -271,6 +149,13 @@ const ProfileSideBar = () => {
                             >
                                 <Gift size={16} className="mr-2 text-gray-500" />
                                 <span>My Coupons</span>
+                            </div>
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/view-cart", "view-cart")}
+                            >
+                                <ShoppingCart size={16} className="mr-2 text-gray-500" />
+                                <span>My Cart</span>
                             </div>
                             <div
                                 className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"

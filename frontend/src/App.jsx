@@ -30,6 +30,7 @@ import CouponsPage from './pages/admin/CouponsPage';
 import ManageCategoryPage from './pages/admin/ManageCategoryPage';
 import UserProfilePage from './pages/customer/UserProfilePage';
 import ManageAddressesPage from './pages/customer/ManageAddressesPage';
+import CartPage from "./pages/customer/CartPage"
 
 
 
@@ -37,46 +38,6 @@ function App() {
 
   const dispatch = useDispatch();
   const navigate = useNavigate()
-
-  // useEffect(() => {
-
-  //   const persistLogin = async () => {
-
-  //     try {
-  //       const response = await axios.get(
-  //         "http://localhost:3333/user/profile",
-  //         { withCredentials: true }
-  //       );
-
-  //       dispatch(loginSuccess({
-  //         user: response.data.user,
-  //         token: "cookie",
-  //         role: response.data.role
-  //       }));
-
-
-  //     } catch (error) {
-
-  //       dispatch(logout())
-  //       //const token = Cookies.get('token');
-
-  //       if (token) {
-
-  //         toast.error(error.response.data.message)
-
-  //         await axios.post(
-  //           "http://localhost:3333/user/logout",
-  //           {},
-  //           { withCredentials: true })
-  //       }
-
-  //     }
-  //   };
-
-  //   persistLogin();
-
-  // }, [dispatch, navigate]);
-
 
   useEffect(() => {
     const persistLogin = async () => {
@@ -128,9 +89,9 @@ function App() {
 
         <Route path="/user/profile" element={<UserProfilePage />} />
 
-        <Route path={"/user/manage-address"} element={<ManageAddressesPage />} />
+        <Route path="/user/manage-address" element={<ManageAddressesPage />} />
 
-
+        <Route path="/user/view-cart" element={<CartPage />} />
 
 
         <Route path="/admin/dashboard" element={<AdminProtected> <AdminDashboardPage />  </AdminProtected>} />

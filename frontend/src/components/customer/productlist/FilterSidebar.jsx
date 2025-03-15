@@ -2,8 +2,6 @@
 
 
 
-
-
 import React from "react";
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
@@ -21,7 +19,6 @@ function FilterSidebar({
     setMaxPrice,
     handleApplyFilter,
     handleResetFilter,
-    // New props:
     dbCategories,
     filterCategory,
     setFilterCategory,
@@ -44,7 +41,14 @@ function FilterSidebar({
         "Olive",
         "Teal",
     ];
-    const availableSizes = ["Small", "Medium", "Large", "Extra Large"];
+
+    // Modified size values to match backend expectations
+    const availableSizes = [
+        { display: "Small", value: "small" },
+        { display: "Medium", value: "medium" },
+        { display: "Large", value: "large" },
+        { display: "Extra Large", value: "extraLarge" }
+    ];
 
     // Toggle color checkboxes.
     const handleColorChange = (color) => {
@@ -110,8 +114,7 @@ function FilterSidebar({
                                     onChange={() => handleColorChange(color)}
                                 />
                                 <div
-                                    className={`w-8 h-8 rounded-full border-2 ${isSelected ? "border-black" : "border-gray-300"
-                                        }`}
+                                    className={`w-8 h-8 rounded-full border-2 ${isSelected ? "border-black" : "border-gray-300"}`}
                                     style={{ backgroundColor: lowerColor }}
                                 ></div>
                                 <span className="text-xs mt-1">{color}</span>
@@ -123,25 +126,24 @@ function FilterSidebar({
 
             <hr className="p-3 text-gray-200" />
 
-            {/* Sizes */}
+            {/* Sizes - Modified to use value/display pairs */}
             <div className="mb-4">
                 <h3 className="font-semibold mb-2">Size</h3>
                 <div className="grid grid-cols-2 gap-2">
                     {availableSizes.map((size) => {
-                        const isSelected = selectedSizes.includes(size);
+                        const isSelected = selectedSizes.includes(size.value);
                         return (
                             <label
-                                key={size}
-                                className={`cursor-pointer block h-10 border rounded-full px-4 py-2 text-base text-center ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-600 border-gray-300"
-                                    }`}
+                                key={size.value}
+                                className={`cursor-pointer block h-10 border rounded-full px-4 py-2 text-base text-center ${isSelected ? "bg-black text-white" : "bg-gray-100 text-gray-600 border-gray-300"}`}
                             >
                                 <input
                                     type="checkbox"
                                     className="hidden"
                                     checked={isSelected}
-                                    onChange={() => handleSizeChange(size)}
+                                    onChange={() => handleSizeChange(size.value)}
                                 />
-                                {size}
+                                {size.display}
                             </label>
                         );
                     })}
@@ -187,8 +189,6 @@ function FilterSidebar({
                 )}
             </div>
 
-
-
             {filterCategory && (
                 <div className="mb-4">
                     <h3 className="font-semibold mb-2">Sub Category</h3>
@@ -226,7 +226,6 @@ function FilterSidebar({
                     })()}
                 </div>
             )}
-
 
             <hr className="p-3 text-gray-200" />
 

@@ -18,8 +18,13 @@ import Review from "../models/reviewModel.js";
 import Otp from "../models/otpModel.js";
 import cloudinary from "../config/cloudinary.js";
 import Address from "../models/addressModel.js";
+import Cart from "../models/cartSchema.js";
 
 const salt = await bcrypt.genSalt(10);
+
+
+
+
 
 export const signUp = async (req, res) => {
 
@@ -378,33 +383,27 @@ export const googleLogin = async (req, res) => {
     }
 };
 
+
 export const productList = async (req, res) => {
-
-
     try {
         const match = {};
-
         match.deletedAt = null;
 
         if (req.query.search) {
             match.name = { $regex: req.query.search, $options: "i" };
         }
 
-
         if (req.query.category) {
-
             try {
                 match.category = new ObjectId(req.query.category);
             } catch (error) {
                 console.log(error.message);
-
                 return res.status(400).json({
                     status: false,
                     message: "Invalid category ID format."
                 });
             }
         }
-
 
         if (req.query.subCategory) {
             try {
@@ -440,29 +439,29 @@ export const productList = async (req, res) => {
             }
         }
 
+
         if (req.query.size) {
             const sizesArray = req.query.size.split(",");
-            console.log(sizesArray);
+            const sizeConditions = [];
 
-            const sizeCondition = {
-                $or: [
-                    { "variants.small.size": { $in: sizesArray } },
-                    { "variants.medium.size": { $in: sizesArray } },
-                    { "variants.large.size": { $in: sizesArray } },
-                    { "variants.extraLarge.size": { $in: sizesArray } }
-                ]
-            };
+            sizesArray.forEach(size => {
 
-            if (match.colors) {
-                match.colors.$elemMatch = {
-                    ...match.colors.$elemMatch,
-                    ...sizeCondition,
-                };
-            } else {
-                match.colors = { $elemMatch: sizeCondition };
+                sizeConditions.push({
+                    colors: {
+                        $elemMatch: {
+                            [`variants.${size}.stock`]: { $gt: 0 }
+                        }
+                    }
+                });
+            });
+
+            if (sizeConditions.length > 0) {
+                if (!match.$or) {
+                    match.$or = [];
+                }
+                match.$or = [...match.$or, ...sizeConditions];
             }
         }
-
 
         const pipeline = [
             { $match: match },
@@ -505,7 +504,6 @@ export const productList = async (req, res) => {
             });
         }
 
-
         let sortStage = {};
         if (req.query.sort) {
             switch (req.query.sort) {
@@ -534,13 +532,8 @@ export const productList = async (req, res) => {
         const skip = (page - 1) * limit;
         pipeline.push({ $skip: skip }, { $limit: limit });
 
-        // Print the entire pipeline object in a formatted way:
-
-
-        // Print the last pipeline stage:
-        //console.log("Last pipeline stage:", JSON.stringify(pipeline[pipeline.length - 1], null, 2));
-
-
+        // Debug: Log the pipeline to help diagnose issues
+        console.log("Pipeline:", JSON.stringify(pipeline, null, 2));
 
         const products = await Product.aggregate(pipeline);
         const countPipeline = [{ $match: match }, { $count: "total" }];
@@ -1156,6 +1149,326 @@ export const makeDefaultAddress = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Server error'
+        });
+    }
+};
+
+
+export const addCart = async (req, res) => {
+
+    const userId = req.user.userId
+
+    const {
+        productId,
+        selectedColor,
+        selectedSize,
+        quantity
+    } = req.body
+
+
+    try {
+
+        if (!productId || !selectedColor || !selectedSize || !quantity) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields."
+            });
+        }
+
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: "product not found"
+            })
+        }
+
+        if (product.deletedAt) {
+            return res.status(400).json({
+                success: false,
+                message: "product not available"
+            })
+        }
+
+        const colorVarient = product.colors.find(
+            (col) => col.color.toLowerCase() === selectedColor.toLowerCase()
+        )
+        if (!colorVarient) {
+            return res.status(400).json({
+                success: false,
+                message: "selected color varient not found"
+            })
+        }
+
+        const variant = colorVarient.variants[selectedSize];
+        if (!variant) {
+            return res.status(400).json({
+                status: false,
+                message: "selected size not available"
+            })
+        }
+
+        if (variant.stock < quantity) {
+            return res.status(400).json({
+                success: false,
+                message: "Insufficient stock for the selected variant."
+            });
+        }
+
+
+        let cart = await Cart.findOne({ user: userId })
+
+        if (!cart) {
+            cart = new Cart({ user: userId, items: [] })
+        }
+
+        const existingItemIndex = cart.items.findIndex(
+            (item) =>
+                item.product.toString() === productId &&
+                item.selectedColor.toLowerCase() === selectedColor.toLowerCase() &&
+                item.selectedSize === selectedSize.toLowerCase()
+        )
+
+        const maxAllowed = product.maxQuantity || variant.stock;
+
+        if (existingItemIndex > -1) {
+            const cartItem = cart.items[existingItemIndex]
+            const newQuantity = cartItem.quantity + quantity
+
+            if (newQuantity > maxAllowed) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Reached maximum allowed quantity for this product"
+                })
+            }
+            if (newQuantity > variant.stock) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Insufficient stock to add the requested quantity"
+                })
+            }
+
+            cart.items[existingItemIndex].quantity = newQuantity
+
+        } else {
+
+            cart.items.push({
+                product: new ObjectId(productId),
+                selectedColor,
+                selectedSize,
+                quantity
+            })
+
+        }
+
+        await cart.save()
+
+        res.status(200).json({
+            success: true,
+            message: "product added to cart succesfully"
+        })
+
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
+
+
+export const cartItems = async (req, res) => {
+
+    const userId = req.user.userId
+
+    try {
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized User not authenticated"
+            })
+        }
+
+        const cart = await Cart.findOne({ user: userId }).populate("items.product")
+
+        if (!cart) {
+            return res.status(200).json({
+                success: true,
+                message: "cart is empty",
+                items: []
+            })
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "cart items fetched succesfully",
+            items: cart.items
+        })
+
+    } catch (error) {
+
+        console.log(error)
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
+
+
+export const removeCartItem = async (req, res) => {
+
+    const { userId } = req.user
+
+    const itemId = req.params.itemId
+
+    try {
+
+        if (!userId || !itemId) {
+            return res.status(400).json({
+                success: false,
+                message: "not authorised or no cart Id"
+            })
+        }
+
+        const cart = await Cart.findOne({ user: userId })
+
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "cart not found"
+            })
+        }
+
+        const removedItem = cart.items.pull(itemId)
+
+        if (!removedItem) {
+            return res.status(404).json({
+                status: false,
+                message: "cart item not found",
+            })
+        }
+
+        await cart.save()
+
+        res.status(200).json({
+            success: true,
+            message: "cart item removed"
+        })
+
+    } catch (error) {
+
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        })
+
+    }
+}
+
+export const updateCartQuantity = async (req, res) => {
+
+    try {
+
+        if (!req.user || !req.user.userId) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized: User not authenticated"
+            });
+        }
+
+        const userId = req.user.userId;
+        const { itemId } = req.params;
+        const { newQuantity } = req.body;
+
+        if (!newQuantity || newQuantity < 1) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Invalid quantity. It must be at least 1"
+            });
+        }
+
+        const cart = await Cart.findOne({ user: userId });
+
+        if (!cart) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found."
+            });
+        }
+
+        const cartItem = cart.items.id(itemId);
+
+        if (!cartItem) {
+
+            return res.status(404).json({
+                success: false,
+                message: "Cart item not found"
+            });
+        }
+
+        cartItem.quantity = newQuantity;
+
+        await cart.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Cart item quantity updated successfully."
+        });
+
+    } catch (error) {
+
+        console.error("Error updating cart item quantity:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Server error while updating cart item quantity."
+        });
+    }
+
+}
+
+
+export const checkCart = async (req, res) => {
+
+    try {
+
+
+
+        const userId = req.user.userId;
+
+        const cart = await Cart.findOne({ user: userId })
+            .populate({
+                path: 'items.product',
+                select: 'name size colors _id'
+            });
+
+
+        console.log("vannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", cart);
+        if (!cart) {
+            return res.status(200).json({
+                status: true,
+                cart: []
+            });
+        }
+
+        return res.status(200).json({
+            status: true,
+            cart: cart.items
+        });
+    } catch (error) {
+        console.error("Error fetching cart:", error);
+        return res.status(500).json({
+            status: false,
+            message: "Server error"
         });
     }
 };

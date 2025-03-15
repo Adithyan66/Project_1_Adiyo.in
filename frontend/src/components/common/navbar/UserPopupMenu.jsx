@@ -64,6 +64,16 @@ function UserPopupMenu({ popupRef }) {
     }
   }
 
+  const protectRoute = (route) => {
+
+    if (user) {
+      navigate(route)
+    } else {
+      dispatch(setActiveForm("login"));
+      dispatch(setLoginPopup(true));
+    }
+  }
+
 
   return (
     <>
@@ -109,7 +119,7 @@ function UserPopupMenu({ popupRef }) {
           className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100"
           onClick={() => {
             dispatch(setActiveSelection("profile"))
-            navigate("/user/profile")
+            protectRoute("/user/profile")
           }}
         >
           <ProfileIcon /> My Profile

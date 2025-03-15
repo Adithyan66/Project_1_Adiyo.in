@@ -397,21 +397,7 @@ function EditProduct({ setSelectedSection }) {
                             placeholder="Enter brand"
                         />
                     </div>
-                    {/* <div className="w-1/2">
-                        <label className="block font-medium mb-1">
-                            Category
-                        </label>
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            required
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        >
-                            <option value="">Select a category</option>
-                            <option value="Mens Wear">Mens Wear</option>
-                            <option value="Boys">Boys</option>
-                        </select>
-                    </div> */}
+
                     <div className="w-1/2">
                         <label className="block font-medium mb-1">Category</label>
                         <select
@@ -435,27 +421,7 @@ function EditProduct({ setSelectedSection }) {
                 </div>
 
                 <div className="flex space-x-4">
-                    {/* <div className="w-1/2">
-                        <label className="block font-medium mb-1">
-                            Sub Category
-                        </label>
-                        <select
-                            value={subCategory}
-                            onChange={(e) => setSubCategory(e.target.value)}
-                            required
-                            className="w-full border border-gray-300 rounded px-3 py-2"
-                        >
-                            <option value="">Select a sub category</option>
-                            <option value="Shirt">Shirt</option>
-                            <option value="Pant">Pant</option>
-                            <option value="Kurtha">Kurtha</option>
-                            <option value="Jogger">Jogger</option>
-                            <option value="Coat">Coat</option>
-                            <option value="T-Shirt">T-Shirt</option>
-                            <option value="Shorts">Shorts</option>
-                            <option value="Track Pants">Track Pants</option>
-                        </select>
-                    </div> */}
+
                     <div className="w-1/2">
                         <label className="block font-medium mb-1">Sub Category</label>
                         <select

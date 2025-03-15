@@ -29,7 +29,12 @@ import {
     getUserAddresses,
     editAddress,
     deleteAddress,
-    makeDefaultAddress
+    makeDefaultAddress,
+    addCart,
+    cartItems,
+    removeCartItem,
+    updateCartQuantity,
+    checkCart
 } from
     "../controllers/userController.js"
 
@@ -51,9 +56,7 @@ router.post("/:id/change-email/otp-request", changeEmailOtp)
 router.post("/:id/change-emailid", changeEmail)
 router.post("/update-profile", authenticateUser, upload.single('file'), updateProfile)
 router.post("/save-address", authenticateUser, saveAddress)
-
-
-
+router.post("/cart/add", authenticateUser, addCart)
 
 
 
@@ -63,20 +66,36 @@ router.get("/product/:id", productDetail)
 router.get("/:productId/reviews", getReviews)
 router.get("/user-details", authenticateUser, profileDetails)
 router.get("/address", authenticateUser, getUserAddresses)
+router.get("/cart-items", authenticateUser, cartItems)
+router.get("/check-cart", authenticateUser, checkCart)
+
 
 
 
 
 router.put("/:id/change-password", changePassword)
 router.put("/update-address", authenticateUser, editAddress)
-router.put("/set-default-address/:id", authenticateUser, makeDefaultAddress)
+router.put("/set-default-address/:addressId", authenticateUser, makeDefaultAddress)
+
+
+
+
+router.patch("/cart-items/:itemId", authenticateUser, updateCartQuantity)
 
 
 
 router.delete("/delete-address/:id", authenticateUser, deleteAddress)
+router.delete("/cart-items/:itemId", authenticateUser, removeCartItem)
+
+
+
+
+
+
+
+
+
+
+
 
 export default router
-
-
-
-

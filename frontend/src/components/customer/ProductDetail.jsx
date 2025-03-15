@@ -1,20 +1,65 @@
 
 
+
+
+
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Breadcrumbs from "./productlist/BreadCrumbs";
+import axios from "axios";
+import { toast } from "react-toastify";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
+
 
 function ProductDetail({ product }) {
+
+
+
+    const navigate = useNavigate();
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [selectedImage, setSelectedImage] = useState("");
     const [isHovering, setIsHovering] = useState(false);
+    const [selectedSize, setSelectedSize] = useState("");
+    const [isInCart, setIsInCart] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (product.colors && product.colors.length > 0) {
             const firstImage = product.colors[selectedColorIndex].images[0];
             setSelectedImage(firstImage);
         }
+
+
+        checkIfProductInCart();
+
     }, [product, selectedColorIndex]);
+
+
+    const checkIfProductInCart = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/user/check-cart`, {
+                withCredentials: true
+            });
+
+            const cart = response.data.cart || [];
+
+            // The product info is nested inside a "product" property in cart items
+            const isProductInCart = cart.some(item =>
+                item.product._id === product._id
+                &&
+                item.selectedColor === product.colors[selectedColorIndex].color
+                &&
+                (selectedSize ? item.selectedSize === selectedSize.toLowerCase() : false)
+            );
+
+            setIsInCart(isProductInCart);
+        } catch (error) {
+            console.error("Error checking cart:", error);
+        }
+    };
 
     const selectedColor =
         product.colors && product.colors.length > 0
@@ -28,7 +73,49 @@ function ProductDetail({ product }) {
                 .map((variant) => variant.size)
             : [];
 
-    // Simple Image Zoom Component
+
+    useEffect(() => {
+        if (selectedSize) {
+            checkIfProductInCart();
+        }
+    }, [selectedSize]);
+
+    const handleAddtoCart = async () => {
+        if (isInCart) {
+            // Navigate to cart page
+            navigate("/user/view-cart");
+            return;
+        }
+
+        if (!selectedSize) {
+            toast.error("Please select a size");
+            return;
+        }
+
+        setIsLoading(true);
+
+        try {
+            const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
+                productId: product._id,
+                selectedColor: selectedColor.color,
+                selectedSize: selectedSize.toLowerCase(),
+                quantity: 1
+            }, {
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            console.log(response.data);
+            setIsInCart(true);
+        } catch (error) {
+            console.log("Error adding to cart:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const SimpleImageZoom = ({ src }) => {
         return (
             <div
@@ -53,7 +140,7 @@ function ProductDetail({ product }) {
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
             {/* Breadcrumbs */}
-            <Breadcrumbs product={product} />
+            {/* <Breadcrumbs product={product} /> */}
 
             {/* Main Content */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -109,9 +196,11 @@ function ProductDetail({ product }) {
                                         onClick={() => {
                                             setSelectedColorIndex(index);
                                             setSelectedImage(product.colors[index].images[0]);
+                                            setSelectedSize(""); // Reset size when color changes
+                                            setIsInCart(false); // Reset cart status when color changes
                                         }}
                                         style={{ backgroundColor: col.color }}
-                                        className={`w-12 h-12 border-2 rounded-full ${index === selectedColorIndex ? "border-black" : "border-gray-300"}`}
+                                        className={`w-12 h-12 border-2 rounded-full hover:cursor-pointer ${index === selectedColorIndex ? "border-black" : "border-gray-300"}`}
                                     ></button>
                                 ))}
                             </div>
@@ -128,7 +217,8 @@ function ProductDetail({ product }) {
                                 availableSizes.map((size, index) => (
                                     <button
                                         key={index}
-                                        className="px-4 py-2 border border-gray-300 rounded-3xl bg-gray-100 hover:bg-gray-200"
+                                        onClick={() => setSelectedSize(size)}
+                                        className={`px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-200 hover:cursor-pointer ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100'}`}
                                     >
                                         {size}
                                     </button>
@@ -150,7 +240,7 @@ function ProductDetail({ product }) {
                                 placeholder="Enter pincode here"
                                 className="border border-gray-300 rounded px-3 py-2 focus:outline-none"
                             />
-                            <button className="px-4 py-2 border border-gray-300 rounded-md bg-gray-200 hover:bg-gray-300">
+                            <button className="px-4 py-2 border border-gray-300 rounded-md bg-gray-200 hover:bg-gray-300 hover:cursor-pointer">
                                 Check
                             </button>
                         </div>
@@ -165,10 +255,17 @@ function ProductDetail({ product }) {
 
                     {/* Action Buttons */}
                     <div className="mt-6 flex space-x-4">
-                        <button className="border border-black text-black px-8 py-3 text-lg rounded-md hover:bg-black hover:text-white transition-colors">
-                            Add to Cart
+                        <button
+                            className={`border border-black text-black px-8 py-3 text-lg rounded-md transition-colors hover:cursor-pointer ${isInCart ? "bg-gray-200" : "hover:bg-black hover:text-white"
+                                }`}
+                            onClick={() => {
+                                handleAddtoCart()
+                            }}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Processing..." : isInCart ? "View Cart" : "Add to Cart"}
                         </button>
-                        <button className="bg-black text-white px-8 py-3 text-lg rounded-md hover:bg-gray-800 transition-colors">
+                        <button className="bg-black text-white px-8 py-3 text-lg rounded-md hover:bg-gray-800 transition-colors hover:cursor-pointer">
                             Buy Now
                         </button>
                     </div>

@@ -2,7 +2,7 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { Pencil } from 'lucide-react';
+import { MapPin, Pencil, SmilePlus } from 'lucide-react';
 import axios from 'axios';
 import EmailChangeModal from './EmailChangeModal';
 import PasswordChangeModal from './PasswordChangeModal';
@@ -185,11 +185,12 @@ const PersonalInformation = () => {
     );
 
     return (
-        <div className="flex-1 p-6 bg-white m-6 rounded-md">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold mb-2 sm:mb-0">Personal Information</h2>
+        <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[800px]">
+            <div className="flex items-center ">
+                <SmilePlus className="text-black mr-2" size={24} />
+                <h2 className="text-xl font-semibold text-gray-800">Profile Information</h2>
             </div>
-            <hr className='mb-6 text-gray-200' />
+            <hr className='mb-6 text-gray-200 mt-6' />
             {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
                     <span>{error}</span>
