@@ -1,16 +1,28 @@
 
 
 import React, { useEffect, useState } from 'react';
-import { PencilIcon, PlusCircle, Trash2, MapPin, Home, Briefcase, CheckCircle } from 'lucide-react';
+import { PencilIcon, PlusCircle, Trash2, MapPin, Home, Briefcase, CheckCircle, ChevronRight } from 'lucide-react';
 // import AddEditAddressModal from './AddEditAddressModal';
 import axios from 'axios';
 import AddEditAddressModal from './AddEditAddressModal';
+import { useDispatch } from 'react-redux';
+import { setCurrentStep, setSelectedAddress } from '../../../store/slices/checkoutSlice';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const ManageAddresses = () => {
+
+
+const ManageAddresses = ({ checkOut, renderStepContent }) => {
+
+    const dispatch = useDispatch()
+
+
     const [addresses, setAddresses] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [activeAddress, setActiveAddress] = useState(null);
+
+
+
 
     const handleSelect = (id) => {
         setAddresses(addresses.map(address => ({
@@ -18,6 +30,11 @@ const ManageAddresses = () => {
             isSelected: address._id === id
         })));
     };
+
+    const selectAddress = () => {
+        const address = addresses.filter((address) => address.isSelected)
+        dispatch(setSelectedAddress(address))
+    }
 
     const handleSetDefault = async (id) => {
         try {
@@ -200,6 +217,22 @@ const ManageAddresses = () => {
                     </button>
                 </div>
             )}
+
+            {checkOut && (<div className="flex justify-end mt-6">
+                <button
+                    className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200 flex items-center"
+                    onClick={() => {
+                        dispatch(setCurrentStep('summary'))
+                        selectAddress()
+                        renderStepContent()
+                    }
+                    }
+                    disabled={!addresses.some(a => a.isSelected)}
+                >
+                    Deliver to this Address
+                    <ChevronRight size={16} className="ml-1" />
+                </button>
+            </div>)}
 
             {showModal && (
                 <AddEditAddressModal

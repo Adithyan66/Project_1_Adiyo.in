@@ -9,6 +9,9 @@ import Breadcrumbs from "./productlist/BreadCrumbs";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+import { setProduct } from "../../store/slices/checkoutSlice";
+import { useDispatch } from "react-redux";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -19,14 +22,19 @@ function ProductDetail({ product }) {
 
 
     const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [selectedImage, setSelectedImage] = useState("");
     const [isHovering, setIsHovering] = useState(false);
-    const [selectedSize, setSelectedSize] = useState("");
     const [isInCart, setIsInCart] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [selectedSize, setSelectedSize] = useState("");
+    const [color, setColor] = useState(product.colors[0].color)
 
     useEffect(() => {
+
         if (product.colors && product.colors.length > 0) {
             const firstImage = product.colors[selectedColorIndex].images[0];
             setSelectedImage(firstImage);
@@ -36,6 +44,55 @@ function ProductDetail({ product }) {
         checkIfProductInCart();
 
     }, [product, selectedColorIndex]);
+
+
+
+    const handleBuynow = () => {
+        if (selectedSize === "") return toast.error("select a size");
+
+        // Find the selected color variant
+        const selectedColorVariant = product.colors.find(c => c.color === color);
+        if (!selectedColorVariant) {
+            return toast.error("Color not available");
+        }
+
+        // Convert size to appropriate key for the variants object
+        const getSizeKey = (size) => {
+            switch (size.toLowerCase()) {
+                case 'small': return 'small';
+                case 's': return 'small';
+                case 'medium': return 'medium';
+                case 'm': return 'medium';
+                case 'large': return 'large';
+                case 'l': return 'large';
+                case 'extra large': return 'extraLarge';
+                case 'xl': return 'extraLarge';
+                default: return size.toLowerCase();
+            }
+        };
+
+        // Get the correct variant based on size
+        const sizeKey = getSizeKey(selectedSize);
+        const selectedVariant = selectedColorVariant.variants[sizeKey];
+
+        if (!selectedVariant) {
+            return toast.error("Size not available");
+        }
+
+        // Check if the product is in stock
+        if (selectedVariant.stock <= 0) {
+            return toast.error("This product is out of stock");
+        }
+
+        // Store the entire product object
+        dispatch(setProduct({
+            product: product,
+            productColor: color,
+            productSize: selectedSize
+        }));
+
+        navigate("/user/check-out");
+    }
 
 
     const checkIfProductInCart = async () => {
@@ -196,11 +253,12 @@ function ProductDetail({ product }) {
                                         onClick={() => {
                                             setSelectedColorIndex(index);
                                             setSelectedImage(product.colors[index].images[0]);
-                                            setSelectedSize(""); // Reset size when color changes
-                                            setIsInCart(false); // Reset cart status when color changes
+                                            setSelectedSize("");
+                                            setIsInCart(false);
+                                            setColor(col.color)
                                         }}
                                         style={{ backgroundColor: col.color }}
-                                        className={`w-12 h-12 border-2 rounded-full hover:cursor-pointer ${index === selectedColorIndex ? "border-black" : "border-gray-300"}`}
+                                        className={`w-12 h-12 border-2  rounded-full hover:cursor-pointer ${index === selectedColorIndex ? "border-black border-5" : "border-gray-300"}`}
                                     ></button>
                                 ))}
                             </div>
@@ -218,7 +276,7 @@ function ProductDetail({ product }) {
                                     <button
                                         key={index}
                                         onClick={() => setSelectedSize(size)}
-                                        className={`px-4 py-2 border border-gray-300 rounded-3xl hover:bg-gray-200 hover:cursor-pointer ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100'}`}
+                                        className={`px-4 py-2 border border-gray-300 rounded-3xl  hover:cursor-pointer ${selectedSize === size ? 'bg-black text-white' : 'bg-gray-100'}`}
                                     >
                                         {size}
                                     </button>
@@ -265,7 +323,11 @@ function ProductDetail({ product }) {
                         >
                             {isLoading ? "Processing..." : isInCart ? "View Cart" : "Add to Cart"}
                         </button>
-                        <button className="bg-black text-white px-8 py-3 text-lg rounded-md hover:bg-gray-800 transition-colors hover:cursor-pointer">
+                        <button className="bg-black text-white px-8 py-3 text-lg rounded-md hover:bg-gray-800 transition-colors hover:cursor-pointer"
+                            onClick={() => {
+                                handleBuynow()
+                            }}
+                        >
                             Buy Now
                         </button>
                     </div>

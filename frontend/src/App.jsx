@@ -31,6 +31,7 @@ import ManageCategoryPage from './pages/admin/ManageCategoryPage';
 import UserProfilePage from './pages/customer/UserProfilePage';
 import ManageAddressesPage from './pages/customer/ManageAddressesPage';
 import CartPage from "./pages/customer/CartPage"
+import CheckoutPage from './pages/customer/CheckoutPage';
 
 
 
@@ -92,6 +93,13 @@ function App() {
         <Route path="/user/manage-address" element={<ManageAddressesPage />} />
 
         <Route path="/user/view-cart" element={<CartPage />} />
+
+        <Route path="/user/check-out" element={<CheckoutPage />} />
+
+
+
+
+
 
 
         <Route path="/admin/dashboard" element={<AdminProtected> <AdminDashboardPage />  </AdminProtected>} />

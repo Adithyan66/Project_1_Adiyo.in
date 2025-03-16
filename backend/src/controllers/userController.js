@@ -2,6 +2,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+// import { createError } from "../utils/error.js";
 
 
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
@@ -1451,8 +1452,6 @@ export const checkCart = async (req, res) => {
                 select: 'name size colors _id'
             });
 
-
-        console.log("vannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn", cart);
         if (!cart) {
             return res.status(200).json({
                 status: true,
@@ -1471,4 +1470,276 @@ export const checkCart = async (req, res) => {
             message: "Server error"
         });
     }
+};
+
+
+
+const getSizeKey = (size) => {
+    switch (size.toLowerCase()) {
+        case 'small': return 'small';
+        case 's': return 'small';
+        case 'medium': return 'medium';
+        case 'm': return 'medium';
+        case 'large': return 'large';
+        case 'l': return 'large';
+        case 'extra large': return 'extraLarge';
+        case 'xl': return 'extraLarge';
+        default: return size.toLowerCase();
+    }
+};
+
+export const createOrder = async (req, res) => {
+
+    try {
+        const {
+            addressId,
+            productDetails,
+            paymentMethod,
+            couponCode
+        } = req.body;
+
+        const user = await User.findById(req.user.userId);
+
+        if (!user) return res.status(401).json({
+            success: false,
+            message: "not authorised"
+        })
+
+        const selectedAddress = user.addresses.id(addressId);
+
+        if (!selectedAddress) return res.status(400).json({
+            success: false,
+            message: "address not found"
+        })
+
+
+        const items = Array.isArray(productDetails) ? productDetails : [productDetails];
+
+        let subtotal = 0;
+        const orderItems = [];
+
+
+        for (const item of items) {
+
+            const { productId, productColor, productSize, quantity } = item;
+
+            const product = await Product.findById(productId);
+
+            if (!product) return res.status(404).son({
+                success: false,
+                message: `Product ${productId} not found`
+            })
+
+            const colorVariant = product.colors.find(c => c.color === productColor);
+
+            if (!colorVariant) return res.status(400).json({
+                success: false,
+                message: `Color ${productColor} not available for product ${product.name}`
+            })
+
+            const sizeKey = getSizeKey(productSize);
+
+            const sizeVariant = colorVariant.variants[sizeKey];
+
+            if (!sizeVariant) return res.status(400).json({
+                success: false,
+                message: `Size ${productSize} not available for product ${product.name}`
+            })
+
+            if (sizeVariant.stock < quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Insufficient stock for ${product.name} in ${productColor} color, size ${productSize}`
+                })
+            }
+
+            const itemPrice = colorVariant.basePrice;
+            const itemDiscountedPrice = colorVariant.discountPrice;
+            const itemTotal = itemDiscountedPrice * quantity;
+            subtotal += itemTotal;
+
+            orderItems.push({
+                product: productId,
+                color: productColor,
+                size: productSize,
+                quantity,
+                price: itemPrice,
+                discountedPrice: itemDiscountedPrice
+            });
+        }
+
+        const shippingFee = subtotal > 499 ? 0 : 49;
+        const taxRate = 0.18;
+        const tax = Math.round(subtotal * taxRate);
+
+        let discount = 0;
+        if (couponCode) {
+            // Implement coupon logic here
+            // For now just a placeholder
+            if (couponCode === "WELCOME10") {
+                discount = Math.round(subtotal * 0.1);
+            }
+        }
+
+        const totalAmount = subtotal + shippingFee + tax - discount;
+
+        const newOrder = new Order({
+            user: req.user.userId,
+            orderItems,
+            shippingAddress: selectedAddress,
+            paymentMethod,
+            paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
+            subtotal,
+            shippingFee,
+            tax,
+            discount,
+            couponCode: discount > 0 ? couponCode : null,
+            totalAmount,
+            estimatedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+        });
+
+        if (paymentMethod !== "cod") {
+            // For now, we're assuming payment is handled elsewhere
+            // In a real app, you'd integrate with a payment gateway here
+            newOrder.paymentDetails = {
+                paymentProvider: paymentMethod,
+                paymentDate: new Date()
+            };
+        }
+
+        const savedOrder = await newOrder.save();
+
+        for (const item of orderItems) {
+            const product = await Product.findById(item.product);
+            const colorIndex = product.colors.findIndex(c => c.color === item.color);
+            if (colorIndex !== -1) {
+                const sizeKey = getSizeKey(item.size);
+                product.colors[colorIndex].variants[sizeKey].stock -= item.quantity;
+                product.colors[colorIndex].totalStock -= item.quantity;
+                product.totalQuantity -= item.quantity;
+                await product.save();
+            }
+        }
+
+        res.status(201).json({
+            success: true,
+            message: "Order created successfully",
+            order: savedOrder
+        });
+
+    } catch (error) {
+
+        console.log("errrrrrrrrrrorrrrrrrrr", error);
+        res.status(500).json({
+            success: false,
+            message: error
+        })
+    }
+};
+
+
+
+
+// Get order by ID
+export const getOrderById = async (req, res, next) => {
+    try {
+        const order = await Order.findById(req.params.id)
+            .populate('user', 'name email')
+            .populate('orderItems.product', 'name brand');
+
+        if (!order) return next(createError(404, "Order not found"));
+
+        // Check if user is authorized to view this order
+        if (order.user._id.toString() !== req.user.id && req.user.role !== "admin") {
+            return next(createError(403, "Not authorized to view this order"));
+        }
+
+        res.status(200).json({
+            success: true,
+            order
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Get user orders
+export const getUserOrders = async (req, res, next) => {
+    try {
+        const orders = await Order.find({ user: req.user.id })
+            .sort({ createdAt: -1 })
+            .select('orderItems totalAmount orderStatus createdAt estimatedDeliveryDate paymentStatus');
+
+        res.status(200).json({
+            success: true,
+            count: orders.length,
+            orders
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Cancel order
+export const cancelOrder = async (req, res, next) => {
+    try {
+        const { reason } = req.body;
+
+        const order = await Order.findById(req.params.id);
+        if (!order) return next(createError(404, "Order not found"));
+
+        // Check if user is authorized
+        if (order.user.toString() !== req.user.id && req.user.role !== "admin") {
+            return next(createError(403, "Not authorized to cancel this order"));
+        }
+
+        // Check if order can be cancelled
+        if (["delivered", "returned"].includes(order.orderStatus)) {
+            return next(createError(400, "Cannot cancel order in current status"));
+        }
+
+        // Update order status
+        order.orderStatus = "cancelled";
+        order.cancelReason = reason;
+
+        // If payment was made, mark for refund
+        if (order.paymentStatus === "paid") {
+            order.paymentStatus = "refunded";
+        }
+
+        const updatedOrder = await order.save();
+
+        // Restore inventory
+        for (const item of order.orderItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                const colorIndex = product.colors.findIndex(c => c.color === item.color);
+                if (colorIndex !== -1) {
+                    const sizeKey = getSizeKey(item.size);
+                    product.colors[colorIndex].variants[sizeKey].stock += item.quantity;
+                    product.colors[colorIndex].totalStock += item.quantity;
+                    product.totalQuantity += item.quantity;
+                    await product.save();
+                }
+            }
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Order cancelled successfully",
+            order: updatedOrder
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// Create order routes
+export const orderRoutes = (router) => {
+    router.post("/orders", createOrder);
+    router.get("/orders/:id", getOrderById);
+    router.get("/orders", getUserOrders);
+    router.put("/orders/:id/cancel", cancelOrder);
+
+    return router;
 };

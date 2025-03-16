@@ -8,7 +8,7 @@ import listProductsSlice from "./slices/listProductsSlice.js"
 import adminSideSelectedSlice from './slices/adminSideSelectedSlice.js';
 import sellerSideSelectedSlice from "./slices/sellerSideSelectedSlice.js"
 import userSidebarSelectedSlice from "./slices/userSidebarSelectedSlice.js"
-
+import checkoutSlice from "./slices/checkoutSlice.js"
 
 const store = configureStore({
     reducer: {
@@ -17,7 +17,8 @@ const store = configureStore({
         listProducts: listProductsSlice,
         adminSideSelected: adminSideSelectedSlice,
         sellerSideSelected: sellerSideSelectedSlice,
-        userSideSelected: userSidebarSelectedSlice
+        userSideSelected: userSidebarSelectedSlice,
+        checkout: checkoutSlice
     }
 })
 
