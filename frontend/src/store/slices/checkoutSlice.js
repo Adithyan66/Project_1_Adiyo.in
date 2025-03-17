@@ -15,6 +15,7 @@ const initialState = {
         selectedMethod: 'COD',
         status: 'idle'
     },
+    confirmationData: null
 };
 
 const getSizeKey = (size) => {
@@ -53,27 +54,26 @@ const checkoutSlice = createSlice({
         updateQuantity: (state, action) => {
             const newQuantity = state.order.quantity + action.payload;
 
-            // Find the color variant
             const colorVariant = state.order.productDetails.colors.find(
                 c => c.color === state.order.productColor
             );
 
             if (!colorVariant) return;
 
-            // Get the correct size key
             const sizeKey = getSizeKey(state.order.productSize);
 
-            // Get the variant
             const variant = colorVariant.variants[sizeKey];
 
-            // Update quantity if within stock limits
             if (variant && newQuantity > 0 && newQuantity <= parseInt(variant.stock, 10)) {
                 state.order.quantity = newQuantity;
             }
+        },
+        setConfirmationData: (state, action) => {
+            state.confirmationData = action.payload
         }
     }
 });
 
-export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity } = checkoutSlice.actions;
+export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity, setConfirmationData } = checkoutSlice.actions;
 
 export default checkoutSlice.reducer;

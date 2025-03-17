@@ -12,14 +12,16 @@ import { OAuth2Client } from 'google-auth-library';
 import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
 const ObjectId = mongoose.Types.ObjectId;
 
+import cloudinary from "../config/cloudinary.js";
 
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js"
 import Review from "../models/reviewModel.js";
 import Otp from "../models/otpModel.js";
-import cloudinary from "../config/cloudinary.js";
 import Address from "../models/addressModel.js";
 import Cart from "../models/cartSchema.js";
+import Order from "../models/orderModel.js"
+
 
 const salt = await bcrypt.genSalt(10);
 
@@ -1296,6 +1298,8 @@ export const cartItems = async (req, res) => {
 
         const cart = await Cart.findOne({ user: userId }).populate("items.product")
 
+        console.log("carttttttttttttttttt", cart);
+
         if (!cart) {
             return res.status(200).json({
                 success: true,
@@ -1505,7 +1509,12 @@ export const createOrder = async (req, res) => {
             message: "not authorised"
         })
 
-        const selectedAddress = user.addresses.id(addressId);
+        // const selectedAddress = user.addresses.id(addressId);
+
+        const selectedAddress = await Address.findOne({
+            _id: addressId,
+            userId: req.user.userId
+        });
 
         if (!selectedAddress) return res.status(400).json({
             success: false,
@@ -1525,7 +1534,7 @@ export const createOrder = async (req, res) => {
 
             const product = await Product.findById(productId);
 
-            if (!product) return res.status(404).son({
+            if (!product) return res.status(404).json({
                 success: false,
                 message: `Product ${productId} not found`
             })
@@ -1570,7 +1579,8 @@ export const createOrder = async (req, res) => {
 
         const shippingFee = subtotal > 499 ? 0 : 49;
         const taxRate = 0.18;
-        const tax = Math.round(subtotal * taxRate);
+        // const tax = Math.round(subtotal * taxRate);
+        const tax = 0
 
         let discount = 0;
         if (couponCode) {
@@ -1607,9 +1617,11 @@ export const createOrder = async (req, res) => {
             };
         }
 
+
         const savedOrder = await newOrder.save();
 
         for (const item of orderItems) {
+
             const product = await Product.findById(item.product);
             const colorIndex = product.colors.findIndex(c => c.color === item.color);
             if (colorIndex !== -1) {
@@ -1640,43 +1652,60 @@ export const createOrder = async (req, res) => {
 
 
 
-// Get order by ID
-export const getOrderById = async (req, res, next) => {
+export const getOrderById = async (req, res) => {
+
     try {
-        const order = await Order.findById(req.params.id)
+
+        const { orderId } = req.params
+        console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh", orderId);
+
+        const order = await Order.findById(orderId)
             .populate('user', 'name email')
             .populate('orderItems.product', 'name brand');
 
-        if (!order) return next(createError(404, "Order not found"));
 
-        // Check if user is authorized to view this order
-        if (order.user._id.toString() !== req.user.id && req.user.role !== "admin") {
-            return next(createError(403, "Not authorized to view this order"));
-        }
+
+        if (!order) return res.status(500).json({
+            success: false,
+            message: "order not found"
+        });
+
 
         res.status(200).json({
             success: true,
             order
         });
-    } catch (err) {
-        next(err);
+
+    } catch (error) {
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            message: error
+        })
     }
 };
 
-// Get user orders
-export const getUserOrders = async (req, res, next) => {
+
+export const getUserOrders = async (req, res) => {
+
     try {
-        const orders = await Order.find({ user: req.user.id })
+        const orders = await Order.find({ user: req.user.userId }).populate('orderItems.product')
             .sort({ createdAt: -1 })
-            .select('orderItems totalAmount orderStatus createdAt estimatedDeliveryDate paymentStatus');
+        // .select('orderItems totalAmount orderStatus createdAt estimatedDeliveryDate paymentStatus');
 
         res.status(200).json({
             success: true,
             count: orders.length,
             orders
         });
-    } catch (err) {
-        next(err);
+
+    } catch (error) {
+        console.log("errrrrrrrrrrorrrrrrrrr", error);
+        res.status(500).json({
+            success: false,
+            message: error
+        })
     }
 };
 

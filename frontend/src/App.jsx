@@ -32,6 +32,8 @@ import UserProfilePage from './pages/customer/UserProfilePage';
 import ManageAddressesPage from './pages/customer/ManageAddressesPage';
 import CartPage from "./pages/customer/CartPage"
 import CheckoutPage from './pages/customer/CheckoutPage';
+import OrdersListPage from './pages/customer/OrdersListPage';
+import OrderDetailsPage from './pages/customer/OrderDetailsPage';
 
 
 
@@ -96,7 +98,9 @@ function App() {
 
         <Route path="/user/check-out" element={<CheckoutPage />} />
 
+        <Route path="/user/orders-list" element={<OrdersListPage />} />
 
+        <Route path="/user/orders/:orderId" element={<OrderDetailsPage />} />
 
 
 

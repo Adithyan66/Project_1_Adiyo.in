@@ -406,6 +406,8 @@ const AddProduct = ({ setSelectedSection }) => {
 
             console.log("Product added successfully:", response.data);
 
+            setSelectedSection("products")
+
         } catch (error) {
 
             console.error("Error adding product:", error);

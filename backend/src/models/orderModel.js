@@ -34,7 +34,7 @@ const shippingAddressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    addressLine1: {
+    address: {
         type: String,
         required: true
     },
@@ -49,7 +49,7 @@ const shippingAddressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    postalCode: {
+    pincode: {
         type: String,
         required: true
     },

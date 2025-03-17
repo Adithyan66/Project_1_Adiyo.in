@@ -34,7 +34,10 @@ import {
     cartItems,
     removeCartItem,
     updateCartQuantity,
-    checkCart
+    checkCart,
+    createOrder,
+    getUserOrders,
+    getOrderById
 } from
     "../controllers/userController.js"
 
@@ -57,6 +60,7 @@ router.post("/:id/change-emailid", changeEmail)
 router.post("/update-profile", authenticateUser, upload.single('file'), updateProfile)
 router.post("/save-address", authenticateUser, saveAddress)
 router.post("/cart/add", authenticateUser, addCart)
+router.post("/place-orders", authenticateUser, createOrder)
 
 
 
@@ -68,8 +72,8 @@ router.get("/user-details", authenticateUser, profileDetails)
 router.get("/address", authenticateUser, getUserAddresses)
 router.get("/cart-items", authenticateUser, cartItems)
 router.get("/check-cart", authenticateUser, checkCart)
-
-
+router.get("/orders", authenticateUser, getUserOrders)
+router.get("/orders/:orderId", getOrderById)
 
 
 

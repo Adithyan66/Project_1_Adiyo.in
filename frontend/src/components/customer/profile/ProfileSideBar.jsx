@@ -152,6 +152,13 @@ const ProfileSideBar = () => {
                             </div>
                             <div
                                 className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/orders-list", "orders")}
+                            >
+                                <ShoppingBag size={16} className="mr-2 text-gray-500" />
+                                <span>My Orders</span>
+                            </div>
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
                                 onClick={() => handleNavigation("/user/view-cart", "view-cart")}
                             >
                                 <ShoppingCart size={16} className="mr-2 text-gray-500" />

@@ -183,7 +183,8 @@ function Payment({ onPlaceOrder }) {
         for (let i = 0; i < 6; i++) {
             result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
-        setCaptchaText(result);
+        // setCaptchaText(result);
+        setCaptchaText("a")
         setCaptchaInput('');
     };
 
@@ -383,7 +384,7 @@ function Payment({ onPlaceOrder }) {
             </div>
 
             {/* Order Summary */}
-            <div className="border rounded-lg p-4 mb-6">
+            {/* <div className="border rounded-lg p-4 mb-6">
                 <h3 className="font-medium text-gray-900 mb-3">Order Summary</h3>
                 {order.productDetails && (
                     <div className="mb-4">
@@ -434,7 +435,7 @@ function Payment({ onPlaceOrder }) {
                         }</span>
                     </div>
                 </div>
-            </div>
+            </div> */}
 
             <div className="flex items-center justify-between mt-6">
                 <button
