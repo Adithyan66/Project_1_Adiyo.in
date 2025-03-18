@@ -37,7 +37,9 @@ import {
     checkCart,
     createOrder,
     getUserOrders,
-    getOrderById
+    getOrderById,
+    deleteCart,
+    cancelOrder
 } from
     "../controllers/userController.js"
 
@@ -80,7 +82,7 @@ router.get("/orders/:orderId", getOrderById)
 router.put("/:id/change-password", changePassword)
 router.put("/update-address", authenticateUser, editAddress)
 router.put("/set-default-address/:addressId", authenticateUser, makeDefaultAddress)
-
+router.put("/orders/:orderId/cancel", authenticateUser, cancelOrder)
 
 
 
@@ -89,6 +91,7 @@ router.patch("/cart-items/:itemId", authenticateUser, updateCartQuantity)
 
 
 router.delete("/delete-address/:id", authenticateUser, deleteAddress)
+router.delete("/cart", authenticateUser, deleteCart)
 router.delete("/cart-items/:itemId", authenticateUser, removeCartItem)
 
 

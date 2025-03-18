@@ -17,7 +17,9 @@ import {
     getCategories,
     editSubcategoryName,
     deleteCategories,
-    deleteSubCategories
+    deleteSubCategories,
+    getOrders,
+    updateOrderStatus
 } from "../controllers/adminController.js"
 
 
@@ -28,7 +30,7 @@ router.get("/products", getProducts)
 router.get("/products/:id", productDetails)
 router.get("/coupons", getCoupons)
 router.get("/categories", getCategories)
-
+router.get("/orders", getOrders)
 
 
 
@@ -42,6 +44,8 @@ router.put("/categories/:categoryId/subcategories/:subcategoryId", editSubcatego
 
 
 router.patch("/block-user/:id", blockUser)
+router.patch("/orders/:orderId/status", updateOrderStatus)
+
 
 
 router.delete("/delete-product/:id", deleteProduct)

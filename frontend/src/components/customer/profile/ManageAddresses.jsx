@@ -7,6 +7,7 @@ import axios from 'axios';
 import AddEditAddressModal from './AddEditAddressModal';
 import { useDispatch } from 'react-redux';
 import { setCurrentStep, setSelectedAddress } from '../../../store/slices/checkoutSlice';
+import { setCartSelectedAddress, setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -34,6 +35,7 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
     const selectAddress = () => {
         const address = addresses.filter((address) => address.isSelected)
         dispatch(setSelectedAddress(address))
+        dispatch(setCartSelectedAddress(address))
     }
 
     const handleSetDefault = async (id) => {
@@ -223,6 +225,7 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
                     className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors duration-200 flex items-center"
                     onClick={() => {
                         dispatch(setCurrentStep('summary'))
+                        dispatch(setCartCurrentStep('summary'))
                         selectAddress()
                         renderStepContent()
                     }

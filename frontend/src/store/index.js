@@ -9,6 +9,7 @@ import adminSideSelectedSlice from './slices/adminSideSelectedSlice.js';
 import sellerSideSelectedSlice from "./slices/sellerSideSelectedSlice.js"
 import userSidebarSelectedSlice from "./slices/userSidebarSelectedSlice.js"
 import checkoutSlice from "./slices/checkoutSlice.js"
+import cartCheckoutSlice from "./slices/cartCheckoutSlice.js"
 
 const store = configureStore({
     reducer: {
@@ -18,7 +19,8 @@ const store = configureStore({
         adminSideSelected: adminSideSelectedSlice,
         sellerSideSelected: sellerSideSelectedSlice,
         userSideSelected: userSidebarSelectedSlice,
-        checkout: checkoutSlice
+        checkout: checkoutSlice,
+        cartCheckout: cartCheckoutSlice
     }
 })
 

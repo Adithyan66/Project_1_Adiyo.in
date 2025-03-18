@@ -34,7 +34,8 @@ import CartPage from "./pages/customer/CartPage"
 import CheckoutPage from './pages/customer/CheckoutPage';
 import OrdersListPage from './pages/customer/OrdersListPage';
 import OrderDetailsPage from './pages/customer/OrderDetailsPage';
-
+import CartCheckOutPage from "./pages/customer/CartCheckOutPage"
+import ManageOrdersPage from './pages/admin/ManageOrdersPage';
 
 
 function App() {
@@ -98,9 +99,15 @@ function App() {
 
         <Route path="/user/check-out" element={<CheckoutPage />} />
 
+        <Route path="/user/cart-check-out" element={<CartCheckOutPage />} />
+
         <Route path="/user/orders-list" element={<OrdersListPage />} />
 
         <Route path="/user/orders/:orderId" element={<OrderDetailsPage />} />
+
+
+
+
 
 
 
@@ -122,8 +129,9 @@ function App() {
 
         <Route path="/admin/manage-category" element={<AdminProtected><ManageCategoryPage /></AdminProtected>} />
 
+        <Route path="/admin/orders" element={<AdminProtected><ManageOrdersPage /></AdminProtected>} />
 
-
+        <Route path="/admin/order-details/:orderId" element={<OrderDetailsPage />} />
 
 
 

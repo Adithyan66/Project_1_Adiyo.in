@@ -22,7 +22,14 @@ import { setCurrentStep, setConfirmationData } from '../../../store/slices/check
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const CheckoutPage = () => {
+
+
+
+
+const CheckOut = () => {
+
+
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { currentStep, address, order, payment } = useSelector((state) => state.checkout);
@@ -110,7 +117,7 @@ const CheckoutPage = () => {
                 paymentMethod: paymentMethod
             };
 
-            // Send API request to create order
+
             const response = await axios.post(
                 `${API_BASE_URL}/user/place-orders`,
                 orderData,
@@ -182,7 +189,7 @@ const CheckoutPage = () => {
 
                 {/* Loading Overlay */}
                 {isLoading && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-5 rounded-lg shadow-lg flex items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mr-3"></div>
                             <span>Processing your order...</span>
@@ -194,4 +201,4 @@ const CheckoutPage = () => {
     );
 };
 
-export default CheckoutPage;
+export default CheckOut;

@@ -5,13 +5,23 @@ import { X, Plus, Minus, ChevronRight, ShoppingBag, CreditCard, Truck, ArrowLeft
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
+import { useDispatch } from 'react-redux';
+import { addProducts, setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
+import { useNavigate } from 'react-router';
+import { toast } from 'react-toastify';
+
+
 
 const Cart = () => {
+
+
     const [cartItems, setCartItems] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // Calculate order totals
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+
     const calculateSubtotal = () => {
         return cartItems.reduce((sum, item) => {
             // Find the correct color object in the product
@@ -35,7 +45,7 @@ const Cart = () => {
 
         } catch (error) {
 
-            console.error("Error updating quantity:", error);
+            toast.error(error.response.data.message);
         }
     };
 
@@ -103,8 +113,8 @@ const Cart = () => {
     };
 
     const subtotal = calculateSubtotal();
-    const shipping = subtotal > 0 ? 4.99 : 0;
-    const discount = subtotal > 0 ? 15.00 : 0;
+    const shipping = subtotal < 499 ? 49 : 0;
+    const discount = subtotal > 0 ? 0.00 : 0;
     const total = subtotal + shipping - discount;
 
     if (isLoading) {
@@ -331,7 +341,12 @@ const Cart = () => {
 
                         {/* Checkout Button */}
                         <button
-                            onClick={() => window.location.href = '/checkout'}
+                            onClick={() => {
+                                console.log(cartItems)
+                                dispatch(setCartCurrentStep("address"))
+                                dispatch(addProducts(cartItems))
+                                navigate("/user/cart-check-out")
+                            }}
                             className="w-full bg-black text-white py-3 rounded-lg flex items-center justify-center mb-3"
                         >
                             <CreditCard size={16} className="mr-2" />

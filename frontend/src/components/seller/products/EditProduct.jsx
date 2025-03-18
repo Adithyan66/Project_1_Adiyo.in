@@ -672,13 +672,13 @@ function EditProduct({ setSelectedSection }) {
                             </div>
                         </div>
                     ))}
-                    <button
+                    {/* <button
                         type="button"
                         onClick={addNewColor}
                         className="bg-black text-white px-4 py-2 rounded"
                     >
                         Add Color
-                    </button>
+                    </button> */}
                 </div>
 
                 {/* Submit Button */}

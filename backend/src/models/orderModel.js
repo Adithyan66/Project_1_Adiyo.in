@@ -156,7 +156,7 @@ const orderSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-// Virtual property for order number (ORDER-YYYYMMDD-XXXX)
+
 orderSchema.virtual('orderNumber').get(function () {
     const timestamp = this._id.getTimestamp();
     const dateString = new Date(timestamp).toISOString().slice(0, 10).replace(/-/g, '');
@@ -164,11 +164,10 @@ orderSchema.virtual('orderNumber').get(function () {
     return `ORDER-${dateString}-${objectIdEnd}`;
 });
 
-// Make sure virtuals are included in JSON output
+
 orderSchema.set('toJSON', { virtuals: true });
 orderSchema.set('toObject', { virtuals: true });
 
-// Add indexes for common queries
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ paymentStatus: 1 });

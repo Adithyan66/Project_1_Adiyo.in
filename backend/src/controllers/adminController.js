@@ -3,30 +3,97 @@ import User from "../models/userModel.js";
 import Product from "../models/productModel.js";
 import Coupon from "../models/couponModel.js";
 import Category from "../models/categoryModel.js";
+import Order from "../models/orderModel.js"
 
+
+
+// export const customersList = async (req, res) => {
+
+//     try {
+
+//         const customers = await User.find({ role: "customer" })
+
+//         res.status(200).json({
+//             status: true,
+//             message: "customers details fetched succesfully",
+//             customers
+//         })
+
+
+//     } catch (error) {
+//         res.status(500).json({
+//             statsu: false,
+//             message: "server error"
+//         })
+//     }
+// }
 
 
 export const customersList = async (req, res) => {
-
     try {
+        const {
+            page = 1,
+            limit = 10,
+            sortBy = "registrationDate",
+            sortOrder = "desc",
+            search = "",
+            status
+        } = req.query;
 
-        const customers = await User.find({ role: "customer" })
+
+        const filter = { role: "customer" };
+
+        // Add status filter if provided
+        if (status !== undefined) {
+            filter.isActive = status === "true";
+        }
+
+        // Add search functionality if search term is provided
+        if (search) {
+            filter.$or = [
+                { username: { $regex: search, $options: "i" } },
+                { userId: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { firstName: { $regex: search, $options: "i" } },
+                { lastName: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Build the sort object
+        const sort = {};
+        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+        // Calculate pagination parameters
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Query customers with pagination and sorting
+        const customers = await User.find(filter)
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNum);
+
+        // Get total count for pagination
+        const totalCustomers = await User.countDocuments(filter);
 
         res.status(200).json({
             status: true,
-            message: "customers details fetched succesfully",
-            customers
-        })
-
-
+            message: "Customers details fetched successfully",
+            customers,
+            totalCustomers,
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalCustomers / limitNum)
+        });
     } catch (error) {
+        console.error("Error fetching customers:", error);
         res.status(500).json({
-            statsu: false,
-            message: "server error"
-        })
+            status: false,
+            message: "Server error",
+            error: error.message
+        });
     }
-}
-
+};
 
 export const customerDetails = async (req, res) => {
 
@@ -109,30 +176,138 @@ export const blockUser = async (req, res) => {
         });
     }
 };
+// export const getProducts = async (req, res) => {
+//     try {
+
+//         const products = await Product.find({ deletedAt: null }).populate('category');
+
+//         console.log(products);
+
+//         res.status(200).json({
+//             status: true,
+//             message: "products fetched succesfully",
+//             products
+//         });
+//     } catch (error) {
+//         res.status(500).json({
+//             status: false,
+//             message: "Failed to fetch products",
+//             error: error.message
+//         });
+//     }
+// }
+
 export const getProducts = async (req, res) => {
     try {
+        const {
+            page = 1,
+            limit = 10,
+            sortBy = "createdAt",
+            sortOrder = "desc",
+            search = "",
+            category
+        } = req.query;
 
-        const products = await Product.find({ deletedAt: null }).populate('category');
+        // Build the filter object
+        const filter = {};
 
-        console.log(products);
+        filter.deletedAt = null;
+
+        // Add category filter if provided
+        if (category && category !== "all") {
+            filter.category = category;
+        }
+
+        // Add search functionality
+        if (search) {
+            filter.$or = [
+                { name: { $regex: search, $options: "i" } },
+                { sku: { $regex: search, $options: "i" } },
+                { description: { $regex: search, $options: "i" } }
+            ];
+        }
+
+        // Build the sort object
+        const sort = {};
+
+        // Handle special case for category sorting
+        if (sortBy === "category") {
+            // We'll use aggregation for category sorting
+            const pageNum = parseInt(page);
+            const limitNum = parseInt(limit);
+            const skip = (pageNum - 1) * limitNum;
+
+            const pipeline = [
+                { $match: filter },
+                {
+                    $lookup: {
+                        from: "categories",
+                        localField: "category",
+                        foreignField: "_id",
+                        as: "categoryInfo"
+                    }
+                },
+                { $unwind: { path: "$categoryInfo", preserveNullAndEmptyArrays: true } },
+                { $sort: { "categoryInfo.name": sortOrder === "asc" ? 1 : -1 } },
+                { $skip: skip },
+                { $limit: limitNum }
+            ];
+
+            const products = await Product.aggregate(pipeline);
+            const totalProducts = await Product.countDocuments(filter);
+
+            return res.status(200).json({
+                status: true,
+                message: "Products fetched successfully",
+                products,
+                totalProducts,
+                currentPage: pageNum,
+                totalPages: Math.ceil(totalProducts / limitNum)
+            });
+        }
+
+        // Regular sorting for other fields
+        sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+        // Calculate pagination parameters
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Query products with pagination and sorting
+        const products = await Product.find(filter)
+            .populate("category", "name")
+            .sort(sort)
+            .skip(skip)
+            .limit(limitNum);
+
+        // Get total count for pagination
+        const totalProducts = await Product.countDocuments(filter);
 
         res.status(200).json({
             status: true,
-            message: "products fetched succesfully",
-            products
+            message: "Products fetched successfully",
+            products,
+            totalProducts,
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalProducts / limitNum)
         });
     } catch (error) {
+        console.error("Error fetching products:", error);
         res.status(500).json({
             status: false,
-            message: "Failed to fetch products",
+            message: "Server error",
             error: error.message
         });
     }
-}
+};
+
 
 export const deleteProduct = async (req, res) => {
 
     try {
+        console.log("dellllllllllllllllllllllll");
+
         const productId = req.params.id;
         const product = await Product.findByIdAndUpdate(
             productId,
@@ -332,6 +507,8 @@ export const addSubCategories = async (req, res) => {
 export const getCategories = async (req, res) => {
 
     try {
+        console.log("workedddddddddddd");
+
         const categories = await Category.find();
         console.log(categories);
 
@@ -430,3 +607,105 @@ export const deleteSubCategories = async (req, res) => {
     }
 
 }
+
+export const getOrders = async (req, res) => {
+    try {
+
+
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const sortBy = req.query.sortBy || 'createdAt';
+        const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+        const search = req.query.search;
+        const status = req.query.status;
+
+
+        const filter = {};
+
+        if (search) {
+            filter.$or = [
+                { _id: { $regex: search, $options: 'i' } },
+                { 'customer.name': { $regex: search, $options: 'i' } }
+            ];
+        }
+        if (status && status !== 'all') {
+            filter.status = status;
+        }
+
+        const ordersPromise = Order.find(filter)
+            .sort({ [sortBy]: sortOrder })
+            .skip((page - 1) * limit)
+            .limit(limit);
+
+        const countPromise = Order.countDocuments(filter);
+
+        const [orders, totalOrders] = await Promise.all([ordersPromise, countPromise]);
+
+        res.status(200).json({
+            success: true,
+            message: "data fetchedn succesfully",
+            orders,
+            totalOrders
+        });
+
+    } catch (err) {
+        console.error('Error fetching orders:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch orders. Please try again later.'
+        });
+    }
+}
+
+
+export const updateOrderStatus = async (req, res) => {
+    console.log("hiiiiiii");
+
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        const allowedStatuses = [
+            'pending',
+            'shipped',
+            'out for delivery',
+            'delivered',
+            'cancelled',
+            'return requested',
+            'returned'
+        ];
+
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid order status.'
+            });
+        }
+
+        const updatedOrder = await Order.findByIdAndUpdate(
+            orderId,
+            { status },
+            { new: true }
+        );
+
+        if (!updatedOrder) {
+            return res.status(404).json({
+                success: false,
+                message: 'Order not found.'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Order status updated successfully.',
+            order: updatedOrder
+        });
+
+    } catch (err) {
+        console.error("Error updating order status:", err);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to update order status.'
+        });
+    }
+};

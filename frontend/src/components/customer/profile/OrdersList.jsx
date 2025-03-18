@@ -79,21 +79,6 @@ const OrdersList = () => {
         );
     }
 
-    // if (error) {
-    //     return (
-    //         <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[400px] flex items-center justify-center">
-    //             <div className="text-center">
-    //                 <p className="text-red-500 mb-4">{error}</p>
-    //                 <button
-    //                     onClick={fetchOrders}
-    //                     className="bg-black text-white px-4 py-2 rounded-lg"
-    //                 >
-    //                     Try Again
-    //                 </button>
-    //             </div>
-    //         </div>
-    //     );
-    // }
 
     return (
         <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[800px]">
@@ -174,7 +159,7 @@ const OrdersList = () => {
                                 {order.orderItems.slice(0, 3).map(item => (
                                     <div key={item._id} className="flex items-center">
                                         <div className="h-16 w-16 bg-gray-100 rounded-md overflow-hidden mr-3">
-                                            {item.product && item.product.image ? (
+                                            {/* {item.product && item.product.image ? (
                                                 <img
                                                     src={item.product.image}
                                                     alt={item.product.name}
@@ -184,7 +169,26 @@ const OrdersList = () => {
                                                 <div className="h-full w-full flex items-center justify-center">
                                                     <Package size={24} className="text-gray-400" />
                                                 </div>
+                                            )} */}
+
+                                            {item.product && item.product.colors && item.product.colors.length > 0 ? (
+                                                <img
+                                                    src={
+                                                        // Find the color that matches the order item color, then use the first image
+                                                        item.product.colors.find(c => c.color.toLowerCase() === item.color.toLowerCase())?.images[0] ||
+                                                        // Fallback to first color's first image if color not found
+                                                        (item.product.colors[0]?.images[0])
+                                                    }
+                                                    alt={item.product.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-full w-full flex items-center justify-center">
+                                                    <Package size={24} className="text-gray-400" />
+                                                </div>
                                             )}
+
+
                                         </div>
                                         <div>
                                             <div className="font-medium text-sm">

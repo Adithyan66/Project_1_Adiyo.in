@@ -71,6 +71,8 @@ function ProductDetail({ product }) {
             }
         };
 
+
+
         // Get the correct variant based on size
         const sizeKey = getSizeKey(selectedSize);
         const selectedVariant = selectedColorVariant.variants[sizeKey];
@@ -103,7 +105,6 @@ function ProductDetail({ product }) {
 
             const cart = response.data.cart || [];
 
-            // The product info is nested inside a "product" property in cart items
             const isProductInCart = cart.some(item =>
                 item.product._id === product._id
                 &&
@@ -137,9 +138,16 @@ function ProductDetail({ product }) {
         }
     }, [selectedSize]);
 
+    function toCamelCase(str) {
+        return str
+            .toLowerCase()
+            .replace(/\s+(.)/g, (_, char) => char.toUpperCase())
+            .replace(/\s+/g, '');
+    }
+
+
     const handleAddtoCart = async () => {
         if (isInCart) {
-            // Navigate to cart page
             navigate("/user/view-cart");
             return;
         }
@@ -152,10 +160,12 @@ function ProductDetail({ product }) {
         setIsLoading(true);
 
         try {
+            console.log();
+
             const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
                 productId: product._id,
                 selectedColor: selectedColor.color,
-                selectedSize: selectedSize.toLowerCase(),
+                selectedSize: toCamelCase(selectedSize),
                 quantity: 1
             }, {
                 withCredentials: true,
