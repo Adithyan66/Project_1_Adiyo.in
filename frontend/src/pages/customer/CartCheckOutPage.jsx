@@ -8,7 +8,7 @@ function CheckoutPage() {
     return (
         <div>
             <NavbarThree />
-            <div className="mt-22">
+            <div className="mt-42">
                 <CartCheckOut />
             </div>
             <Footer />

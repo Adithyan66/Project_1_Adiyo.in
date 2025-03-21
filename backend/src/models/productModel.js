@@ -25,7 +25,7 @@ const colorSchema = new mongoose.Schema({
         small: { type: variantSchema, required: true },
         medium: { type: variantSchema, required: true },
         large: { type: variantSchema, required: true },
-        extraLarge: { type: variantSchema, required: true },
+        extralarge: { type: variantSchema, required: true },
     },
     totalStock: { type: Number, default: 0 },
 });

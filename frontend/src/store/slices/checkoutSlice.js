@@ -15,6 +15,7 @@ const initialState = {
         selectedMethod: 'COD',
         status: 'idle'
     },
+    totalPrice: 0,
     confirmationData: null
 };
 
@@ -70,10 +71,13 @@ const checkoutSlice = createSlice({
         },
         setConfirmationData: (state, action) => {
             state.confirmationData = action.payload
+        },
+        setTotalPrice: (state, action) => {
+            state.totalPrice = action.payload
         }
     }
 });
 
-export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity, setConfirmationData } = checkoutSlice.actions;
+export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity, setConfirmationData, setTotalPrice } = checkoutSlice.actions;
 
 export default checkoutSlice.reducer;

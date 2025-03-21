@@ -65,6 +65,10 @@ const Orders = () => {
             setOrders(response.data.orders);
             setTotalOrders(response.data.totalOrders);
             setError(null);
+
+            console.log("ordersssssssssss", response.data.orders);
+
+
         } catch (err) {
             console.error("Error fetching orders:", err);
             setError("Failed to fetch orders. Please try again later.");

@@ -19,7 +19,9 @@ import {
     deleteCategories,
     deleteSubCategories,
     getOrders,
-    updateOrderStatus
+    updateOrderStatus,
+    getOrderDetails,
+    verifyReturn
 } from "../controllers/adminController.js"
 
 
@@ -31,12 +33,15 @@ router.get("/products/:id", productDetails)
 router.get("/coupons", getCoupons)
 router.get("/categories", getCategories)
 router.get("/orders", getOrders)
+router.get("/orders/:orderId", getOrderDetails)
 
 
 
 router.post("/add-coupon", addCoupon)
 router.post("/add-category", addCategory)
 router.post("/:categoryId/add-subcategories", addSubCategories)
+router.post("/orders/:orderId/return-verification", verifyReturn)
+
 
 
 

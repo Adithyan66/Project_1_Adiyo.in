@@ -24,7 +24,9 @@ import {
     Copy,
     ChevronDown,
     ChevronUp,
-    Share2
+    Share2,
+    Hourglass,
+    RotateCcw
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -51,30 +53,7 @@ const OrderDetails = () => {
     const [showItemActions, setShowItemActions] = useState({});
     const navigate = useNavigate();
 
-    // const fetchOrderDetails = async () => {
 
-    //     setIsLoading(true);
-    //     try {
-    //         const response = await axios.get(`${API_BASE_URL}/user/orders/${orderId}`, {
-    //             withCredentials: true
-    //         });
-    //         setOrder(response.data.order);
-
-    //         if (response.data.order.orderItems) {
-    //             const items = response.data.order.orderItems.map(item => ({
-    //                 ...item,
-    //                 selected: false,
-    //                 returnQuantity: 0
-    //             }));
-    //             setReturnItems(items);
-    //         }
-    //     } catch (error) {
-    //         console.error("Error fetching order details:", error);
-    //         setError("Failed to load order details");
-    //     } finally {
-    //         setIsLoading(false);
-    //     }
-    // };
 
     const fetchOrderDetails = async () => {
         setIsLoading(true);
@@ -83,23 +62,18 @@ const OrderDetails = () => {
                 withCredentials: true
             });
 
-            // Make sure we're correctly setting the order status including return status
             const orderData = response.data.order;
 
-            // Check if any items have return status
-            const hasReturnedItems = orderData.orderItems &&
-                orderData.orderItems.some(item => item.returnStatus && item.returnStatus !== 'none');
+            // const hasReturnedItems = orderData.orderItems &&
+            //     orderData.orderItems.some(item => item.returnStatus && item.returnStatus !== 'none');
 
-            // If there are returned items but no overall return status, set it
-            if (hasReturnedItems && !orderData.returnStatus) {
-                orderData.returnStatus = 'processing';
-            }
+            // if (hasReturnedItems && !orderData.returnStatus) {
+            //     orderData.returnStatus = 'processing';
+            // }
 
-            // If order has return status, make sure it's reflected in orderStatus 
-            // when displaying the timeline
-            if (orderData.returnStatus && orderData.returnStatus !== 'none') {
-                orderData.orderStatus = 'returned';
-            }
+            // if (orderData.returnStatus && orderData.returnStatus !== 'none') {
+            //     orderData.orderStatus = 'returned';
+            // }
 
             setOrder(orderData);
 
@@ -154,6 +128,7 @@ const OrderDetails = () => {
         } finally {
 
             setIsSubmitting(false);
+            fetchOrderDetails()
         }
     };
 
@@ -161,12 +136,12 @@ const OrderDetails = () => {
         const itemsToReturn = returnItems.filter(item => item.selected && item.returnQuantity > 0);
 
         if (itemsToReturn.length === 0) {
-            alert("Please select at least one item to return");
+            toast.error("Please select at least one item to return");
             return;
         }
 
         if (!returnReason.trim()) {
-            alert("Please provide a reason for return");
+            toast.error("Please provide a reason for return");
             return;
         }
 
@@ -195,9 +170,10 @@ const OrderDetails = () => {
 
         } catch (error) {
             console.error("Error requesting return:", error);
-            alert("Failed to request return. Please try again.");
+            toast.error("Failed to request return. Please try again.");
         } finally {
             setIsSubmitting(false);
+            fetchOrderDetails()
         }
     };
 
@@ -250,70 +226,6 @@ const OrderDetails = () => {
             new Date() - new Date(order.deliveredAt || order.createdAt) < 7 * 24 * 60 * 60 * 1000;
     };
 
-    // Status component with timeline
-    // const OrderStatus = ({ status, createdAt, estimatedDeliveryDate }) => {
-    //     // Map the API status values to our component status values
-    //     const mappedStatus = status === 'placed' ? 'processing' :
-    //         status === 'shipped' ? 'shipped' :
-    //             status === 'delivered' ? 'delivered' :
-    //                 status === 'cancelled' ? 'cancelled' : 'processing';
-
-    //     const steps = [
-    //         { label: 'Order Placed', date: createdAt, status: 'completed' },
-    //         { label: 'Processing', date: createdAt, status: mappedStatus === 'processing' ? 'current' : (mappedStatus === 'cancelled' ? 'cancelled' : 'completed') },
-    //         { label: 'Shipped', date: null, status: mappedStatus === 'shipped' ? 'current' : (mappedStatus === 'processing' || mappedStatus === 'cancelled' ? 'pending' : 'completed') },
-    //         { label: 'Delivered', date: null, status: mappedStatus === 'delivered' ? 'completed' : 'pending' }
-    //     ];
-
-    //     if (mappedStatus === 'cancelled') {
-    //         steps.push({ label: 'Cancelled', date: order.updatedAt || new Date(), status: 'cancelled' });
-    //     }
-
-    //     const getStatusIcon = (stepStatus) => {
-    //         switch (stepStatus) {
-    //             case 'completed':
-    //                 return <CheckCircle size={24} className="text-green-500" />;
-    //             case 'current':
-    //                 return <Clock size={24} className="text-blue-500" />;
-    //             case 'cancelled':
-    //                 return <AlertCircle size={24} className="text-black" />;
-    //             default:
-    //                 return <div className="h-6 w-6 rounded-full border-2 border-gray-300"></div>;
-    //         }
-    //     };
-
-    //     return (
-    //         <div className="mb-8">
-    //             <h3 className="text-lg font-medium mb-4">Order Status</h3>
-    //             <div className="relative">
-    //                 {/* Timeline line */}
-    //                 <div className="absolute left-3 top-0 w-0.5 h-full bg-gray-200"></div>
-
-    //                 {/* Timeline steps */}
-    //                 {steps.map((step, index) => (
-    //                     <div key={index} className="flex mb-8 relative z-10">
-    //                         <div className="mr-4">
-    //                             {getStatusIcon(step.status)}
-    //                         </div>
-    //                         <div>
-    //                             <div className="font-medium">{step.label}</div>
-    //                             {step.date && (
-    //                                 <div className="text-sm text-gray-500">
-    //                                     {new Date(step.date).toLocaleDateString()} {step.status === 'current' && '- In Progress'}
-    //                                 </div>
-    //                             )}
-    //                             {step.status === 'cancelled' && (
-    //                                 <div className="text-sm text-red-500">
-    //                                     Your order has been cancelled
-    //                                 </div>
-    //                             )}
-    //                         </div>
-    //                     </div>
-    //                 ))}
-    //             </div>
-    //         </div>
-    //     );
-    // };
 
 
 
@@ -624,48 +536,55 @@ const OrderDetails = () => {
         );
     }
 
-    // // Status badge component
-    // const StatusBadge = ({ status }) => {
-    //     // Map the API status to our component status
-    //     const mappedStatus = status === 'placed' ? 'processing' :
-    //         status === 'shipped' ? 'shipped' :
-    //             status === 'delivered' ? 'delivered' :
-    //                 status === 'cancelled' ? 'cancelled' : 'processing';
-
-    //     const statusConfig = {
-    //         'processing': { color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} className="mr-1" /> },
-    //         'shipped': { color: 'bg-yellow-100 text-yellow-700', icon: <Package size={14} className="mr-1" /> },
-    //         'delivered': { color: 'bg-green-100 text-green-700', icon: <CheckCircle size={14} className="mr-1" /> },
-    //         'cancelled': { color: 'bg-red-100 text-red-700', icon: <AlertCircle size={14} className="mr-1" /> },
-    //     };
-
-    //     const config = statusConfig[mappedStatus.toLowerCase()] || statusConfig['processing'];
-
-    //     return (
-    //         <span className={`${config.color} px-3 py-1 rounded-full text-xs flex items-center justify-center`}>
-    //             {config.icon}
-    //             {mappedStatus.charAt(0).toUpperCase() + mappedStatus.slice(1)}
-    //         </span>
-    //     );
-    // };
-
-    // Status badge component
     const StatusBadge = ({ status }) => {
         // Map the API status to our component status
-        const mappedStatus = status === 'placed' ? 'processing' :
-            status === 'shipped' ? 'shipped' :
-                status === 'delivered' ? 'delivered' :
-                    status === 'cancelled' ? 'cancelled' :
-                        status === 'returned' ? 'returned' : 'processing';
+        const mappedStatus =
+            status === 'placed' ? 'processing' :
+                status === 'pending' ? 'pending' :
+                    status === 'shipped' ? 'shipped' :
+                        status === 'out for delivery' ? 'out for delivery' :
+                            status === 'delivered' ? 'delivered' :
+                                status === 'cancelled' ? 'cancelled' :
+                                    status === 'return requested' ? 'return requested' :
+                                        status === 'returned' ? 'returned' :
+                                            'processing';
 
         const statusConfig = {
-            'processing': { color: 'bg-blue-100 text-blue-700', icon: <Clock size={14} className="mr-1" /> },
-            'shipped': { color: 'bg-yellow-100 text-yellow-700', icon: <Package size={14} className="mr-1" /> },
-            'delivered': { color: 'bg-green-100 text-green-700', icon: <CheckCircle size={14} className="mr-1" /> },
-            'cancelled': { color: 'bg-red-100 text-red-700', icon: <AlertCircle size={14} className="mr-1" /> },
-            'returned': { color: 'bg-orange-100 text-orange-700', icon: <RefreshCcw size={14} className="mr-1" /> },
+            'pending': {
+                color: 'bg-gray-100 text-gray-700',
+                icon: <Hourglass size={14} className="mr-1" />
+            },
+            'processing': {
+                color: 'bg-blue-100 text-blue-700',
+                icon: <Clock size={14} className="mr-1" />
+            },
+            'shipped': {
+                color: 'bg-yellow-100 text-yellow-700',
+                icon: <Package size={14} className="mr-1" />
+            },
+            'out for delivery': {
+                color: 'bg-indigo-100 text-indigo-700',
+                icon: <Truck size={14} className="mr-1" />
+            },
+            'delivered': {
+                color: 'bg-green-100 text-green-700',
+                icon: <CheckCircle size={14} className="mr-1" />
+            },
+            'cancelled': {
+                color: 'bg-red-100 text-red-700',
+                icon: <AlertCircle size={14} className="mr-1" />
+            },
+            'return requested': {
+                color: 'bg-purple-100 text-purple-700',
+                icon: <RotateCcw size={14} className="mr-1" />
+            },
+            'returned': {
+                color: 'bg-orange-100 text-orange-700',
+                icon: <RefreshCcw size={14} className="mr-1" />
+            },
         };
 
+        // Fallback to "processing" if the mapped status is not found in the config
         const config = statusConfig[mappedStatus.toLowerCase()] || statusConfig['processing'];
 
         return (
@@ -675,6 +594,7 @@ const OrderDetails = () => {
             </span>
         );
     };
+
     return (
         <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[800px]">
 

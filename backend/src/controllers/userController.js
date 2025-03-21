@@ -8,6 +8,10 @@ import jwt from "jsonwebtoken";
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
 
+
+import { verifyPayPalOrder, capturePayPalPayment } from "../services/paypal.js"
+
+
 import { OAuth2Client } from 'google-auth-library';
 import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
 const ObjectId = mongoose.Types.ObjectId;
@@ -20,7 +24,8 @@ import Review from "../models/reviewModel.js";
 import Otp from "../models/otpModel.js";
 import Address from "../models/addressModel.js";
 import Cart from "../models/cartSchema.js";
-import Order from "../models/orderModel.js"
+import Order from "../models/orderModel.js";
+import Wishlist from "../models/wishListModel.js";
 
 
 const salt = await bcrypt.genSalt(10);
@@ -382,6 +387,96 @@ export const googleLogin = async (req, res) => {
         res.status(400).json({
             success: false,
             message: 'Invalid token'
+        });
+    }
+};
+
+export const getNewArrivals = async (req, res) => {
+
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 4;
+        const skip = (page - 1) * limit;
+
+        const products = await Product.find({ deletedAt: null })
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('category', 'name')
+            .lean();
+
+        const transformedProducts = products.map(product => {
+            const firstColor = product.colors[0];
+            return {
+                id: product._id,
+                title: product.name,
+                image: firstColor?.images[0] || '',
+                price: firstColor?.discountPrice || 0,
+                oldPrice: firstColor?.basePrice || 0,
+                rating: 4,
+                brand: product.brand,
+                category: product.category?.name || 'Uncategorized'
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            products: transformedProducts,
+            total: await Product.countDocuments({ deletedAt: null })
+        });
+    } catch (error) {
+        console.error('Error fetching new arrivals:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch new arrivals',
+            error: error.message
+        });
+    }
+};
+
+
+export const getTopSellingProducts = async (req, res) => {
+
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 4;
+        const skip = (page - 1) * limit;
+
+
+        const products = await Product.find({ deletedAt: null })
+            .sort({ totalQuantity: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('category', 'name')
+            .lean();
+
+        const transformedProducts = products.map(product => {
+            const firstColor = product.colors[0];
+            return {
+                id: product._id,
+                title: product.name,
+                image: firstColor?.images[0] || '',
+                price: firstColor?.discountPrice || 0,
+                oldPrice: firstColor?.basePrice || 0,
+                rating: 4,
+                brand: product.brand,
+                category: product.category?.name || 'Uncategorized'
+            };
+        });
+
+        res.status(200).json({
+            success: true,
+            products: transformedProducts,
+            total: await Product.countDocuments({ deletedAt: null })
+        });
+
+    } catch (error) {
+
+        console.error('Error fetching top selling products:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch top selling products',
+            error: error.message
         });
     }
 };
@@ -1165,7 +1260,8 @@ export const addCart = async (req, res) => {
         productId,
         selectedColor,
         selectedSize,
-        quantity
+        quantity,
+        removeFromWishlist
     } = req.body
 
 
@@ -1205,7 +1301,6 @@ export const addCart = async (req, res) => {
 
         const variant = colorVarient.variants[selectedSize];
         if (!variant) {
-            console.log(selectedSize);
 
             return res.status(400).json({
                 status: false,
@@ -1220,6 +1315,17 @@ export const addCart = async (req, res) => {
             });
         }
 
+        if (removeFromWishlist) {
+            const wishlist = await Wishlist.findOne({ user: req.user.userId });
+            if (wishlist) {
+                wishlist.items = wishlist.items.filter(
+                    item => !(item.product.toString() === productId && item.selectedColor === selectedColor)
+                );
+                await wishlist.save();
+            }
+        }
+
+
 
         let cart = await Cart.findOne({ user: userId })
 
@@ -1232,9 +1338,10 @@ export const addCart = async (req, res) => {
                 item.product.toString() === productId &&
                 item.selectedColor.toLowerCase() === selectedColor.toLowerCase() &&
                 item.selectedSize === selectedSize.toLowerCase()
+            // item.selectedSize === selectedSize
         )
 
-        const maxAllowed = product.maxQuantity || variant.stock;
+        const maxAllowed = 5;
 
         if (existingItemIndex > -1) {
             const cartItem = cart.items[existingItemIndex]
@@ -1266,6 +1373,7 @@ export const addCart = async (req, res) => {
 
         }
 
+        console.log("sizeeeeeeeeeeeeeeeeeeeeeee", cart.items);
         await cart.save()
 
         res.status(200).json({
@@ -1518,30 +1626,67 @@ const getSizeKey = (size) => {
         case 'm': return 'medium';
         case 'large': return 'large';
         case 'l': return 'large';
-        case 'extra large': return 'extraLarge';
-        case 'xl': return 'extraLarge';
+        case 'extra large': return 'extralarge';
+        case 'xl': return 'extralarge';
         default: return size.toLowerCase();
     }
 };
 
-export const createOrder = async (req, res) => {
 
+
+
+
+export const createOrder = async (req, res) => {
     try {
         const {
             addressId,
             productDetails,
             paymentMethod,
-            couponCode
+            couponCode,
+            paypalOrderID
         } = req.body;
+
+        // Validate required fields
+        if (!addressId || !productDetails || !paymentMethod) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields"
+            });
+        }
+
+        // For PayPal payments, verify the payment first
+        let paymentVerified = false;
+        let paymentDetails = null;
+
+        if (paymentMethod === 'paypal') {
+            if (!paypalOrderID) {
+                return res.status(400).json({
+                    success: false,
+                    message: "PayPal Order ID is required for PayPal payments"
+                });
+            }
+
+            try {
+                // Verify the PayPal order
+                await verifyPayPalOrder(paypalOrderID);
+
+                // Capture the payment
+                paymentDetails = await capturePayPalPayment(paypalOrderID);
+                paymentVerified = true;
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: error.message || "Failed to verify PayPal payment"
+                });
+            }
+        }
 
         const user = await User.findById(req.user.userId);
 
         if (!user) return res.status(401).json({
             success: false,
-            message: "not authorised"
-        })
-
-        // const selectedAddress = user.addresses.id(addressId);
+            message: "Not authorized"
+        });
 
         const selectedAddress = await Address.findOne({
             _id: addressId,
@@ -1550,136 +1695,202 @@ export const createOrder = async (req, res) => {
 
         if (!selectedAddress) return res.status(400).json({
             success: false,
-            message: "address not found"
-        })
-
+            message: "Address not found"
+        });
 
         const items = Array.isArray(productDetails) ? productDetails : [productDetails];
 
-        let subtotal = 0;
-        const orderItems = [];
+        if (items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No products provided for order"
+            });
+        }
 
+        const savedOrders = [];
+        let totalSubtotal = 0;
+        let totalTax = 0;
+        let totalDiscount = 0;
+        const allOrderItems = [];
 
+        // Generate a common order number for all orders
+        const commonOrderNumber = 'ORD-' + Date.now();
+
+        // Process each product item as a separate order
         for (const item of items) {
-
             const { productId, productColor, productSize, quantity } = item;
+            const orderItems = [];
 
             const product = await Product.findById(productId);
 
             if (!product) return res.status(404).json({
                 success: false,
                 message: `Product ${productId} not found`
-            })
+            });
 
             const colorVariant = product.colors.find(c => c.color === productColor);
 
             if (!colorVariant) return res.status(400).json({
                 success: false,
                 message: `Color ${productColor} not available for product ${product.name}`
-            })
+            });
 
             const sizeKey = getSizeKey(productSize);
-
             const sizeVariant = colorVariant.variants[sizeKey];
 
             if (!sizeVariant) return res.status(400).json({
                 success: false,
                 message: `Size ${productSize} not available for product ${product.name}`
-            })
+            });
 
             if (sizeVariant.stock < quantity) {
                 return res.status(400).json({
                     success: false,
                     message: `Insufficient stock for ${product.name} in ${productColor} color, size ${productSize}`
-                })
+                });
             }
 
             const itemPrice = colorVariant.basePrice;
             const itemDiscountedPrice = colorVariant.discountPrice;
             const itemTotal = itemDiscountedPrice * quantity;
-            subtotal += itemTotal;
+            const subtotal = itemTotal;
+            totalSubtotal += subtotal;
 
-            orderItems.push({
+            const orderItem = {
                 product: productId,
                 color: productColor,
                 size: productSize,
                 quantity,
                 price: itemPrice,
                 discountedPrice: itemDiscountedPrice
+            };
+
+            orderItems.push(orderItem);
+
+            // Add product details for frontend display
+            const productImage = product.images && product.images.length > 0 ? product.images[0] : '';
+
+            allOrderItems.push({
+                ...orderItem,
+                productName: product.name,
+                productImage: productImage
             });
-        }
 
-        const shippingFee = subtotal > 499 ? 0 : 49;
-        const taxRate = 0.18;
-        // const tax = Math.round(subtotal * taxRate);
-        const tax = 0
-
-        let discount = 0;
-        if (couponCode) {
-            // Implement coupon logic here
-            // For now just a placeholder
-            if (couponCode === "WELCOME10") {
-                discount = Math.round(subtotal * 0.1);
+            // Individual order discount logic
+            let discount = 0;
+            if (couponCode) {
+                if (couponCode === "WELCOME10") {
+                    discount = Math.round(subtotal * 0.1);
+                }
             }
+            totalDiscount += discount;
+
+            const tax = 0; // Will calculate tax on the total later
+            const shippingFee = subtotal > 499 ? 0 : 49;
+            const totalAmount = subtotal - discount + shippingFee;
+
+            const newOrder = new Order({
+                orderNumber: commonOrderNumber,
+                user: req.user.userId,
+                orderItems,
+                shippingAddress: selectedAddress,
+                paymentMethod,
+                paymentStatus: paymentMethod === "cod" ? "pending" : (paymentVerified ? "paid" : "pending"),
+                subtotal,
+                shippingFee,
+                tax,
+                discount,
+                couponCode: discount > 0 ? couponCode : null,
+                totalAmount,
+                estimatedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
+            });
+
+            // Add payment details based on payment method
+            if (paymentMethod === "paypal" && paymentVerified && paymentDetails) {
+                newOrder.paymentDetails = {
+                    paymentProvider: "paypal",
+                    paymentDate: new Date(),
+                    transactionId: paymentDetails.transactionId,
+                    payerEmail: paymentDetails.payerEmail,
+                    amount: paymentDetails.amount,
+                    status: paymentDetails.status,
+                    createTime: paymentDetails.createTime,
+                    updateTime: paymentDetails.updateTime
+                };
+            } else if (paymentMethod !== "cod") {
+                newOrder.paymentDetails = {
+                    paymentProvider: paymentMethod,
+                    paymentDate: new Date()
+                };
+            }
+
+            const savedOrder = await newOrder.save();
+            savedOrders.push(savedOrder);
+
+            // Update product stock
+            await Product.findOneAndUpdate(
+                {
+                    _id: productId,
+                    "colors.color": productColor
+                },
+                {
+                    $inc: {
+                        [`colors.$.variants.${sizeKey}.stock`]: -quantity,
+                        "colors.$.totalStock": -quantity,
+                        totalQuantity: -quantity
+                    }
+                }
+            );
         }
 
-        const totalAmount = subtotal + shippingFee + tax - discount;
+        // Calculate consolidated order details for the response
+        const shippingFee = totalSubtotal > 499 ? 0 : 49;
+        const taxRate = 0;
+        const tax = Math.round(totalSubtotal * taxRate);
+        totalTax = tax;
 
-        const newOrder = new Order({
-            user: req.user.userId,
-            orderItems,
+        const consolidatedTotalAmount = totalSubtotal + shippingFee + totalTax - totalDiscount;
+
+        // Create consolidated response object
+        const consolidatedOrderDetails = {
+            orderNumber: commonOrderNumber,
+            totalAmount: consolidatedTotalAmount,
             shippingAddress: selectedAddress,
             paymentMethod,
-            paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
-            subtotal,
+            orderItems: allOrderItems,
+            createdAt: new Date(),
+            estimatedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+            subtotal: totalSubtotal,
             shippingFee,
-            tax,
-            discount,
-            couponCode: discount > 0 ? couponCode : null,
-            totalAmount,
-            estimatedDeliveryDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
-        });
+            tax: totalTax,
+            discount: totalDiscount,
+            couponCode: totalDiscount > 0 ? couponCode : null,
+            paymentStatus: paymentMethod === "cod" ? "pending" : (paymentVerified ? "paid" : "pending"),
+            orders: savedOrders.map(order => order._id)
+        };
 
-        if (paymentMethod !== "cod") {
-            // For now, we're assuming payment is handled elsewhere
-            // In a real app, you'd integrate with a payment gateway here
-            newOrder.paymentDetails = {
-                paymentProvider: paymentMethod,
-                paymentDate: new Date()
-            };
-        }
-
-
-        const savedOrder = await newOrder.save();
-
-        for (const item of orderItems) {
-
-            const product = await Product.findById(item.product);
-            const colorIndex = product.colors.findIndex(c => c.color === item.color);
-            if (colorIndex !== -1) {
-                const sizeKey = getSizeKey(item.size);
-                product.colors[colorIndex].variants[sizeKey].stock -= item.quantity;
-                product.colors[colorIndex].totalStock -= item.quantity;
-                product.totalQuantity -= item.quantity;
-                await product.save();
-            }
-        }
+        console.log("Saved orders:", savedOrders.length);
 
         res.status(201).json({
             success: true,
             message: "Order created successfully",
-            order: savedOrder
+            order: consolidatedOrderDetails
         });
 
     } catch (error) {
-
-        console.log("errrrrrrrrrrorrrrrrrrr", error);
+        console.log("Error in createOrder:", error);
         res.status(500).json({
             success: false,
-            message: error
-        })
+            message: error.message || "Internal server error"
+        });
     }
 };
+
+
+
+
+
+
 
 
 export const getOrderById = async (req, res) => {
@@ -1825,6 +2036,233 @@ export const deleteCart = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: 'Server error while clearing cart'
+        });
+    }
+}
+
+
+export const returnRequest = async (req, res) => {
+
+
+    const { orderId } = req.params;
+    const { items, reason, quantity } = req.body;
+
+    if (!reason || !reason.trim()) {
+        return res.status(400).json({
+            success: false,
+            message: "Return reason is required."
+        });
+    }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({
+            success: false,
+            message: "Please select at least one item to return."
+        });
+    }
+
+    try {
+
+        const order = await Order.findById(orderId);
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found."
+            });
+        }
+
+        if (order.user.toString() !== req.user.userId.toString()) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized access."
+            });
+        }
+
+        if (order.orderStatus !== "delivered") {
+            return res.status(400).json({
+                success: false,
+                message: "Return request can only be made for delivered orders."
+            });
+        }
+
+        const deliveredDate = order.deliveredAt || order.createdAt;
+
+        const now = new Date();
+
+        const returnWindow = 7 * 24 * 60 * 60 * 1000;
+        if (now - new Date(deliveredDate) > returnWindow) {
+            return res.status(400).json({
+                success: false,
+                message: "Return window has expired."
+            });
+        }
+
+        // const orderItemIds = order.orderItems.map(item => item._id.toString());
+        const orderItemIds = order.orderItems.map(item => item.product.toString());
+
+
+
+
+        console.log("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii3", order);
+        for (const returnItem of items) {
+
+            if (!orderItemIds.includes(returnItem.productId.toString())) {
+
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid item selected for return."
+                });
+            }
+
+
+            const orderItem = order.orderItems.find(item => item.product.toString() === returnItem.productId);
+
+            if (returnItem.quantity > orderItem.quantity) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Return quantity cannot exceed purchased quantity."
+                });
+            }
+        }
+
+        order.returnStatus = "requested";
+        order.returnReason = reason;
+        order.orderStatus = "return requested";
+
+        // Optionally, you could also store detailed return information on each item,
+        // for example in a new field like order.returnDetails = { items, reason, requestedAt: new Date() }
+
+        await order.save();
+
+        return res.json({
+            success: true,
+            message: "Return request submitted successfully."
+        });
+
+
+    } catch (error) {
+        console.error("Error processing return request:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error."
+        });
+    }
+}
+
+
+export const getWishlist = async (req, res) => {
+
+    try {
+
+        let wishlist = await Wishlist.findOne({ user: req.user.userId })
+            .populate({
+                path: 'items.product',
+                select: 'name colors'
+            });
+
+        if (!wishlist) {
+            wishlist = { items: [] };
+        }
+
+        res.status(200).json({
+            success: true,
+            wishlist: wishlist.items
+        });
+
+    } catch (error) {
+        console.error('Get wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+}
+
+
+
+
+
+export const addWishlist = async (req, res) => {
+
+    try {
+        const { productId, selectedColor } = req.body;
+
+        let wishlist = await Wishlist.findOne({ user: req.user.userId });
+        if (!wishlist) {
+            wishlist = new Wishlist({
+                user: req.user.userId,
+                items: []
+            });
+        }
+
+        const existingItemIndex = wishlist.items.findIndex(
+            item => item.product.toString() === productId && item.selectedColor === selectedColor
+        );
+
+        if (existingItemIndex >= 0) {
+            return res.status(200).json({
+                success: true,
+                message: 'Item already in wishlist'
+            });
+        }
+
+        wishlist.items.push({
+            product: productId,
+            selectedColor
+        });
+
+        await wishlist.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Item added to wishlist',
+            wishlist
+        });
+
+    } catch (error) {
+
+        console.error('Add to wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
+        });
+    }
+}
+
+
+
+
+
+
+export const removeWishlistItem = async (req, res) => {
+
+    try {
+        const { productId, selectedColor } = req.body;
+
+        const wishlist = await Wishlist.findOne({ user: req.user.userId });
+        if (!wishlist) {
+            return res.status(404).json({
+                success: false,
+                message: 'Wishlist not found'
+            });
+        }
+
+        wishlist.items = wishlist.items.filter(
+            item => !(item.product.toString() === productId && item.selectedColor === selectedColor)
+        );
+
+        await wishlist.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Item removed from wishlist',
+            wishlist
+        });
+    } catch (error) {
+        console.error('Remove from wishlist error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Server error'
         });
     }
 }

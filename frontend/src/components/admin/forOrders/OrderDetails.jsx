@@ -4,7 +4,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-const OrderDetail = () => {
+
+
+const OrderDetails = () => {
+
+
     const { orderId } = useParams();
     const navigate = useNavigate();
 
@@ -37,6 +41,8 @@ const OrderDetail = () => {
         setLoading(true);
         try {
             const response = await axios.get(`${API_BASE_URL}/admin/orders/${orderId}`);
+            console.log(response.data);
+
             setOrder(response.data);
             setError(null);
         } catch (err) {
@@ -76,13 +82,10 @@ const OrderDetail = () => {
                 status: statusModal.newStatus
             });
 
-            // Update local state
-            setOrder({
-                ...order,
-                status: statusModal.newStatus
-            });
 
             handleStatusModalClose();
+            fetchOrderDetails()
+
         } catch (err) {
             console.error("Error updating order status:", err);
             setError("Failed to update order status. Please try again.");
@@ -110,6 +113,7 @@ const OrderDetail = () => {
     };
 
     const handleReturnVerification = async (approved) => {
+
         try {
             await axios.post(`${API_BASE_URL}/admin/orders/${orderId}/return-verification`, {
                 productId: returnModal.productId,
@@ -118,7 +122,6 @@ const OrderDetail = () => {
                 approved
             });
 
-            // Update local state
             setOrder({
                 ...order,
                 status: approved ? 'returned' : 'delivered'
@@ -239,12 +242,12 @@ const OrderDetail = () => {
                         <div className="bg-gray-50 p-4 rounded">
                             {order.shippingAddress ? (
                                 <>
-                                    <p>{order.shippingAddress.name}</p>
-                                    <p>{order.shippingAddress.addressLine1}</p>
+                                    <p>{order.shippingAddress.fullName}</p>
+                                    <p>{order.shippingAddress.address}</p>
                                     {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
-                                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
+                                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.pincode}</p>
                                     <p>{order.shippingAddress.country}</p>
-                                    <p>{order.shippingAddress.phone}</p>
+                                    <p>{order.shippingAddress.phoneNumber}</p>
                                 </>
                             ) : (
                                 <p>No shipping address available</p>
@@ -362,7 +365,7 @@ const OrderDetail = () => {
 
             {/* Status Update Modal */}
             {statusModal.open && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-50">
                     <div className="bg-white rounded p-6 w-96 shadow-2xl">
                         <h2 className="text-xl font-bold mb-4">Update Order Status</h2>
                         <div className="mb-4">
@@ -421,7 +424,7 @@ const OrderDetail = () => {
 
             {/* Return Verification Modal */}
             {returnModal.open && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-50">
                     <div className="bg-white rounded p-6 w-96 shadow-2xl">
                         <h2 className="text-xl font-bold mb-4">Verify Return Request</h2>
                         <p className="mb-4">
@@ -448,4 +451,4 @@ const OrderDetail = () => {
     );
 };
 
-export default OrderDetail;
+export default OrderDetails;

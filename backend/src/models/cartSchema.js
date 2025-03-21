@@ -14,7 +14,7 @@ const cartItemSchema = new mongoose.Schema({
 
     selectedSize: {
         type: String,
-        enum: ["small", "medium", "large", "extraLarge"],
+        enum: ["small", "medium", "large", "extralarge"],
         required: true,
     },
 

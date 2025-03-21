@@ -632,7 +632,7 @@ export const getOrders = async (req, res) => {
             filter.status = status;
         }
 
-        const ordersPromise = Order.find(filter)
+        const ordersPromise = Order.find(filter).populate("user")
             .sort({ [sortBy]: sortOrder })
             .skip((page - 1) * limit)
             .limit(limit);
@@ -658,54 +658,197 @@ export const getOrders = async (req, res) => {
 }
 
 
+
+
+export const getOrderDetails = async (req, res) => {
+
+    try {
+        const { orderId } = req.params;
+
+        const order = await Order.findById(orderId)
+            .populate('user', 'username email phoneNumber')
+            .populate('orderItems.product', 'name colors brand sku');
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        const formattedOrder = order.toObject({ virtuals: true });
+
+
+        formattedOrder.products = order.orderItems.map((item) => {
+            const product = item.product;
+
+            const colorData = product.colors.find((c) => c.color === item.color) || {};
+            return {
+                _id: product._id,
+                name: product.name,
+                image: colorData.images?.[0] || '',
+                price: item.price,
+                quantity: item.quantity,
+                color: item.color,
+                size: item.size,
+                variant: `${item.color} / ${item.size}`,
+                sku: product.sku,
+            };
+        });
+
+
+        delete formattedOrder.orderItems;
+        formattedOrder.status = formattedOrder.orderStatus;
+
+        res.json(formattedOrder);
+
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        res.status(500).json({ message: 'Server error while fetching order details' });
+    }
+};
+
+
+
 export const updateOrderStatus = async (req, res) => {
-    console.log("hiiiiiii");
 
     try {
         const { orderId } = req.params;
         const { status } = req.body;
 
-        const allowedStatuses = [
-            'pending',
-            'shipped',
-            'out for delivery',
-            'delivered',
-            'cancelled',
-            'return requested',
-            'returned'
-        ];
 
-        if (!allowedStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid order status.'
-            });
+        const validStatuses = ['pending', 'shipped', 'out for delivery', 'delivered', 'cancelled', 'return requested', 'returned'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ message: 'Invalid status value' });
         }
 
-        const updatedOrder = await Order.findByIdAndUpdate(
-            orderId,
-            { status },
-            { new: true }
-        );
-
-        if (!updatedOrder) {
-            return res.status(404).json({
-                success: false,
-                message: 'Order not found.'
-            });
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
         }
 
-        res.json({
-            success: true,
-            message: 'Order status updated successfully.',
-            order: updatedOrder
+        order.orderStatus = status;
+        await order.save();
+
+        const formattedOrder = order.toObject({ virtuals: true });
+        formattedOrder.status = order.orderStatus;
+        res.status(200).json({
+            ststus: true,
+            message: 'Order status updated successfully',
+            order: formattedOrder
         });
 
-    } catch (err) {
-        console.error("Error updating order status:", err);
+    } catch (error) {
+        console.error('Error updating order status:', error);
         res.status(500).json({
             success: false,
-            message: 'Failed to update order status.'
+            message: 'Server error while updating status'
         });
     }
 };
+
+
+
+export const handleReturnVerification = async (req, res) => {
+
+    try {
+        const { orderId } = req.params;
+        const { approved } = req.body; // Expecting { approved: true/false }
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Check if return is requested
+        if (order.returnStatus !== 'requested') {
+            return res.status(400).json({ message: 'No return requested for this order' });
+        }
+
+        if (approved) {
+            order.returnStatus = 'approved';
+            order.orderStatus = 'returned';
+            // Refund logic can be added here, e.g., updating user's wallet
+            // const user = await User.findById(order.user);
+            // user.walletBalance = (user.walletBalance || 0) + order.totalAmount;
+            // await user.save();
+        } else {
+            order.returnStatus = 'rejected';
+            order.orderStatus = 'delivered'; // Revert to delivered if rejected
+        }
+
+        await order.save();
+
+        // Format response
+        const formattedOrder = order.toObject({ virtuals: true });
+        formattedOrder.status = order.orderStatus;
+        res.json({
+            message: approved ? 'Return approved successfully' : 'Return rejected',
+            order: formattedOrder,
+        });
+    } catch (error) {
+        console.error('Error processing return verification:', error);
+        res.status(500).json({ message: 'Server error while processing return' });
+    }
+};
+
+
+
+
+export const verifyReturn = async (req, res) => {
+
+    const { orderId } = req.params;
+    const { productId, userId, amount, approved } = req.body;
+
+    if (!productId || !userId || amount == null || typeof approved !== "boolean") {
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields: productId, userId, amount, or approved flag.",
+        });
+    }
+
+    try {
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found.",
+            });
+        }
+
+        if (order.orderStatus !== "return requested") {
+            return res.status(400).json({
+                success: false,
+                message: "Order is not pending return verification.",
+            });
+        }
+
+        if (order.user?.toString() !== userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID mismatch with the order.",
+            });
+        }
+
+        order.orderStatus = approved ? "returned" : "delivered";
+
+        order.returnVerification = {
+            approved,
+            amount,
+            verifiedAt: new Date(),
+        };
+
+        order.returnStatus = approved ? "completed" : "rejected";
+
+        await order.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Return verification processed successfully.",
+        });
+
+    } catch (error) {
+        console.error("Error processing return verification:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error while processing return verification.",
+        });
+    }
+}

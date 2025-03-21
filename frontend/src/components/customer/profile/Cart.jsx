@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 import { useDispatch } from 'react-redux';
-import { addProducts, setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
+import { addProducts, setCartCurrentStep, clearCart } from '../../../store/slices/cartCheckoutSlice';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 
@@ -344,6 +344,7 @@ const Cart = () => {
                             onClick={() => {
                                 console.log(cartItems)
                                 dispatch(setCartCurrentStep("address"))
+                                dispatch(clearCart())
                                 dispatch(addProducts(cartItems))
                                 navigate("/user/cart-check-out")
                             }}

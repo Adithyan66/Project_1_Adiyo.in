@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+
 const initialState = {
     currentStep: 'address',
     address: [],
@@ -8,6 +9,7 @@ const initialState = {
         selectedMethod: 'COD',
         status: 'idle'
     },
+    totalPrice: 0,
     confirmationData: null
 };
 
@@ -80,6 +82,9 @@ const cartCheckoutSlice = createSlice({
         },
         clearCart: (state, action) => {
             state.order = [];
+        },
+        setTotalPrice: (state, action) => {
+            state.totalPrice = action.payload
         }
     }
 });
@@ -92,6 +97,8 @@ export const {
     updateQuantity,
     removeProduct,
     setCartConfirmationData,
-    clearCart
+    clearCart,
+    setTotalPrice
 } = cartCheckoutSlice.actions;
+
 export default cartCheckoutSlice.reducer;

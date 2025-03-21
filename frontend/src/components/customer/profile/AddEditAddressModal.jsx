@@ -92,8 +92,10 @@ const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
     };
 
     const handleSubmit = async (e) => {
+
         e.preventDefault();
 
+        console.log(validateForm());
         if (validateForm()) {
             try {
                 let response;

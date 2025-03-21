@@ -916,7 +916,7 @@ const AddProduct = ({ setSelectedSection }) => {
                 small: { size: "Small", stock: "" },
                 medium: { size: "Medium", stock: "" },
                 large: { size: "Large", stock: "" },
-                extraLarge: { size: "Extra Large", stock: "" },
+                extralarge: { size: "Extra Large", stock: "" },
             },
         },
     ]);

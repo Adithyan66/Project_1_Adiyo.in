@@ -8,7 +8,7 @@ function NavbarThree() {
 
     return (
 
-        <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md px-4 sm:px-6 lg:px-8 p-3">
+        <nav className="fixed top-0 left-0 w-full z-50 bg-gray-100 shadow-md px-4 sm:px-6 lg:px-8 p-3">
             <div className="flex items-center justify-between h-16">
                 <div className="flex items-center">
                     <div className="flex-shrink-0 ml-[15px] hover:cursor-pointer"

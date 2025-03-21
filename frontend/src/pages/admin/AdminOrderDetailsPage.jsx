@@ -2,7 +2,7 @@ import React from 'react'
 import NavbarTwo from '../../components/common/NavbarTwo'
 import DashBoard from '../../components/admin/DashBorad'
 import Footer from '../../components/common/Footer'
-import OrderDetail from '../../components/admin/forOrders/OrderDetails'
+import OrderDetails from '../../components/admin/forOrders/OrderDetails'
 
 function OrderDetailsPage() {
     return (
@@ -10,7 +10,7 @@ function OrderDetailsPage() {
             <NavbarTwo />
             <div className="px-[10%] py-6 flex">
                 <DashBoard />
-                <OrderDetail />
+                <OrderDetails />
             </div>
             <Footer />
         </div>

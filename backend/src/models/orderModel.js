@@ -85,12 +85,12 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: {
         type: String,
         required: true,
-        enum: ["card", "upi", "netbanking", "cod"]
+        enum: ["card", "upi", "netbanking", "cod", "paypal"]
     },
     paymentStatus: {
         type: String,
         required: true,
-        enum: ["pending", "paid", "failed", "refunded"],
+        enum: ["pending", "paid", "failed", "refunded", "completed"],
         default: "pending"
     },
     paymentDetails: {
@@ -126,7 +126,7 @@ const orderSchema = new mongoose.Schema({
     orderStatus: {
         type: String,
         required: true,
-        enum: ["placed", "processing", "shipped", "delivered", "cancelled", "returned"],
+        enum: ["placed", "processing", "shipped", "delivered", "cancelled", "returned", "pending", "out for delivery", "return requested"],
         default: "placed"
     },
     trackingNumber: {

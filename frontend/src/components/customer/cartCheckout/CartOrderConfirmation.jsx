@@ -13,6 +13,8 @@ const CartOrderConfirmation = () => {
 
     const navigate = useNavigate()
     const orderDetails = useSelector((state) => state.cartCheckout.confirmationData);
+    console.log("orderdetails", orderDetails);
+
 
     if (!orderDetails) return null;
 

@@ -1,8 +1,6 @@
 
 
 
-
-
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -22,14 +20,7 @@ import { setCurrentStep, setConfirmationData } from '../../../store/slices/check
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-
-
-
-
 const CheckOut = () => {
-
-
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { currentStep, address, order, payment } = useSelector((state) => state.checkout);
@@ -48,8 +39,6 @@ const CheckOut = () => {
     const calculateOrderSummary = () => {
         if (!order?.productDetails) return null;
 
-        // Pass the entire data structure to the sidebar component
-        // It will handle the extraction of correct price, color, and size details
         return {
             productDetails: order.productDetails,
             productColor: order.productColor,
@@ -90,33 +79,45 @@ const CheckOut = () => {
         }
     };
 
-    const handlePlaceOrder = async (paymentMethod, captchaValue) => {
-        // Validate captcha
-        if (captchaValue === '') {
+    const handlePlaceOrder = async (paymentMethod, captchaValue, paypalOrderID) => {
+
+        console.log("handlePlaceOrder called with:", { paymentMethod, captchaValue, paypalOrderID });
+
+        if (paymentMethod === 'cod' && captchaValue === '') {
             toast.error("Please complete the captcha verification");
-            return;
+            return Promise.reject(new Error("Captcha verification required"));
         }
 
         if (!address || !address[0]._id) {
             toast.error("Please select a shipping address");
-            return;
+            return Promise.reject(new Error("Shipping address required"));
+        }
+
+        // Additional validation for PayPal
+        if (paymentMethod === 'paypal' && !paypalOrderID) {
+            toast.error("PayPal payment not completed. Please try again.");
+            return Promise.reject(new Error("PayPal order ID missing"));
         }
 
         setIsLoading(true);
 
         try {
-            // Prepare order data
             const orderData = {
                 addressId: address[0]._id,
                 productDetails: {
                     productId: order.productDetails._id,
                     productColor: order.productColor,
                     productSize: order.productSize,
-                    quantity: order.quantity
+                    quantity: order.quantity,
                 },
-                paymentMethod: paymentMethod
+                paymentMethod: paymentMethod,
+                // Include PayPal-specific data if applicable
+                ...(paymentMethod === 'paypal' && {
+                    paypalOrderID: paypalOrderID, // Send PayPal order ID to backend
+                }),
             };
 
+            console.log("Sending order data to API:", orderData);
 
             const response = await axios.post(
                 `${API_BASE_URL}/user/place-orders`,
@@ -124,72 +125,95 @@ const CheckOut = () => {
                 { withCredentials: true }
             );
 
+            console.log("API response:", response.data);
+
             if (response.data.success) {
                 setOrderResponse(response.data.order);
                 toast.success("Order placed successfully!");
-                dispatch(setConfirmationData(response.data.order))
+                dispatch(setConfirmationData(response.data.order));
                 dispatch(setCurrentStep('confirmation'));
+                return response.data;
             }
         } catch (error) {
             console.error("Error placing order:", error);
             toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
+            throw error;
         } finally {
             setIsLoading(false);
         }
     };
 
+
     return (
         <div className="mt-[100px]">
-            <div className="max-w-6xl mx-auto px-4  mb-20">
-                {/* Checkout Steps */}
-                <div className="mb-10 ">
-                    <div className="flex justify-between items-center">
-                        {steps.map((step, index) => (
-                            <div key={step.id} className="flex flex-col items-center w-1/4">
-                                <div className={`flex items-center justify-center w-12 h-12 rounded-full mb-2 ${currentStep === step.id ? 'bg-black text-white' :
-                                    steps.findIndex(s => s.id === currentStep) > index ? 'bg-black text-white' : 'bg-gray-200'
-                                    }`}>
-                                    <step.icon size={20} />
-                                </div>
-                                <span className={`text-sm font-medium ${currentStep === step.id ? 'text-black' : 'text-gray-500'}`}>
-                                    {step.label}
-                                </span>
-                                {index < steps.length - 1 && (
-                                    <div className="absolute left-0 right-0 h-0.5 bg-gray-200 -z-10"></div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            <div className="max-w-[1500px] mx-auto px-2 mb-20">
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Vertical Checkout Steps (Left Side) */}
+                    <div className="lg:w-1/6">
+                        <div className="bg-white rounded-lg shadow-sm p-4">
+                            <div className="flex flex-col">
+                                {steps.map((step, index) => (
+                                    <div key={step.id} className="mb-6 last:mb-0">
+                                        <div className="flex items-center">
+                                            <div className={`flex items-center justify-center w-12 h-12 rounded-full 
+                                            ${currentStep === step.id ? 'bg-black text-white' :
+                                                    steps.findIndex(s => s.id === currentStep) > index ? 'bg-black text-white' : 'bg-gray-200'}`}>
+                                                <step.icon size={20} />
+                                            </div>
+                                            <span className={`ml-3 text-sm font-medium ${currentStep === step.id ? 'text-black' : 'text-gray-500'}`}>
+                                                {step.label}
+                                            </span>
+                                        </div>
 
-                {/* Conditional Layout based on current step */}
-                {currentStep === 'confirmation' ? (
-                    // Full width confirmation page
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <OrderConfirmation orderDetails={orderResponse} />
-                    </div>
-                ) : (
-                    // Two-column Layout for other steps
-                    <div className="flex flex-col lg:flex-row gap-6">
-                        {/* Main Content Column */}
-                        <div className="lg:w-2/3">
-                            <div className="bg-white rounded-lg shadow-sm p-6">
-                                {renderStepContent()}
+                                        {/* Arrow between steps */}
+                                        {index < steps.length - 1 && (
+                                            <div className="ml-6 my-2 h-8 w-px relative">
+                                                <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200"></div>
+                                                <div
+                                                    className={`absolute left-0 top-0 w-px ${steps.findIndex(s => s.id === currentStep) > index ? 'bg-black h-full' : 'bg-gray-200 h-0'
+                                                        } transition-all duration-300`}
+                                                ></div>
+                                                <div className={`absolute -left-[3px] bottom-0 transform rotate-45 w-2 h-2 ${steps.findIndex(s => s.id === currentStep) > index ? 'border-r border-b border-black' : 'border-r border-b border-gray-200'
+                                                    }`}></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                         </div>
+                    </div>
 
-                        {/* Sidebar Column */}
-                        {order?.productDetails && (
-                            <div className="lg:w-1/3">
-                                <OrderSummarySidebar orderDetails={calculateOrderSummary()} />
+                    {/* Main Content Area */}
+                    <div className="lg:w-3/4">
+                        {currentStep === 'confirmation' ? (
+                            // Full width confirmation page
+                            <div className="bg-white rounded-lg shadow-sm p-4">
+                                <OrderConfirmation orderDetails={orderResponse} />
+                            </div>
+                        ) : (
+                            // Two-column Layout for other steps
+                            <div className="flex flex-col lg:flex-row gap-6">
+                                {/* Main Content Column */}
+                                <div className="lg:w-2/3">
+                                    <div className="bg-white rounded-lg shadow-sm p-4">
+                                        {renderStepContent()}
+                                    </div>
+                                </div>
+
+                                {/* Sidebar Column */}
+                                {order?.productDetails && (
+                                    <div className="lg:w-1/3">
+                                        <OrderSummarySidebar orderDetails={calculateOrderSummary()} />
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
-                )}
+                </div>
 
                 {/* Loading Overlay */}
                 {isLoading && (
-                    <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50">
                         <div className="bg-white p-5 rounded-lg shadow-lg flex items-center">
                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black mr-3"></div>
                             <span>Processing your order...</span>

@@ -5,8 +5,14 @@
 
 import React from 'react';
 import { Clock, Truck, Shield, CreditCard } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { setTotalPrice } from "../../../store/slices/checkoutSlice"
 
 const OrderSummarySidebar = ({ orderDetails }) => {
+
+
+    const dispatch = useDispatch()
+
     if (!orderDetails?.productDetails) return null;
 
     let {
@@ -35,6 +41,9 @@ const OrderSummarySidebar = ({ orderDetails }) => {
     const discount = (basePrice - discountPrice) * quantity;
     deliveryCharge = (subtotal < 499) ? 49 : 0
     const total = subtotal + deliveryCharge;
+
+    dispatch(setTotalPrice(total))
+
 
     // Format currency
     const formatCurrency = (amount) => {

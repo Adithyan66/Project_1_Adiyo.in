@@ -39,7 +39,13 @@ import {
     getUserOrders,
     getOrderById,
     deleteCart,
-    cancelOrder
+    cancelOrder,
+    returnRequest,
+    getNewArrivals,
+    getTopSellingProducts,
+    getWishlist,
+    addWishlist,
+    removeWishlistItem
 } from
     "../controllers/userController.js"
 
@@ -63,6 +69,10 @@ router.post("/update-profile", authenticateUser, upload.single('file'), updatePr
 router.post("/save-address", authenticateUser, saveAddress)
 router.post("/cart/add", authenticateUser, addCart)
 router.post("/place-orders", authenticateUser, createOrder)
+router.post("/orders/:orderId/return", authenticateUser, returnRequest)
+router.post("/wishlist/add", authenticateUser, addWishlist)
+
+
 
 
 
@@ -76,6 +86,12 @@ router.get("/cart-items", authenticateUser, cartItems)
 router.get("/check-cart", authenticateUser, checkCart)
 router.get("/orders", authenticateUser, getUserOrders)
 router.get("/orders/:orderId", getOrderById)
+router.get("/new-arrivals", getNewArrivals)
+router.get("/top-selling", getTopSellingProducts)
+router.get("/wishlist", authenticateUser, getWishlist)
+
+
+
 
 
 
@@ -93,6 +109,8 @@ router.patch("/cart-items/:itemId", authenticateUser, updateCartQuantity)
 router.delete("/delete-address/:id", authenticateUser, deleteAddress)
 router.delete("/cart", authenticateUser, deleteCart)
 router.delete("/cart-items/:itemId", authenticateUser, removeCartItem)
+router.delete("/wishlist/remove", authenticateUser, removeWishlistItem)
+
 
 
 

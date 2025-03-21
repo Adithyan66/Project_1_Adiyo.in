@@ -36,6 +36,8 @@ import OrdersListPage from './pages/customer/OrdersListPage';
 import OrderDetailsPage from './pages/customer/OrderDetailsPage';
 import CartCheckOutPage from "./pages/customer/CartCheckOutPage"
 import ManageOrdersPage from './pages/admin/ManageOrdersPage';
+import AdminOrderDetailsPage from "./pages/admin/AdminOrderDetailsPage"
+import WishlistPage from './pages/customer/WishlistPage';
 
 
 function App() {
@@ -61,7 +63,7 @@ function App() {
         dispatch(logout());
 
 
-        toast.error(error.response?.data?.message || 'Session expired');
+        //  toast.error(error.response?.data?.message || 'Session expired');
 
         // Call the logout endpoint to clear the HTTP-only cookie if necessary
         try {
@@ -105,6 +107,8 @@ function App() {
 
         <Route path="/user/orders/:orderId" element={<OrderDetailsPage />} />
 
+        <Route path="/user/wishlist" element={<WishlistPage />} />
+
 
 
 
@@ -131,7 +135,7 @@ function App() {
 
         <Route path="/admin/orders" element={<AdminProtected><ManageOrdersPage /></AdminProtected>} />
 
-        <Route path="/admin/order-details/:orderId" element={<OrderDetailsPage />} />
+        <Route path="/admin/order-details/:orderId" element={<AdminOrderDetailsPage />} />
 
 
 

@@ -13,12 +13,21 @@ import {
     Gift,
     Star,
     Wallet,
-    ShoppingCart
+    ShoppingCart,
+    ScanHeart
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
 
+
+
+
+
 const ProfileSideBar = () => {
+
+
+
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
@@ -27,7 +36,7 @@ const ProfileSideBar = () => {
     // State to manage expanded sections
     const [expandedSections, setExpandedSections] = useState({
         accountSettings: true,
-        myStuffs: false
+        myStuffs: true
     });
 
     // Toggle section expansion
@@ -68,14 +77,14 @@ const ProfileSideBar = () => {
                 {/* My orders */}
                 <div
                     className="mb-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
-                    onClick={() => handleNavigation("/user/orders", "orders")}
+                    onClick={() => handleNavigation("/user/wishlist", "wishlist")}
                 >
                     <div className="flex items-center justify-between px-4 py-3 cursor-pointer">
                         <div className="flex items-center">
                             <span className="mr-3 text-black bg-gray-100 p-2 rounded-lg">
-                                <ShoppingBag size={20} />
+                                <ScanHeart size={20} />
                             </span>
-                            <span className="font-medium">My Orders</span>
+                            <span className="font-medium">My Wishlist</span>
                         </div>
                         <ChevronRight size={18} className="text-gray-500" />
                     </div>
