@@ -64,8 +64,6 @@ function LoginForm() {
                 }
             );
 
-            //Cookies.set("token", response.data.token, { expires: 7, path: "/" })
-
             if (response.data.success) {
 
                 dispatch(setLoginPopup(false));

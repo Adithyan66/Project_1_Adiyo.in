@@ -8,7 +8,7 @@ function WishlistPage() {
     return (
         <div>
             <Navbar />
-            <div className="px-[10%] py-6 flex ">
+            <div className="px-[10%] py-6 flex mt-35">
                 <ProfileSideBar />
                 <Wishlist />
             </div>

@@ -39,33 +39,6 @@ const getAccessToken = async () => {
 
 
 
-// export const verifyPayPalOrder = async (paypalOrderID) => {
-
-//     try {
-//         const accessToken = await getAccessToken();
-
-//         const response = await axios({
-//             url: `${PAYPAL_API_URL}/v2/checkout/orders/${paypalOrderID}`,
-//             method: 'get',
-//             headers: {
-//                 'Authorization': `Bearer ${accessToken}`,
-//                 'Content-Type': 'application/json'
-//             }
-//         });
-
-
-//         if (response.data.status !== 'COMPLETED' && response.data.status !== 'APPROVED') {
-//             throw new Error(`PayPal order status is ${response.data.status}, not COMPLETED or APPROVED`);
-//         }
-
-//         return response.data;
-
-//     } catch (error) {
-//         console.error('Error verifying PayPal order:', error);
-//         throw new Error(error.response?.data?.message || 'Failed to verify PayPal payment');
-//     }
-// };
-
 
 export const capturePayPalPayment = async (paypalOrderID) => {
 

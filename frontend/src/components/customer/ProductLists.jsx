@@ -118,7 +118,7 @@ function ProductLists({ searchTerm, setSearchTerm }) {
         const fetchDbCategories = async () => {
             try {
                 const response = await axios.get(`${API_BASE_URL}/admin/categories`);
-                setDbCategories(response.data);
+                setDbCategories(response.data.categories);
                 setIsLoadingCategories(false);
             } catch (error) {
                 console.error("Error fetching categories:", error);

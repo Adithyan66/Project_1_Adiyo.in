@@ -45,7 +45,8 @@ import {
     getTopSellingProducts,
     getWishlist,
     addWishlist,
-    removeWishlistItem
+    removeWishlistItem,
+    validateCoupon
 } from
     "../controllers/userController.js"
 
@@ -71,6 +72,7 @@ router.post("/cart/add", authenticateUser, addCart)
 router.post("/place-orders", authenticateUser, createOrder)
 router.post("/orders/:orderId/return", authenticateUser, returnRequest)
 router.post("/wishlist/add", authenticateUser, addWishlist)
+router.post("/coupons/validate", validateCoupon)
 
 
 

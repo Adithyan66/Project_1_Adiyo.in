@@ -103,7 +103,7 @@ function Payment({ onPlaceOrder }) {
                 {
                     amount: {
                         value: orderTotal,
-                        currency_code: "USD" // Adjust if needed
+                        currency_code: "USD"
                     },
                     description: "Order from Your Store Name"
                 }

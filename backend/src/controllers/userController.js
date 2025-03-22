@@ -26,6 +26,7 @@ import Address from "../models/addressModel.js";
 import Cart from "../models/cartSchema.js";
 import Order from "../models/orderModel.js";
 import Wishlist from "../models/wishListModel.js";
+import Coupon from "../models/couponModel.js";
 
 
 const salt = await bcrypt.genSalt(10);
@@ -687,6 +688,7 @@ export const profile = async (req, res) => {
                 _id: user._id,
                 email: user.email,
                 username: user.username,
+                profileImg: user.profileImg
             }
         })
 
@@ -819,6 +821,8 @@ export const profileDetails = async (req, res) => {
         });
     }
 }
+
+
 export const updateProfile = async (req, res) => {
 
     const {
@@ -1887,12 +1891,6 @@ export const createOrder = async (req, res) => {
 };
 
 
-
-
-
-
-
-
 export const getOrderById = async (req, res) => {
 
     try {
@@ -2180,8 +2178,6 @@ export const getWishlist = async (req, res) => {
 
 
 
-
-
 export const addWishlist = async (req, res) => {
 
     try {
@@ -2230,10 +2226,6 @@ export const addWishlist = async (req, res) => {
 }
 
 
-
-
-
-
 export const removeWishlistItem = async (req, res) => {
 
     try {
@@ -2264,5 +2256,61 @@ export const removeWishlistItem = async (req, res) => {
             success: false,
             message: 'Server error'
         });
+    }
+}
+
+
+export const validateCoupon = async (req, res) => {
+
+    try {
+
+        const { code, orderTotal, productCategories } = req.body;
+
+        // Find coupon by code and ensure it hasn't been soft-deleted.
+        const coupon = await Coupon.findOne({ code, deletedAt: null });
+        if (!coupon) {
+            return res.status(404).json({ success: false, message: "Coupon not found" });
+        }
+
+        const now = new Date();
+
+        // Check if the coupon is active yet.
+        if (coupon.activeFrom > now) {
+            return res.status(400).json({ success: false, message: "Coupon is not active yet" });
+        }
+
+        // Check if the coupon has expired.
+        if (coupon.expiresAt < now) {
+            return res.status(400).json({ success: false, message: "Coupon has expired" });
+        }
+
+        // Check if the coupon's usage limit has been reached.
+        if (coupon.usedCount >= coupon.maxUsage) {
+            return res.status(400).json({ success: false, message: "Coupon usage limit reached" });
+        }
+
+        // Check for minimum order value, if defined.
+        if (coupon.minOrderValue && orderTotal < coupon.minOrderValue) {
+            return res.status(400).json({
+                success: false,
+                message: `Minimum order value for this coupon is ${coupon.minOrderValue}`
+            });
+        }
+
+        // Check if product categories are applicable.
+        // If the coupon defines applicableCategories, then at least one of the productCategories must match.
+        if (coupon.applicableCategories && coupon.applicableCategories.length > 0) {
+            if (!productCategories || !productCategories.some(cat => coupon.applicableCategories.includes(cat))) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Coupon is not applicable for the selected product categories"
+                });
+            }
+        }
+
+        res.json({ success: true, coupon });
+    } catch (error) {
+        console.error("Error validating coupon: ", error);
+        res.status(500).json({ success: false, message: "Server error" });
     }
 }

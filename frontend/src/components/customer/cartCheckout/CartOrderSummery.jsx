@@ -385,7 +385,7 @@ function CartOrderSummary() {
             </div>
 
             {/* Order Summary */}
-            <div className="border-t pt-4 mt-4">
+            {/* <div className="border-t pt-4 mt-4">
                 <div className="flex justify-between mb-2">
                     <span className="text-gray-600">Subtotal:</span>
                     <span className="font-medium">₹{totalBasePrice.toLocaleString()}</span>
@@ -402,7 +402,7 @@ function CartOrderSummary() {
                     <span>Total:</span>
                     <span>₹{totalDiscountPrice.toLocaleString()}</span>
                 </div>
-            </div>
+            </div> */}
 
             {/* Continue to Payment Button */}
             <div className="flex justify-end mt-6">

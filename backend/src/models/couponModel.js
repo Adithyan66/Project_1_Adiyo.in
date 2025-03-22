@@ -58,6 +58,6 @@ const CouponSchema = new mongoose.Schema(
 );
 
 
-const Coupen = mongoose.model("coupon", CouponSchema)
+const Coupon = mongoose.model("coupon", CouponSchema)
 
-export default Coupen
+export default Coupon;

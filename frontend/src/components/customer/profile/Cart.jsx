@@ -276,10 +276,10 @@ const Cart = () => {
                             <p className="text-xl text-gray-500 mb-2">Your cart is empty</p>
                             <p className="text-gray-400 mb-6">Looks like you haven't added any items to your cart yet.</p>
                             <button
-                                onClick={() => window.location.href = '/collections'}
+                                onClick={() => navigate('/user/wishlist')}
                                 className="bg-black text-white px-8 py-3 rounded-lg text-md font-medium"
                             >
-                                Browse Collections
+                                Check Wishlist
                             </button>
                         </div>
                     )}

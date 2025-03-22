@@ -127,7 +127,7 @@ function Wishlist() {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                     </svg>
                     <p className="mt-4 text-lg">Your wishlist is empty</p>
-                    <Link to="/shop" className="mt-6 inline-block px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">
+                    <Link to="/products-list" className="mt-6 inline-block px-6 py-3 bg-black text-white rounded-md hover:bg-gray-800 transition-colors">
                         Continue Shopping
                     </Link>
                 </div>
@@ -136,7 +136,7 @@ function Wishlist() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-8 mt-[80px]">
+        <div className="max-w-6xl mx-auto px-4 py-8 ">
             <h1 className="text-2xl font-bold mb-6">Your Wishlist</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

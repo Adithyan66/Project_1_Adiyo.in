@@ -40,6 +40,7 @@ const CheckOut = () => {
         if (!order?.productDetails) return null;
 
         return {
+            productCategory: order.productDetails.category,
             productDetails: order.productDetails,
             productColor: order.productColor,
             productSize: order.productSize,

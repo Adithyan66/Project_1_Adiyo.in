@@ -32,6 +32,8 @@ const ProfileSideBar = () => {
     const navigate = useNavigate();
 
     const selectedSideBar = useSelector((state) => state.userSideSelected.activeSelection);
+    const user = useSelector((state) => state.user.userInfo)
+
 
     // State to manage expanded sections
     const [expandedSections, setExpandedSections] = useState({
@@ -52,6 +54,8 @@ const ProfileSideBar = () => {
         dispatch(setActiveSelection(selection));
         navigate(path);
     };
+    console.log("userrrrrrrrrr", user);
+
 
     return (
         <aside className="w-72 bg-white shadow-lg rounded-lg overflow-hidden h-full sticky top-5">
@@ -60,14 +64,14 @@ const ProfileSideBar = () => {
                 <div className="flex items-center">
                     <div className="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-gray-500">
                         <img
-                            src="/api/placeholder/56/56"
+                            src={user?.profileImg}
                             alt="User avatar"
                             className="w-full h-full object-cover"
                         />
                     </div>
                     <div>
-                        <div className="text-lg font-medium">Hello, Adhi</div>
-                        <div className="text-sm text-gray-500">adhi@example.com</div>
+                        <div className="text-lg font-medium"> {user?.username}</div>
+                        <div className="text-sm text-gray-500">{user?.email}</div>
                     </div>
                 </div>
             </div>

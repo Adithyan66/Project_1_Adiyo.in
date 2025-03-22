@@ -341,7 +341,7 @@ const OrderConfirmation = () => {
                         Print Receipt
                     </button>
                     <button
-                        // onClick={}
+                        onClick={() => navigate(`/user/orders-list`)}
                         className="flex items-center justify-center bg-gray-100 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-200 transition duration-300"
                     >
                         <ListOrdered className="mr-2" size={18} />

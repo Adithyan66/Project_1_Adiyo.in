@@ -7,27 +7,6 @@ import Order from "../models/orderModel.js"
 
 
 
-// export const customersList = async (req, res) => {
-
-//     try {
-
-//         const customers = await User.find({ role: "customer" })
-
-//         res.status(200).json({
-//             status: true,
-//             message: "customers details fetched succesfully",
-//             customers
-//         })
-
-
-//     } catch (error) {
-//         res.status(500).json({
-//             statsu: false,
-//             message: "server error"
-//         })
-//     }
-// }
-
 
 export const customersList = async (req, res) => {
     try {
@@ -512,7 +491,11 @@ export const getCategories = async (req, res) => {
         const categories = await Category.find();
         console.log(categories);
 
-        res.status(200).json(categories);
+        res.status(200).json({
+            success: true,
+            message: "category fetches succesfully",
+            categories
+        });
     } catch (error) {
         console.error('Error fetching categories:', error);
         res.status(500).json({ error: 'Server error while fetching categories.' });
