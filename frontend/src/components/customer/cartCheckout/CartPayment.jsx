@@ -1,16 +1,18 @@
 
-
-
-
-
-
-import { ArrowLeft, CreditCard, LockIcon, RefreshCw, Smartphone, Building, Truck } from 'lucide-react';
+import { ArrowLeft, CreditCard, LockIcon, RefreshCw, Smartphone, Building, Truck, Wallet, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
 
 function CartPayment({ onPlaceOrder }) {
+
+
+
     const dispatch = useDispatch();
     const { order } = useSelector((state) => state.checkout);
     const totalPrice = useSelector((state) => state.cartCheckout.totalPrice || 0);
@@ -30,11 +32,53 @@ function CartPayment({ onPlaceOrder }) {
     });
     const [upiId, setUpiId] = useState('');
     const [selectedBank, setSelectedBank] = useState('');
+    const [isLoadingWallet, setIsLoadingWallet] = useState(true);
+    const [walletError, setWalletError] = useState(null);
+    const [walletBalance, setWalletBalance] = useState(0);
 
-    // Generate a new captcha when component loads
+
+
     useEffect(() => {
         generateNewCaptcha();
+        fetchWalletBalance()
     }, []);
+
+    const handleWalletPayment = () => {
+        if (captchaInput !== captchaText) {
+            return;
+        }
+
+        setIsProcessing(true);
+        onPlaceOrder('wallet', captchaInput)
+            .finally(() => setIsProcessing(false));
+    };
+
+
+
+    const fetchWalletBalance = async () => {
+        setIsLoadingWallet(true);
+        setWalletError(null);
+
+        try {
+            console.log("callledd fetch");
+
+            const response = await axios.get(`${API_BASE_URL}/user/get-wallet-balance`, {
+                withCredentials: true,
+            });
+
+            if (response.data.success) {
+                setWalletBalance(response.data.balance);
+            } else {
+                setWalletError("Unable to fetch wallet balance. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error fetching wallet balance:", error);
+            setWalletError("Unable to fetch wallet balance. Please try again.");
+        } finally {
+            setIsLoadingWallet(false);
+        }
+    };
+
 
     // Generate a random captcha string
     const generateNewCaptcha = () => {
@@ -214,11 +258,12 @@ function CartPayment({ onPlaceOrder }) {
 
             <div className="space-y-4 mb-8">
                 <PaymentOption
-                    id="card"
-                    title="Credit / Debit Card"
-                    description="All major cards accepted"
-                    icon={CreditCard}
+                    id="wallet"
+                    title="Wallet"
+                    description={isLoadingWallet ? "Loading balance..." : `Available balance: ₹${walletBalance.toFixed(2)}`}
+                    icon={Wallet}
                 />
+
                 <PayPalOption />
                 <PaymentOption
                     id="upi"
@@ -240,87 +285,114 @@ function CartPayment({ onPlaceOrder }) {
                 />
             </div>
 
-            {/* Payment details based on selected method */}
-            {paymentMethod === 'card' && (
+
+
+            {/* Wallet payment */}
+            {paymentMethod === 'wallet' && (
                 <div className="border rounded-lg p-5 mb-6 bg-gray-50">
-                    <h3 className="font-medium text-gray-900 mb-4">Card Details</h3>
-                    <div className="space-y-4">
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <CreditCard size={16} className="text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                name="cardNumber"
-                                value={cardDetails.cardNumber}
-                                onChange={handleCardInputChange}
-                                className="border rounded-md pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="1234 5678 9012 3456"
-                            />
+                    <h3 className="font-medium text-gray-900 mb-4">Wallet Payment</h3>
+
+                    {isLoadingWallet ? (
+                        <div className="flex justify-center items-center p-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm text-gray-700 block mb-1">Expiry Date</label>
-                                <input
-                                    type="text"
-                                    name="expiryDate"
-                                    value={cardDetails.expiryDate}
-                                    onChange={handleCardInputChange}
-                                    className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="MM/YY"
-                                />
-                            </div>
-                            <div>
-                                <label className="text-sm text-gray-700 block mb-1">CVV</label>
-                                <input
-                                    type="text"
-                                    name="cvv"
-                                    value={cardDetails.cvv}
-                                    onChange={handleCardInputChange}
-                                    className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="123"
-                                />
-                            </div>
+                    ) : walletError ? (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                            {walletError}
+                            <button
+                                onClick={fetchWalletBalance}
+                                className="ml-2 underline hover:text-red-800"
+                            >
+                                Retry
+                            </button>
                         </div>
-                        <div>
-                            <label className="text-sm text-gray-700 block mb-1">Name on Card</label>
-                            <input
-                                type="text"
-                                name="nameOnCard"
-                                value={cardDetails.nameOnCard}
-                                onChange={handleCardInputChange}
-                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                placeholder="John Doe"
-                            />
-                        </div>
-                        <div className="mt-2 flex items-center">
-                            <div className="flex space-x-2">
-                                <img src="/api/placeholder/40/25" alt="Visa" className="h-6 object-contain" />
-                                <img src="/api/placeholder/40/25" alt="Mastercard" className="h-6 object-contain" />
-                                <img src="/api/placeholder/40/25" alt="American Express" className="h-6 object-contain" />
+                    ) : (
+                        <>
+                            <div className="flex justify-between items-center p-4 bg-white rounded-lg border border-gray-200 mb-4">
+                                <div>
+                                    <div className="text-sm text-gray-500">Available Balance</div>
+                                    <div className="text-2xl font-bold text-gray-900">₹{walletBalance.toFixed(2)}</div>
+                                </div>
+                                <button
+                                    onClick={() => setShowRechargeOptions(!showRechargeOptions)}
+                                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md flex items-center text-sm"
+                                >
+                                    <Plus size={16} className="mr-1" />
+                                    Recharge
+                                </button>
                             </div>
-                            <div className="ml-auto text-xs text-gray-500 flex items-center">
-                                <LockIcon size={12} className="mr-1" />
-                                Secured by SSL
-                            </div>
-                        </div>
-                        <button
-                            className={`w-full mt-4 px-4 py-2 rounded-md ${!cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.nameOnCard || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
-                            disabled={!cardDetails.cardNumber || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.nameOnCard || isProcessing}
-                            onClick={handleCardPayment}
-                        >
-                            {isProcessing ? (
-                                <span className="flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Processing...
-                                </span>
-                            ) : (
-                                <span>Pay Now</span>
+
+                            {walletBalance < (totalPrice || 0) && (
+                                <div className="bg-yellow-50 border border-yellow-200 text-gray-700 p-3 rounded-md mb-4">
+                                    <div className="font-medium mb-1">Insufficient balance</div>
+                                    <div className="text-sm">
+                                        Your wallet balance is ₹{walletBalance.toFixed(2)} but your order total is ₹{(totalPrice || 0).toFixed(2)}.
+                                    </div>
+                                </div>
                             )}
-                        </button>
-                    </div>
+
+
+
+                            {walletBalance >= (totalPrice || 0) && (
+                                <div className="mt-6 mb-2">
+                                    <div className="border rounded-lg p-5 bg-gray-50">
+                                        <h3 className="font-medium text-gray-900 mb-4 flex items-center">
+                                            <LockIcon size={16} className="mr-2 text-gray-700" />
+                                            Security Verification
+                                        </h3>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white text-lg font-bold tracking-widest px-5 py-3 rounded-md select-none relative overflow-hidden">
+                                                <div className="absolute inset-0 opacity-20">
+                                                    <div className="absolute top-0 left-0 w-full h-full" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)' }}></div>
+                                                </div>
+                                                <div className="relative">{captchaText}</div>
+                                            </div>
+                                            <button
+                                                className="text-gray-600 hover:text-gray-800 transition-colors p-2 hover:bg-gray-200 rounded-full"
+                                                onClick={generateNewCaptcha}
+                                                title="Generate new captcha"
+                                            >
+                                                <RefreshCw size={18} />
+                                            </button>
+                                        </div>
+                                        <div className="mt-4">
+                                            <label className="text-sm text-gray-700 block mb-1">Enter the code shown above</label>
+                                            <input
+                                                type="text"
+                                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                                                value={captchaInput}
+                                                onChange={(e) => setCaptchaInput(e.target.value)}
+                                                placeholder="Enter captcha"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {walletBalance >= (totalPrice || 0) && (
+                                <button
+                                    className={`w-full mt-4 px-4 py-2 rounded-md ${!captchaInput || captchaInput !== captchaText || isProcessing
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-gray-800 text-white hover:bg-black'
+                                        }`}
+                                    disabled={!captchaInput || captchaInput !== captchaText || isProcessing}
+                                    onClick={handleWalletPayment}
+                                >
+                                    {isProcessing ? (
+                                        <span className="flex items-center justify-center">
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            Processing...
+                                        </span>
+                                    ) : (
+                                        <span>Pay Now (₹{(totalPrice || 0).toFixed(2)})</span>
+                                    )}
+                                </button>
+                            )}
+                        </>
+                    )}
                 </div>
             )}
+
 
             {paymentMethod === 'paypal' && (
                 <div className="border rounded-lg p-5 mb-6 bg-gray-50">

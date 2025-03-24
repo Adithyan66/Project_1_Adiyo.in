@@ -7,27 +7,27 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { CreditCard, ShoppingBag, Truck, CheckCircle } from 'lucide-react';
-
-// Import components
 import AddressSelection from '../../customer/profile/ManageAddresses';
 import OrderSummary from './Summary';
 import Payment from './Payment';
 import OrderConfirmation from './OrderConfirmation';
 import OrderSummarySidebar from './OrderSummarySidebar';
-
-// Import actions from Redux
 import { setCurrentStep, setConfirmationData } from '../../../store/slices/checkoutSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
+
+
 const CheckOut = () => {
+
+
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { currentStep, address, order, payment } = useSelector((state) => state.checkout);
+    const { currentStep, address, order, payment, coupon } = useSelector((state) => state.checkout);
     const [orderResponse, setOrderResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Steps in checkout process
     const steps = [
         { id: 'address', label: 'Shipping Address', icon: Truck },
         { id: 'summary', label: 'Order Summary', icon: ShoppingBag },
@@ -35,7 +35,6 @@ const CheckOut = () => {
         { id: 'confirmation', label: 'Confirmation', icon: CheckCircle }
     ];
 
-    // Calculate order summary for sidebar - Fixed to properly access nested data
     const calculateOrderSummary = () => {
         if (!order?.productDetails) return null;
 
@@ -52,14 +51,13 @@ const CheckOut = () => {
     };
 
     useEffect(() => {
-        // Redirect back to product page if no product is selected
+
         if (!order.productDetails && currentStep !== 'confirmation') {
             toast.error("No product selected for checkout");
             navigate('/');
             return;
         }
 
-        // If user directly accesses confirmation without completing order
         if (currentStep === 'confirmation' && !orderResponse) {
             dispatch(setCurrentStep('address'));
         }
@@ -112,10 +110,11 @@ const CheckOut = () => {
                     quantity: order.quantity,
                 },
                 paymentMethod: paymentMethod,
-                // Include PayPal-specific data if applicable
                 ...(paymentMethod === 'paypal' && {
-                    paypalOrderID: paypalOrderID, // Send PayPal order ID to backend
+                    paypalOrderID: paypalOrderID,
                 }),
+                couponCode: coupon
+
             };
 
             console.log("Sending order data to API:", orderData);

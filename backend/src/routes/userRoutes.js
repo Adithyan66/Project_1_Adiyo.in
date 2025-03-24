@@ -46,7 +46,10 @@ import {
     getWishlist,
     addWishlist,
     removeWishlistItem,
-    validateCoupon
+    validateCoupon,
+    getWalletDetails,
+    getWalletBalance,
+    walletRecharge
 } from
     "../controllers/userController.js"
 
@@ -73,6 +76,7 @@ router.post("/place-orders", authenticateUser, createOrder)
 router.post("/orders/:orderId/return", authenticateUser, returnRequest)
 router.post("/wishlist/add", authenticateUser, addWishlist)
 router.post("/coupons/validate", validateCoupon)
+router.post("/wallet-recharge", authenticateUser, walletRecharge)
 
 
 
@@ -91,7 +95,8 @@ router.get("/orders/:orderId", getOrderById)
 router.get("/new-arrivals", getNewArrivals)
 router.get("/top-selling", getTopSellingProducts)
 router.get("/wishlist", authenticateUser, getWishlist)
-
+router.get("/wallet", authenticateUser, getWalletDetails)
+router.get("/get-wallet-balance", authenticateUser, getWalletBalance)
 
 
 

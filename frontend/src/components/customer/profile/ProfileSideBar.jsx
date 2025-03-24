@@ -54,11 +54,11 @@ const ProfileSideBar = () => {
         dispatch(setActiveSelection(selection));
         navigate(path);
     };
-    console.log("userrrrrrrrrr", user);
+
 
 
     return (
-        <aside className="w-72 bg-white shadow-lg rounded-lg overflow-hidden h-full sticky top-5">
+        <aside className="w-82 bg-white shadow-lg rounded-lg overflow-hidden h-full sticky top-5">
             {/* User Profile Section */}
             <div className="bg-gray-50 p-6 border-b">
                 <div className="flex items-center">

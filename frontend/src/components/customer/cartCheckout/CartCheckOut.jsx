@@ -8,14 +8,12 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { CreditCard, ShoppingBag, Truck, CheckCircle } from 'lucide-react';
 
-// Import components
 import CartOrderSummary from './CartOrderSummery';
 import CartOrderSummarySidebar from './CartOderSummerySidebar';
 import AddressSelection from "../../customer/profile/ManageAddresses";
 import CartPayment from './CartPayment';
 import CartOrderConfirmation from './CartOrderConfirmation';
 
-// Import actions from Redux
 import { setCartCurrentStep, setCartConfirmationData, clearCart } from '../../../store/slices/cartCheckoutSlice';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -23,11 +21,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 const CartCheckOut = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { currentStep, address, order, payment } = useSelector((state) => state.cartCheckout);
+    const { currentStep, address, order, payment, coupon } = useSelector((state) => state.cartCheckout);
     const [orderResponse, setOrderResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Steps in checkout process
     const steps = [
         { id: 'address', label: 'Shipping Address', icon: Truck },
         { id: 'summary', label: 'Order Summary', icon: ShoppingBag },
@@ -35,9 +32,7 @@ const CartCheckOut = () => {
         { id: 'confirmation', label: 'Confirmation', icon: CheckCircle }
     ];
 
-    // Calculate order summary for sidebar - Supporting both single item and cart array
     const calculateOrderSummary = () => {
-        // For an array of items (cart checkout)
         if (Array.isArray(order) && order.length > 0) {
             return {
                 items: order.map(item => ({
@@ -51,7 +46,6 @@ const CartCheckOut = () => {
                 paymentMethod: payment?.method || "Credit Card"
             };
         }
-        // For single item checkout (legacy support)
         else if (order?.productDetails) {
             return {
                 items: [{
@@ -70,14 +64,12 @@ const CartCheckOut = () => {
     };
 
     useEffect(() => {
-        // Redirect back to product page if no product is selected
         if ((Array.isArray(order) && order.length === 0) && currentStep !== 'confirmation') {
             toast.error("No products selected for checkout");
             navigate('/');
             return;
         }
 
-        // If user directly accesses confirmation without completing order
         if (currentStep === 'confirmation' && !orderResponse) {
             dispatch(setCartCurrentStep('address'));
         }
@@ -111,7 +103,6 @@ const CartCheckOut = () => {
             return Promise.reject(new Error("Shipping address required"));
         }
 
-        // Additional validation for PayPal
         if (paymentMethod === 'paypal' && !paypalOrderID) {
             toast.error("PayPal payment not completed. Please try again.");
             return Promise.reject(new Error("PayPal order ID missing"));
@@ -135,10 +126,10 @@ const CartCheckOut = () => {
                 addressId: address[0]._id,
                 productDetails: productDetailsArray,
                 paymentMethod: paymentMethod,
-                // Include PayPal-specific data if applicable
                 ...(paymentMethod === 'paypal' && {
-                    paypalOrderID: paypalOrderID, // Send PayPal order ID to backend
+                    paypalOrderID: paypalOrderID,
                 }),
+                couponCode: coupon
             };
 
             console.log("Sending order data to API:", orderData);
@@ -155,7 +146,6 @@ const CartCheckOut = () => {
                 setOrderResponse(response.data.order);
                 dispatch(setCartConfirmationData(response.data.order));
 
-                // Clear cart after successful order
                 await axios.delete(
                     `${API_BASE_URL}/user/cart`,
                     { withCredentials: true }

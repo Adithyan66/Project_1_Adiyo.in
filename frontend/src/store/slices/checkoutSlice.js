@@ -16,6 +16,7 @@ const initialState = {
         status: 'idle'
     },
     totalPrice: 0,
+    coupon: null,
     confirmationData: null
 };
 
@@ -74,10 +75,13 @@ const checkoutSlice = createSlice({
         },
         setTotalPrice: (state, action) => {
             state.totalPrice = action.payload
+        },
+        setCoupon: (state, action) => {
+            state.coupon = action.payload
         }
     }
 });
 
-export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity, setConfirmationData, setTotalPrice } = checkoutSlice.actions;
+export const { setCurrentStep, setSelectedAddress, setProduct, updateQuantity, setConfirmationData, setTotalPrice, setCoupon } = checkoutSlice.actions;
 
 export default checkoutSlice.reducer;

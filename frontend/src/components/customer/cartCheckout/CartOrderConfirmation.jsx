@@ -137,7 +137,7 @@ const CartOrderConfirmation = () => {
         }
 
         if (couponCode) {
-            doc.text(`Coupon Applied:`, 140, startY + 20);
+            doc.text(`Coupon Applied:`, 130, startY + 20);
             doc.text(`${couponCode}`, 170, startY + 20, { align: 'right' });
         }
 

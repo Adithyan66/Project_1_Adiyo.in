@@ -10,6 +10,7 @@ const initialState = {
         status: 'idle'
     },
     totalPrice: 0,
+    coupon: null,
     confirmationData: null
 };
 
@@ -85,6 +86,9 @@ const cartCheckoutSlice = createSlice({
         },
         setTotalPrice: (state, action) => {
             state.totalPrice = action.payload
+        },
+        setCoupon: (state, action) => {
+            state.coupon = action.payload
         }
     }
 });
@@ -98,7 +102,8 @@ export const {
     removeProduct,
     setCartConfirmationData,
     clearCart,
-    setTotalPrice
+    setTotalPrice,
+    setCoupon
 } = cartCheckoutSlice.actions;
 
 export default cartCheckoutSlice.reducer;

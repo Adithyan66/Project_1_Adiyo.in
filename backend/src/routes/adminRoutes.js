@@ -21,7 +21,12 @@ import {
     getOrders,
     updateOrderStatus,
     getOrderDetails,
-    verifyReturn
+    verifyReturn,
+    productNames,
+    createProductOffer,
+    getAllProductOffers,
+    createCategoryOffer,
+    getAllCategoryOffers
 } from "../controllers/adminController.js"
 
 
@@ -34,6 +39,9 @@ router.get("/coupons", getCoupons)
 router.get("/categories", getCategories)
 router.get("/orders", getOrders)
 router.get("/orders/:orderId", getOrderDetails)
+router.get("/product-names", productNames)
+router.get("/product-offers", getAllProductOffers)
+router.get("/category-offers", getAllCategoryOffers)
 
 
 
@@ -41,6 +49,8 @@ router.post("/add-coupon", addCoupon)
 router.post("/add-category", addCategory)
 router.post("/:categoryId/add-subcategories", addSubCategories)
 router.post("/orders/:orderId/return-verification", verifyReturn)
+router.post("/create-product-offer", createProductOffer)
+router.post("/create-category-offer", createCategoryOffer)
 
 
 

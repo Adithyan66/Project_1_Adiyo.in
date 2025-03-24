@@ -38,6 +38,8 @@ import CartCheckOutPage from "./pages/customer/CartCheckOutPage"
 import ManageOrdersPage from './pages/admin/ManageOrdersPage';
 import AdminOrderDetailsPage from "./pages/admin/AdminOrderDetailsPage"
 import WishlistPage from './pages/customer/WishlistPage';
+import WalletPage from './pages/customer/WalletPage';
+import OffersPage from './pages/admin/OffersPage';
 
 
 function App() {
@@ -109,6 +111,7 @@ function App() {
 
         <Route path="/user/wishlist" element={<WishlistPage />} />
 
+        <Route path="/user/wallet" element={<WalletPage />} />
 
 
 
@@ -137,6 +140,7 @@ function App() {
 
         <Route path="/admin/order-details/:orderId" element={<AdminOrderDetailsPage />} />
 
+        <Route path="/admin/manage-offers" element={<OffersPage />} />
 
 
 

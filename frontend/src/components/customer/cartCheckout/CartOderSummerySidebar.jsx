@@ -187,7 +187,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Truck, Shield, CreditCard, CheckCircle, XCircle } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-import { setTotalPrice } from '../../../store/slices/cartCheckoutSlice';
+import { setTotalPrice, setCoupon } from '../../../store/slices/cartCheckoutSlice';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -244,7 +244,8 @@ const CartOrderSummarySidebar = ({ orderDetails }) => {
     // Update total price in Redux store
     useEffect(() => {
         dispatch(setTotalPrice(total));
-    }, [total, dispatch]);
+        dispatch(setCoupon(couponCode))
+    }, [total, dispatch, couponCode]);
 
     // Calculate selectedVariant for single item stock display
     let selectedVariant = null;

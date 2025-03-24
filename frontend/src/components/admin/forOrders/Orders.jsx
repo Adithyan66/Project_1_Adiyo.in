@@ -244,6 +244,8 @@ const Orders = () => {
         </div>;
     }
 
+    console.log("orders", orders);
+
     return (
         <div className="p-4 md:p-6 bg-gray-50 w-full min-h-[800px]">
             {/* Header */}
@@ -370,7 +372,7 @@ const Orders = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(order.status)}`}>
-                                            {order.status || "pending"}
+                                            {order?.orderStatus}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
