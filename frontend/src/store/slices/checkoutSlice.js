@@ -28,8 +28,8 @@ const getSizeKey = (size) => {
         case 'm': return 'medium';
         case 'large': return 'large';
         case 'l': return 'large';
-        case 'extra large': return 'extraLarge';
-        case 'xl': return 'extraLarge';
+        case 'extra large': return 'extralarge';
+        case 'xl': return 'extralarge';
         default: return size.toLowerCase();
     }
 };

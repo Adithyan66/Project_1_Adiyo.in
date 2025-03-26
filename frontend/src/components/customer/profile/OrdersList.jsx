@@ -128,7 +128,7 @@ const OrdersList = () => {
                 <div className="divide-y divide-gray-200">
                     {filteredOrders.map(order => (
                         <div
-                            key={order.orderNumber}
+                            key={order.orderId}
                             className="p-6 hover:bg-gray-50 cursor-pointer transition-all duration-200"
                             onClick={() => navigate(`/user/orders/${order._id}`)}
                         >
@@ -136,7 +136,7 @@ const OrdersList = () => {
                                 <div className="mb-4 md:mb-0">
                                     <div className="flex items-center mb-2">
                                         <FileText size={16} className="mr-2 text-gray-700" />
-                                        <span className="font-semibold text-gray-900">Order #{order.orderNumber}</span>
+                                        <span className="font-semibold text-gray-900">Order #{order.orderId}</span>
                                     </div>
                                     <div className="text-sm text-gray-600">
                                         Placed on {new Date(order.createdAt).toLocaleDateString()}

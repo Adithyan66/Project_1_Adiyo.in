@@ -31,10 +31,15 @@ const Cart = () => {
     };
 
     const updateQuantity = async (itemId, change) => {
+
         try {
             const item = cartItems.find(item => item._id === itemId);
             const newQuantity = Math.max(1, item.quantity + change);
+            console.log(change);
 
+            if (item.quantity >= 3 && change > 0) {
+                return toast.error("maximum quantity is 3 in cart")
+            }
             await axios.patch(`${API_BASE_URL}/user/cart-items/${itemId}`, {
                 newQuantity
             }, {

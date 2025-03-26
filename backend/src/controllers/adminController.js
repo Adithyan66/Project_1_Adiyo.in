@@ -968,7 +968,7 @@ export const createProductOffer = async (req, res) => {
 export const getAllProductOffers = async (req, res) => {
     try {
         // Fetch all product offers and populate the products field with product names
-        const productOffers = await ProductOffer.find()
+        const productOffers = await ProductOffer.find().populate("products", "name")
 
         res.status(200).json({
             success: true,
@@ -1032,7 +1032,7 @@ export const createCategoryOffer = async (req, res) => {
 export const getAllCategoryOffers = async (req, res) => {
     try {
         // Fetch all product offers and populate the products field with product names
-        const categoryOffers = await CategoryOffer.find()
+        const categoryOffers = await CategoryOffer.find().populate("category", "name")
 
         res.status(200).json({
             success: true,
@@ -1048,3 +1048,188 @@ export const getAllCategoryOffers = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+export const createReferalOffer = async (req, res) => {
+
+    try {
+        const { name, rewardAmount, rewardType, method, minPurchase, validity } = req.body;
+
+        // Create new offer instance
+        const newOffer = new ReferralOffer({
+            name,
+            rewardAmount,
+            rewardType,
+            method,
+            minPurchase,
+            validity
+        });
+
+        const savedOffer = await newOffer.save();
+        res.status(201).json({ success: true, data: savedOffer });
+    } catch (error) {
+        console.error('Error creating referral offer:', error);
+        res.status(500).json({ success: false, message: 'Server error while creating offer.' });
+    }
+}
+
+
+
+export const getReferalOffers = async (req, res) => {
+    try {
+        const offers = await ReferralOffer.find({});
+        res.status(200).json({ success: true, offers });
+    } catch (error) {
+        console.error("Error fetching referral offers:", error);
+        res.status(500).json({ success: false, message: "Server error while fetching offers." });
+    }
+}
+
+
+export const editReferalOffer = async (req, res) => {
+
+    try {
+        const offerId = req.params.id;
+        const { name, rewardAmount, rewardType, method, minPurchase, validity } = req.body;
+
+        const updatedOffer = await ReferralOffer.findByIdAndUpdate(
+            offerId,
+            { name, rewardAmount, rewardType, method, minPurchase, validity },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedOffer) {
+            return res.status(404).json({ success: false, message: 'Referral offer not found.' });
+        }
+
+        res.status(200).json({ success: true, data: updatedOffer });
+    } catch (error) {
+        console.error('Error updating referral offer:', error);
+        res.status(500).json({ success: false, message: 'Server error while updating offer.' });
+    }
+}
+
+
+
+
+
+
+
+export const salesReport = async (req, res) => {
+
+    console.log("workeddd");
+
+
+    try {
+        // Retrieve query parameters for filtering, sorting, and pagination
+        const {
+            searchTerm,
+            dateRange,       // Options: all, today, last7days, thisMonth, custom
+            customStartDate, // used when dateRange === 'custom'
+            customEndDate,   // used when dateRange === 'custom'
+            page = 1,
+            pageSize = 10,
+            sortBy = 'createdAt', // default sort field (you can allow others like totalAmount)
+            sortOrder = 'desc'
+        } = req.query;
+
+        // Build filter object based on provided parameters
+        let filters = {};
+
+        // For a search term, you might want to search in order status or totalAmount.
+        // Note: orderNumber is a virtual field and cannot be directly queried.
+        if (searchTerm) {
+            filters.$or = [
+                { orderStatus: { $regex: searchTerm, $options: 'i' } },
+                { totalAmount: Number(searchTerm) || 0 },
+                { orderId: { $regex: searchTerm, $options: 'i' } }
+            ];
+        }
+
+        // Filter by date range using the createdAt field
+        const now = new Date();
+        if (dateRange === 'today') {
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const end = new Date(start);
+            end.setDate(end.getDate() + 1);
+            filters.createdAt = { $gte: start, $lt: end };
+        } else if (dateRange === 'last7days') {
+            const start = new Date();
+            start.setDate(now.getDate() - 6); // last 7 days (including today)
+            filters.createdAt = { $gte: start, $lte: now };
+        } else if (dateRange === 'thisMonth') {
+            const start = new Date(now.getFullYear(), now.getMonth(), 1);
+            const end = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            filters.createdAt = { $gte: start, $lt: end };
+        } else if (dateRange === 'custom' && customStartDate && customEndDate) {
+            const start = new Date(customStartDate);
+            const end = new Date(customEndDate);
+            filters.createdAt = { $gte: start, $lte: end };
+        }
+        // For 'all', no date filter is applied
+
+        // Set up sort options based on provided sort field and order.
+        // You can extend this logic to allow sorting on additional fields.
+        let sortOptions = {};
+        if (sortBy === 'totalAmount' || sortBy === 'discount') {
+            sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
+        } else if (sortBy === 'createdAt') {
+            sortOptions.createdAt = sortOrder === 'asc' ? 1 : -1;
+        } else {
+            sortOptions.createdAt = -1; // default fallback
+        }
+
+        // Count the total number of documents that match the filters (for pagination)
+        const totalCount = await Order.countDocuments(filters);
+
+        // Build an aggregation pipeline to return both summary info and paginated data
+        const pipeline = [
+            { $match: filters },
+            {
+                $facet: {
+                    summary: [
+                        {
+                            $group: {
+                                _id: null,
+                                totalSales: { $sum: '$totalAmount' },
+                                overallDiscount: { $sum: '$discount' },
+                                totalOrders: { $sum: 1 }
+                            }
+                        }
+                    ],
+                    data: [
+                        { $sort: sortOptions },
+                        { $skip: (Number(page) - 1) * Number(pageSize) },
+                        { $limit: Number(pageSize) }
+                    ]
+                }
+            }
+        ];
+
+        const result = await Order.aggregate(pipeline);
+        const summary = result[0].summary[0] || {
+            totalSales: 0,
+            overallDiscount: 0,
+            totalOrders: 0
+        };
+        const data = result[0].data;
+
+        // Send the report response in a format that the frontend can easily use
+        res.json({
+            summary,
+            data,
+            pagination: {
+                totalItems: totalCount,
+                totalPages: Math.ceil(totalCount / Number(pageSize)),
+                currentPage: Number(page),
+                pageSize: Number(pageSize)
+            }
+        });
+    } catch (error) {
+        console.error('Error generating sales report:', error);
+        res.status(500).json({ error: 'Failed to generate sales report.' });
+    }
+}

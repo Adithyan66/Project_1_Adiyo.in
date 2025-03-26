@@ -27,7 +27,7 @@ function CartOrderSummary() {
                 return 'large';
             case 'extra large':
             case 'xl':
-                return 'extraLarge';
+                return 'extralarge';
             default:
                 return size.toLowerCase();
         }

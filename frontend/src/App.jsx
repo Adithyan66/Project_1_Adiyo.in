@@ -40,6 +40,8 @@ import AdminOrderDetailsPage from "./pages/admin/AdminOrderDetailsPage"
 import WishlistPage from './pages/customer/WishlistPage';
 import WalletPage from './pages/customer/WalletPage';
 import OffersPage from './pages/admin/OffersPage';
+import SalesReportPage from './pages/admin/SalesReportPage';
+import SalesDetailsPage from './pages/admin/SalesDetailsPage';
 
 
 function App() {
@@ -138,9 +140,22 @@ function App() {
 
         <Route path="/admin/orders" element={<AdminProtected><ManageOrdersPage /></AdminProtected>} />
 
-        <Route path="/admin/order-details/:orderId" element={<AdminOrderDetailsPage />} />
+        <Route path="/admin/order-details/:orderId" element={<AdminProtected><AdminOrderDetailsPage /></AdminProtected>} />
 
-        <Route path="/admin/manage-offers" element={<OffersPage />} />
+        <Route path="/admin/manage-offers" element={<AdminProtected> <OffersPage /></AdminProtected>} />
+
+        <Route path="/admin/sales-report" element={<AdminProtected><SalesReportPage /></AdminProtected>} />
+
+        <Route path="/admin/sales-details/:id" element={<AdminProtected><SalesDetailsPage /></AdminProtected>} />
+
+
+
+
+
+
+
+
+
 
 
 

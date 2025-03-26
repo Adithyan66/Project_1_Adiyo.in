@@ -280,7 +280,7 @@ const OrderDetails = () => {
                         <h3 className="text-lg font-medium mb-2">Payment Information</h3>
                         <div className="bg-gray-50 p-4 rounded-md border border-gray-100">
                             <p className="mb-1"><span className="font-medium">Payment Method:</span> {order.paymentMethod || "Not specified"}</p>
-                            <p className="mb-1"><span className="font-medium">Payment ID:</span> {order.paymentId || "Not available"}</p>
+                            <p className="mb-1"><span className="font-medium">Payment ID:</span> {order.paymentDetails.transactionId || "Not available"}</p>
                             <p><span className="font-medium">Payment Status:</span> {order.paymentStatus || "Not available"}</p>
                         </div>
                     </div>

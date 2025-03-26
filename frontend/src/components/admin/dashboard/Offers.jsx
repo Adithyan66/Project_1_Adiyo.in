@@ -464,6 +464,7 @@ const ManageOffers = () => {
 
         return `${name} + ${products.length - 1} more`;
     };
+    console.log(categoryOffers, "product");
 
     return (
         <div className="bg-white rounded-lg shadow-md p-6 w-full">
@@ -541,8 +542,9 @@ const ManageOffers = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                             {productOffers.map((offer) => (
+
                                 <tr key={offer._id} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.discount}%</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {renderProductNames(offer.products)}
@@ -600,7 +602,7 @@ const ManageOffers = () => {
                                 <tr key={offer._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.discount}%</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{offer.category}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{renderProductNames(offer.category)}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {new Date(offer.startDate).toLocaleDateString()} to {new Date(offer.endDate).toLocaleDateString()}
                                     </td>
@@ -655,7 +657,7 @@ const ManageOffers = () => {
                                 <tr key={offer._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {offer.rewardAmount}{offer.rewardType === 'percentage' ? '%' : ' points'}
+                                        {offer.rewardAmount}{offer.rewardType === 'percentage' ? '%' : 'fixed'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {offer.method === 'token' ? 'Referral Code' : 'Email Invite'}
@@ -910,7 +912,7 @@ const ManageOffers = () => {
                                                     required
                                                 >
                                                     <option value="percentage">Percentage (%)</option>
-                                                    <option value="points">Points</option>
+                                                    <option value="fixed">fixed</option>
                                                 </select>
                                             </div>
                                         </div>

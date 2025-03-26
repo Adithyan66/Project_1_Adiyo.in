@@ -26,7 +26,11 @@ import {
     createProductOffer,
     getAllProductOffers,
     createCategoryOffer,
-    getAllCategoryOffers
+    getAllCategoryOffers,
+    createReferalOffer,
+    editReferalOffer,
+    getReferalOffers,
+    salesReport
 } from "../controllers/adminController.js"
 
 
@@ -42,6 +46,10 @@ router.get("/orders/:orderId", getOrderDetails)
 router.get("/product-names", productNames)
 router.get("/product-offers", getAllProductOffers)
 router.get("/category-offers", getAllCategoryOffers)
+router.get("/referral-offers", getReferalOffers)
+router.get("/sales-report", salesReport)
+
+
 
 
 
@@ -51,11 +59,13 @@ router.post("/:categoryId/add-subcategories", addSubCategories)
 router.post("/orders/:orderId/return-verification", verifyReturn)
 router.post("/create-product-offer", createProductOffer)
 router.post("/create-category-offer", createCategoryOffer)
+router.post("/create-referral-offer", createReferalOffer)
 
 
 
 
 router.put("/categories/:categoryId/subcategories/:subcategoryId", editSubcategoryName)
+router.put("/referral-offer/:id", editReferalOffer)
 
 
 router.patch("/block-user/:id", blockUser)

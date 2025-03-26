@@ -49,7 +49,8 @@ import {
     validateCoupon,
     getWalletDetails,
     getWalletBalance,
-    walletRecharge
+    walletRecharge,
+    checkOffer
 } from
     "../controllers/userController.js"
 
@@ -66,7 +67,7 @@ router.post("/validate-otp", validateOTP)
 router.post("/reset-password", resetPassword)
 router.post("/google-login", googleLogin)
 router.post("/logout", logout)
-router.post("/:productId/addreviews", addReview)
+router.post("/:productId/addreviews", authenticateUser, addReview)
 router.post("/:id/change-email/otp-request", changeEmailOtp)
 router.post("/:id/change-emailid", changeEmail)
 router.post("/update-profile", authenticateUser, upload.single('file'), updateProfile)
@@ -97,6 +98,7 @@ router.get("/top-selling", getTopSellingProducts)
 router.get("/wishlist", authenticateUser, getWishlist)
 router.get("/wallet", authenticateUser, getWalletDetails)
 router.get("/get-wallet-balance", authenticateUser, getWalletBalance)
+router.get("/offers/product/:productId", checkOffer)
 
 
 
