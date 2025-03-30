@@ -1,132 +1,3 @@
-// import React from 'react'
-
-// import ProductCard from "../ProductCard"
-
-// import newArrivals from "../../../assets/images/NEW ARRIVALS.svg"
-// import topSelling from "../../../assets/images/TOP SELLING.svg"
-
-
-
-// function LandingProducts() {
-
-
-
-
-//     const productImages = [
-//         "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/wyndtj959emxshw7v7f7.avif",
-//         "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zcm0mapzcbbh5pn0kg0j.avif",
-//         "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/ia47nr7wyrsfaafx4vya.avif",
-//         "https://res.cloudinary.com/dry8cpqvg/image/upload/v1740948329/Adiyo/productsImages/zupfkd9wwjcfz7vp8wxn.avif",
-//     ]
-
-//     return (
-//         <div className="bg-gray-50 min-h-screen py-8">
-//             {/* NEW ARRIVALS Section */}
-//             <section className="max-w-6xl mx-auto mb-12 px-4">
-
-//                 <img
-//                     src={newArrivals}
-//                     alt="New Arrivals"
-//                     className="block mx-auto mb-6 mt-20 mb-15"
-//                 />
-
-//                 {/* Grid of 4 products */}
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-//                     <ProductCard
-//                         image={productImages[0]}
-//                         title="T-shirt with Tape Details"
-//                         price={120}
-//                         oldPrice={150}
-//                         rating={4}
-//                     />
-//                     <ProductCard
-//                         image={productImages[1]}
-//                         title="Skinny Fit Jeans"
-//                         price={240}
-//                         oldPrice={150}
-//                         rating={5}
-//                     />
-//                     <ProductCard
-//                         image={productImages[2]}
-//                         title="Checkered Shirt"
-//                         price={180}
-//                         oldPrice={150}
-//                         rating={4}
-//                     />
-//                     <ProductCard
-//                         image={productImages[3]}
-//                         title="Sleeve Striped T-shirt"
-//                         price={130}
-//                         oldPrice={150}
-
-
-//                         rating={3}
-//                     />
-//                 </div>
-//                 {/* View All button */}
-//                 <div className="flex justify-center mt-6">
-
-//                     <button className="w-[200px] px-6 py-2 border border-gray-300 text-black font-medium hover:bg-black hover:text-white transition-colors rounded-full mt-10">
-//                         View All
-//                     </button>
-
-//                 </div>
-//             </section>
-
-//             <hr className="my-8 border-gray-300 w-[80%] mx-auto" />
-//             {/* top selling Section */}
-//             <section className="max-w-6xl mx-auto mb-12 px-4">
-//                 <img
-//                     src={topSelling}
-//                     alt="New Arrivals"
-//                     className="block mx-auto mb-6 mt-20 mb-15"
-//                 />
-
-//                 {/* Grid of 4 products */}
-//                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-//                     <ProductCard
-//                         image={productImages[0]}
-//                         title="Vertical Striped Shirt"
-//                         price={212}
-//                         oldPrice={232}
-//                         rating={5}
-//                     />
-//                     <ProductCard
-//                         image={productImages[1]}
-//                         title="Courage Graphic T-shirt"
-//                         price={145}
-//                         oldPrice={150}
-//                         rating={4}
-//                     />
-//                     <ProductCard
-//                         image={productImages[2]}
-//                         title="Loose Fit Bermuda Shorts"
-//                         price={80}
-//                         oldPrice={150}
-//                         rating={3}
-//                     />
-//                     <ProductCard
-//                         image={productImages[3]}
-//                         title="Faded Skinny Jeans"
-//                         price={210}
-//                         oldPrice={150}
-//                         rating={4}
-//                     />
-//                 </div>
-//                 {/* View All button */}
-//                 <div className="flex justify-center mt-6">
-//                     <button className="w-[200px] px-6 py-2 border border-gray-300 text-black font-medium hover:bg-black hover:text-white transition-colors rounded-full mt-10">
-//                         View All
-//                     </button>
-//                 </div>
-//             </section>
-//         </div>
-//     )
-// }
-
-// export default LandingProducts
-
-
 
 
 import React, { useState, useEffect } from 'react';
@@ -135,8 +6,8 @@ import newArrivals from "../../../assets/images/NEW ARRIVALS.svg";
 import topSelling from "../../../assets/images/TOP SELLING.svg";
 import axios from 'axios';
 import LandingProductCard from '../LandingProductCard';
-
-
+import { newArrivals as newArrivalsService } from '../../../services/productService';
+import { topSelling as topSellingService } from '../../../services/productService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -165,8 +36,8 @@ function LandingProducts() {
 
         try {
 
-            const response = await axios.get(`${API_BASE_URL}/user/new-arrivals?page=${page}&limit=${PRODUCTS_PER_PAGE}`)
-
+            //const response = await axios.get(`${API_BASE_URL}/user/new-arrivals?page=${page}&limit=${PRODUCTS_PER_PAGE}`)
+            const response = await newArrivalsService(page, PRODUCTS_PER_PAGE);
 
             const data = response.data
 
@@ -190,8 +61,9 @@ function LandingProducts() {
 
     const fetchTopSelling = async (page) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/top-selling?page=${page}&limit=${PRODUCTS_PER_PAGE}`);
+            //const response = await axios.get(`${API_BASE_URL}/user/top-selling?page=${page}&limit=${PRODUCTS_PER_PAGE}`);
 
+            const response = await topSellingService(page, PRODUCTS_PER_PAGE);
             const data = response.data
 
             if (data.products.length < PRODUCTS_PER_PAGE) {

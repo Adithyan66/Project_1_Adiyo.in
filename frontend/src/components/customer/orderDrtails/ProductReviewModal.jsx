@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { addReview } from '../../../services/reviewService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -26,13 +27,17 @@ const ProductReviewModal = ({ productId, onClose, onReviewSubmit }) => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.post(`${API_BASE_URL}/user/${productId}/addreviews`, {
-                rating,
-                comment
-            }, { withCredentials: true });
+            // const response = await axios.post(`${API_BASE_URL}/user/${productId}/addreviews`, {
+            //     rating,
+            //     comment
+            // }, { withCredentials: true });
+
+            const response = await addReview(productId, rating, comment);
 
             toast.success('Review submitted successfully');
+
             onReviewSubmit(response.data.review);
+
             onClose();
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to submit review');

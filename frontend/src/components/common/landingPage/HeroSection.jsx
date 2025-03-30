@@ -17,10 +17,6 @@ function HeroSection() {
 
 
 
-
-
-
-
   return (
     <section
       className="relative w-full min-h-screen bg-center bg-no-repeat bg-cover flex items-center justify-start"

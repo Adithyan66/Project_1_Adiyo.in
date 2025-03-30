@@ -1,5 +1,6 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
+import { getReviewbyProductId } from '../../services/reviewService';
 
 const ProductPage = ({ product }) => {
 
@@ -66,7 +67,7 @@ const ProductPage = ({ product }) => {
     );
 };
 
-/* ------------------ Product Details Tab ------------------ */
+
 const ProductDetails = ({ product }) => {
 
     const {
@@ -122,7 +123,8 @@ const RatingAndReviews = ({ product }) => {
 
         const fetchReview = async () => {
 
-            const response = await axios.get(`http://localhost:3333/user/${_id}/reviews`)
+            const response = await getReviewbyProductId(_id);
+            //const response = await axios.get(`http://localhost:3333/user/${_id}/reviews`)
 
             setReviews(response.data.reviews)
 

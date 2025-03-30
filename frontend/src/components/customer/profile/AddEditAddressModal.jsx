@@ -6,6 +6,7 @@ import React, { useState, useEffect } from 'react';
 import { X, MapPin, Home, Briefcase, ShoppingBag } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { createAddress, updateAddress } from '../../../services/profileService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -102,20 +103,24 @@ const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
 
                 if (isEditMode) {
                     // Update existing address
-                    response = await axios.put(`${API_BASE_URL}/user/update-address`, { formData }, {
-                        withCredentials: true,
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    });
+                    // response = await axios.put(`${API_BASE_URL}/user/update-address`, { formData }, {
+                    //     withCredentials: true,
+                    //     headers: {
+                    //         "Content-Type": "application/json"
+                    //     }
+                    // });
+
+                    response = await updateAddress({ formData });
                 } else {
                     // Create new address
-                    response = await axios.post(`${API_BASE_URL}/user/save-address`, { formData }, {
-                        withCredentials: true,
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    });
+                    // response = await axios.post(`${API_BASE_URL}/user/save-address`, { formData }, {
+                    //     withCredentials: true,
+                    //     headers: {
+                    //         "Content-Type": "application/json"
+                    //     }
+                    // });
+
+                    response = await createAddress({ formData });
                 }
 
                 if (response.data.success) {

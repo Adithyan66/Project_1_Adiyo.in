@@ -1,6 +1,7 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { breadCrumbCategoryName } from "../../../services/categoryService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -15,7 +16,9 @@ function Breadcrumbs({ product }) {
 
         const fetchCategoryName = async () => {
 
-            const response = await axios.get(`${API_BASE_URL}/user/category-name/${product.category}/${product.subCategory}`)
+            //const response = await axios.get(`${API_BASE_URL}/user/category-name/${product.category}/${product.subCategory}`)
+
+            const response = await breadCrumbCategoryName(product.category, product.subCategory)
 
             setCategory(response.data.category)
             setSubCategory(response.data.subCategory)

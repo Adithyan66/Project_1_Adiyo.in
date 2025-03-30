@@ -11,7 +11,7 @@ import AddProduct from './products/AddProduct';
 import EditProduct from './products/EditProduct';
 import { Dashboard } from '../../icons/icons';
 import Products from './products/Products';
-
+import { logout as logoutService } from '../../services/authService';
 
 
 
@@ -24,10 +24,11 @@ const SellerPanel = () => {
 
     const handleLogout = async () => {
         try {
-            const response = await axios.post(
-                "http://localhost:3333/user/logout",
-                {},
-                { withCredentials: true })
+            // const response = await axios.post(
+            //     "http://localhost:3333/user/logout",
+            //     {},
+            //     { withCredentials: true })
+            logoutService()
 
             dispatch(logout())
 

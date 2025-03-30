@@ -3,6 +3,7 @@
 import React, { useState, useRef } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { validateOtp } from "../../../services/authService";
 
 function OtpVerification({ email, onVerified, setResetToken }) {
 
@@ -47,11 +48,15 @@ function OtpVerification({ email, onVerified, setResetToken }) {
         setLoading(true);
 
         try {
-            console.log("emai -", email, "otp -", enteredOtp)
-            const response = await axios.post("http://localhost:3333/user/validate-otp", {
+
+            const response = await validateOtp({
                 email,
                 otp: enteredOtp,
             });
+            // const response = await axios.post("http://localhost:3333/user/validate-otp", {
+            //     email,
+            //     otp: enteredOtp,
+            // });
 
             if (response.data.success) {
 

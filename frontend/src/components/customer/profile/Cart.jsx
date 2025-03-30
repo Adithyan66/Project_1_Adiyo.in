@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 import { addProducts, setCartCurrentStep, clearCart } from '../../../store/slices/cartCheckoutSlice';
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
+import { deleteCartItem, getCartItems, updateQuantity as updateQuantityService } from '../../../services/cartService';
 
 
 
@@ -40,11 +41,12 @@ const Cart = () => {
             if (item.quantity >= 3 && change > 0) {
                 return toast.error("maximum quantity is 3 in cart")
             }
-            await axios.patch(`${API_BASE_URL}/user/cart-items/${itemId}`, {
-                newQuantity
-            }, {
-                withCredentials: true
-            });
+            // await axios.patch(`${API_BASE_URL}/user/cart-items/${itemId}`, {
+            //     newQuantity
+            // }, {
+            //     withCredentials: true
+            // });
+            await updateQuantityService(itemId, newQuantity);
 
             fetchCartItems()
 
@@ -56,9 +58,11 @@ const Cart = () => {
 
     const removeItem = async (itemId) => {
         try {
-            await axios.delete(`${API_BASE_URL}/user/cart-items/${itemId}`, {
-                withCredentials: true
-            });
+            // await axios.delete(`${API_BASE_URL}/user/cart-items/${itemId}`, {
+            //     withCredentials: true
+            // });
+
+            await deleteCartItem(itemId);
 
             fetchCartItems()
 
@@ -71,11 +75,13 @@ const Cart = () => {
     const fetchCartItems = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/cart-items`, {
-                withCredentials: true
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/cart-items`, {
+            //     withCredentials: true
+            // });
+            const response = await getCartItems();
 
             setCartItems(response.data.items || []);
+
         } catch (error) {
             console.error("Error fetching cart items:", error);
             setError("Failed to load cart items");

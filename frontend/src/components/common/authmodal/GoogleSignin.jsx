@@ -27,14 +27,13 @@ function GoogleSignIn() {
             .post(
                 'http://localhost:3333/user/google-login',
                 { token: response.credential },
-                { withCredentials: true }  // Ensures any cookie sent is stored
+                { withCredentials: true }
             )
             .then((res) => {
-                // Dispatch user details. If you're using an HTTP-only cookie for authentication,
-                // you might not need to store the token in Redux.
+
                 dispatch(loginSuccess({
                     user: res.data.user,
-                    token: res.data.token, // Consider omitting this if token is HTTP-only
+                    token: res.data.token,
                     role: res.data.role
                 }));
                 toast.success(res.data.message);

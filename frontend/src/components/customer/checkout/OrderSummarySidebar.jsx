@@ -9,6 +9,7 @@ import { useDispatch } from 'react-redux';
 import { setTotalPrice, setCoupon } from "../../../store/slices/checkoutSlice";
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { validateCoupon } from '../../../services/couponService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -104,11 +105,13 @@ const OrderSummarySidebar = ({ orderDetails }) => {
         setIsValidating(true);
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/user/coupons/validate`, {
-                code: couponCode,
-                orderTotal: subtotal,
-                productCategories: [productCategory],
-            });
+            // const response = await axios.post(`${API_BASE_URL}/user/coupons/validate`, {
+            //     code: couponCode,
+            //     orderTotal: subtotal,
+            //     productCategories: [productCategory],
+            // });
+
+            const response = await validateCoupon(couponCode, subtotal, [productCategory]);
 
             if (response.data.success) {
                 setCouponMessage("Coupon applied successfully!");

@@ -12,6 +12,7 @@ import LoginForm from "../authmodal/LoginForm";
 import Forgot from "../authmodal/Forgot";
 
 import { logout } from "../../../store/slices/userSlice.js"
+import { logout as logoutService } from "../../../services/authService.js"
 
 import {
   ProfileIcon,
@@ -48,10 +49,11 @@ function UserPopupMenu({ popupRef }) {
 
   const handleLogout = async () => {
     try {
-      const response = await axios.post(
-        "http://localhost:3333/user/logout",
-        {},
-        { withCredentials: true })
+      const response = await logoutService()
+      // const response = await axios.post(
+      //   "http://localhost:3333/user/logout",
+      //   {},
+      //   { withCredentials: true })
 
       console.log(response.data)
 

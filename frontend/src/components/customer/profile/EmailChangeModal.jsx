@@ -2,6 +2,7 @@ import axios from 'axios';
 import React, { useState } from 'react';
 
 import { toast } from 'react-toastify';
+import { changeEmail, changeEmailOTP } from '../../../services/profileService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -32,11 +33,12 @@ const EmailChangeModal = ({ user, setEmailModal, fetchProfileData }) => {
         }
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/user/${user._id}/change-email/otp-request`,
-                {
-                    password,
-                    newEmail
-                })
+            // const response = await axios.post(`${API_BASE_URL}/user/${user._id}/change-email/otp-request`,
+            //     {
+            //         password,
+            //         newEmail
+            //     })
+            const response = await changeEmailOTP(user._id, password, newEmail)
 
             if (response.data.success) {
                 toast.success(response.data.message)
@@ -58,7 +60,9 @@ const EmailChangeModal = ({ user, setEmailModal, fetchProfileData }) => {
         }
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/user/${user._id}/change-emailid`, { otp, newEmail })
+            //const response = await axios.post(`${API_BASE_URL}/user/${user._id}/change-emailid`, { otp, newEmail })
+            const response = await changeEmail(user._id, otp, newEmail)
+
             if (response.data.success) {
                 toast.success(response.data.message)
                 setError('');

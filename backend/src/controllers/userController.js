@@ -8,11 +8,11 @@ import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
 
 
-import { verifyPayPalOrder, capturePayPalPayment } from "../services/paypal.js"
+import { verifyPayPalOrder, capturePayPalPayment } from "../services/paypal.js";
 
 
 import { OAuth2Client } from 'google-auth-library';
-import { generateUniqueUserId } from "../services/generateUniqueUserId.js"
+import { generateUniqueUserId } from "../services/generateUniqueUserId.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 import cloudinary from "../config/cloudinary.js";
@@ -99,6 +99,8 @@ export const signUp = async (req, res) => {
 
 export const login = async (req, res) => {
 
+    console.log("Login request body:", req.body);
+
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -115,15 +117,14 @@ export const login = async (req, res) => {
             return res.status(400).json({ success: false, message: "User is blocked" });
         }
 
+
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log("hiiii");
         if (!isMatch) {
             return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
 
-
         const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
-
-
 
         res.cookie("session", token, {
             httpOnly: true,
@@ -146,7 +147,10 @@ export const login = async (req, res) => {
 
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
     }
 };
 
@@ -484,6 +488,7 @@ export const getTopSellingProducts = async (req, res) => {
 
 
 export const productList = async (req, res) => {
+
     try {
         const match = {};
         match.deletedAt = null;
@@ -900,10 +905,13 @@ export const changeEmailOtp = async (req, res) => {
     try {
         const { password, newEmail } = req.body;
 
+
+
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
+        console.log("change email request body", user.password);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
@@ -929,7 +937,7 @@ export const changeEmailOtp = async (req, res) => {
             message: "OTP sent successfully"
         });
     } catch (error) {
-        console.error(error);
+        console.error("error change email", error);
         return res.status(500).json({
             success: false,
             message: "servor error"
@@ -961,7 +969,7 @@ export const changeEmail = async (req, res) => {
             user
         });
     } catch (error) {
-        console.error(error);
+        console.error("error change email", error);
         return res.status(500).json({
             success: false,
             message: error.message || "Server Error"
@@ -1266,7 +1274,7 @@ export const addCart = async (req, res) => {
         selectedSize,
         quantity,
         removeFromWishlist
-    } = req.body
+    } = req.body.data
 
 
     try {
@@ -1304,6 +1312,7 @@ export const addCart = async (req, res) => {
         }
 
         const variant = colorVarient.variants[selectedSize];
+
         if (!variant) {
 
             return res.status(400).json({
@@ -1619,7 +1628,6 @@ export const checkCart = async (req, res) => {
 };
 
 
-
 const getSizeKey = (size) => {
     switch (size.toLowerCase()) {
         case 'small': return 'small';
@@ -1633,7 +1641,6 @@ const getSizeKey = (size) => {
         default: return size.toLowerCase();
     }
 };
-
 
 
 function generateReadableOrderId() {
@@ -1651,6 +1658,7 @@ function generateReadableOrderId() {
 
     return `${datePart}-${randomPart}`;
 }
+
 
 export const createOrder = async (req, res) => {
     try {
@@ -1901,12 +1909,13 @@ export const createOrder = async (req, res) => {
             }
         }
 
-        // After payment verification, proceed with creating orders
         const savedOrders = [];
         const allOrderItems = [];
-        const commonOrderNumber = generateReadableOrderId(); // Use the new function to generate a unique order ID
+        const commonOrderNumber = generateReadableOrderId();
+
 
         for (const productData of allProducts) {
+
             const {
                 product, productId, productColor, productSize,
                 quantity, itemPrice, itemDiscountedPrice, sizeKey
@@ -2119,8 +2128,14 @@ export const getUserOrders = async (req, res) => {
 
 
 export const cancelOrder = async (req, res) => {
+
     const { orderId } = req.params;
     const { reason } = req.body;
+
+    console.log("cancel order reason", reason);
+    console.log("cancel order id", orderId);
+
+
 
     // Use a transaction to ensure data consistency
     const session = await mongoose.startSession();
@@ -2128,6 +2143,9 @@ export const cancelOrder = async (req, res) => {
 
     try {
         const order = await Order.findById(orderId).session(session);
+
+        // console.log("orderr", order)
+
         if (!order) {
             await session.abortTransaction();
             session.endSession();
@@ -2146,7 +2164,23 @@ export const cancelOrder = async (req, res) => {
             });
         }
 
-        // Update order status
+        // const productId = order.orderItems[0].product
+
+        // const product = await Product.findById(productId)
+
+        // const price = product.colors.find((c) => c.color == order.orderItems[0].color)
+
+        // console.log(price);
+
+        // if (price.discountPrice >1000 && price.totalStock<5){
+
+        //     let refundAmount = price.discountPrice*0.95
+
+        // }
+
+
+
+
         order.orderStatus = "cancelled";
         order.cancelReason = reason;
 
@@ -2245,6 +2279,12 @@ export const cancelOrder = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+
 
 export const deleteCart = async (req, res) => {
     try {
@@ -2418,7 +2458,7 @@ export const getWishlist = async (req, res) => {
 export const addWishlist = async (req, res) => {
 
     try {
-        const { productId, selectedColor } = req.body;
+        const { productId, selectedColor } = req.body.data;
 
         let wishlist = await Wishlist.findOne({ user: req.user.userId });
         if (!wishlist) {

@@ -13,6 +13,7 @@ import Payment from './Payment';
 import OrderConfirmation from './OrderConfirmation';
 import OrderSummarySidebar from './OrderSummarySidebar';
 import { setCurrentStep, setConfirmationData } from '../../../store/slices/checkoutSlice';
+import { placeOrder } from '../../../services/checkoutService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -119,11 +120,14 @@ const CheckOut = () => {
 
             console.log("Sending order data to API:", orderData);
 
-            const response = await axios.post(
-                `${API_BASE_URL}/user/place-orders`,
-                orderData,
-                { withCredentials: true }
-            );
+            // const response = await axios.post(
+            //     `${API_BASE_URL}/user/place-orders`,
+            //     orderData,
+            //     { withCredentials: true }
+            // );
+
+            const response = await placeOrder(orderData);
+
 
             console.log("API response:", response.data);
 

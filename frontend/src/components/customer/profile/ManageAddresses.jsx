@@ -8,6 +8,7 @@ import AddEditAddressModal from './AddEditAddressModal';
 import { useDispatch } from 'react-redux';
 import { setCurrentStep, setSelectedAddress } from '../../../store/slices/checkoutSlice';
 import { setCartSelectedAddress, setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
+import { deleteAddress, getAddress, setDefaultAddress } from '../../../services/profileService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -40,9 +41,10 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
 
     const handleSetDefault = async (id) => {
         try {
-            const response = await axios.put(`${API_BASE_URL}/user/set-default-address/${id}`, {}, {
-                withCredentials: true,
-            });
+            // const response = await axios.put(`${API_BASE_URL}/user/set-default-address/${id}`, {}, {
+            //     withCredentials: true,
+            // });
+            const response = await setDefaultAddress(id);
 
             if (response.data.success) {
                 setAddresses(addresses.map(address => ({
@@ -58,9 +60,10 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
 
     const handleDeleteAddress = async (id) => {
         try {
-            const response = await axios.delete(`${API_BASE_URL}/user/delete-address/${id}`, {
-                withCredentials: true,
-            });
+            // const response = await axios.delete(`${API_BASE_URL}/user/delete-address/${id}`, {
+            //     withCredentials: true,
+            // });
+            const response = await deleteAddress(id);
 
             if (response.data.success) {
                 setAddresses(addresses.filter(address => address._id !== id));
@@ -87,9 +90,12 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
 
     const fetchAddresses = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/address`, {
-                withCredentials: true,
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/address`, {
+            //     withCredentials: true,
+            // });
+
+            const response = await getAddress();
+
 
             if (response.data.success) {
                 // Mark the default address as selected when fetching addresses

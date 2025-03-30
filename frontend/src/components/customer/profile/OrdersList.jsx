@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingBag, ChevronRight, Search, FileText, Package, CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import axios from 'axios';
+import { getOrders } from '../../../services/orderService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -19,10 +20,13 @@ const OrdersList = () => {
     const fetchOrders = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/orders`, {
-                withCredentials: true
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/orders`, {
+            //     withCredentials: true
+            // });
+            const response = await getOrders()
+
             setOrders(response.data.orders || []);
+
         } catch (error) {
             console.error("Error fetching orders:", error);
             setError("Failed to load orders");

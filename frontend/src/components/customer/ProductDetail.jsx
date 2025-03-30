@@ -9,6 +9,9 @@ import greenArrow from "../../assets/images/greenArrow.webp"
 
 import { setProduct } from "../../store/slices/checkoutSlice";
 import { useDispatch } from "react-redux";
+import { productOffers } from "../../services/productService";
+import { addToWishlist, checkProductInWishlist, removeFromWishlist } from "../../services/wishlistService";
+import { addToCart } from "../../services/cartService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -46,12 +49,16 @@ function ProductDetail({ product }) {
     const fetchAvailableOffers = async () => {
         setOffersLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/offers/product/${product._id}`, {
-                withCredentials: true
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/offers/product/${product._id}`, {
+            //     withCredentials: true
+            // });
+
+            const response = await productOffers(product._id);
 
             const offers = response.data.offers || [];
+
             setAvailableOffers(offers);
+
         } catch (error) {
             console.error("Error fetching offers:", error);
             toast.error("Failed to fetch available offers");
@@ -60,12 +67,14 @@ function ProductDetail({ product }) {
         }
     };
 
-    // Check if product is in wishlist
+
     const checkIfProductInWishlist = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/wishlist`, {
-                withCredentials: true
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/wishlist`, {
+            //     withCredentials: true
+            // });
+
+            const response = await checkProductInWishlist()
 
             const wishlist = response.data.wishlist || [];
             const isProductWishlisted = wishlist.some(item =>
@@ -73,43 +82,32 @@ function ProductDetail({ product }) {
                 item.selectedColor === product.colors[selectedColorIndex].color
             );
 
+
             setIsWishlisted(isProductWishlisted);
+
         } catch (error) {
+
             console.error("Error checking wishlist:", error);
         }
     };
 
-    // Toggle wishlist function
+
     const toggleWishlist = async () => {
         setWishlistLoading(true);
         try {
+            const data = {
+                productId: product._id,
+                selectedColor: selectedColor.color,
+            }
             if (isWishlisted) {
-                // Remove from wishlist
-                await axios.delete(`${API_BASE_URL}/user/wishlist/remove`, {
-                    data: {
-                        productId: product._id,
-                        selectedColor: selectedColor.color
-                    },
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                });
+                await removeFromWishlist(data);
                 toast.success("Removed from wishlist");
             } else {
-                // Add to wishlist
-                await axios.post(`${API_BASE_URL}/user/wishlist/add`, {
-                    productId: product._id,
-                    selectedColor: selectedColor.color
-                }, {
-                    withCredentials: true,
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                });
+                await addToWishlist(data)
                 toast.success("Added to wishlist");
             }
             setIsWishlisted(!isWishlisted);
+
         } catch (error) {
             console.error("Error updating wishlist:", error);
             toast.error("Failed to update wishlist");
@@ -119,6 +117,7 @@ function ProductDetail({ product }) {
     };
 
     const handleBuynow = () => {
+
         if (selectedSize === "") return toast.error("select a size");
 
         // Find the selected color variant
@@ -200,7 +199,7 @@ function ProductDetail({ product }) {
                 .filter((variant) => parseInt(variant.stock, 10) > 0)
                 .map((variant) => variant.size)
             : [];
-    console.log(availableSizes);
+
 
     useEffect(() => {
         if (selectedSize) {
@@ -211,6 +210,7 @@ function ProductDetail({ product }) {
 
 
     const handleAddtoCart = async () => {
+
         if (isInCart) {
             navigate("/user/view-cart");
             return;
@@ -229,19 +229,27 @@ function ProductDetail({ product }) {
             // If product is in wishlist, remove it after adding to cart
             const moveFromWishlist = isWishlisted;
 
-            const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
+            // const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
+            //     productId: product._id,
+            //     selectedColor: selectedColor.color,
+            //     // selectedSize: toCamelCase(selectedSize),
+            //     selectedSize: selectedSize.toLowerCase().replace(/\s+/g, ''),
+            //     quantity: 1,
+            //     removeFromWishlist: moveFromWishlist
+            // }, {
+            //     withCredentials: true,
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     }
+            // });
+            const data = {
                 productId: product._id,
                 selectedColor: selectedColor.color,
-                // selectedSize: toCamelCase(selectedSize),
                 selectedSize: selectedSize.toLowerCase().replace(/\s+/g, ''),
                 quantity: 1,
                 removeFromWishlist: moveFromWishlist
-            }, {
-                withCredentials: true,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
+            }
+            const response = await addToCart(data)
 
             console.log(response.data);
             setIsInCart(true);

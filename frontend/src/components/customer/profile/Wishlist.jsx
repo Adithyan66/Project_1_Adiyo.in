@@ -6,6 +6,8 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { WalletIcon, Heart, ShoppingCart, Info } from 'lucide-react';
+import { removeFromWishlist as removeFromWishlistService } from '../../../services/wishlistService';
+import { addToCart as addToCartService } from '../../../services/cartService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -40,20 +42,27 @@ function Wishlist() {
     };
 
     const removeFromWishlist = async (productId, selectedColor) => {
+
         const loadingKey = `${productId}-${selectedColor}`;
         try {
             setActionLoading({ ...actionLoading, [loadingKey]: true });
 
-            const response = await axios.delete(`${API_BASE_URL}/user/wishlist/remove`, {
-                data: {
-                    productId: productId,
-                    selectedColor: selectedColor
-                },
-                withCredentials: true,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
+            // const response = await axios.delete(`${API_BASE_URL}/user/wishlist/remove`, {
+            //     data: {
+            //         productId: productId,
+            //         selectedColor: selectedColor
+            //     },
+            //     withCredentials: true,
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     }
+            // });
+            const data = {
+                productId: productId,
+                selectedColor: selectedColor
+            }
+
+            const response = await removeFromWishlistService(data);
 
             if (response.data.success) {
                 setWishlistItems(wishlistItems.filter(item =>
@@ -85,18 +94,27 @@ function Wishlist() {
             }
 
             // For products that don't need size selection
-            const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
+            // const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
+            //     productId: item.product._id,
+            //     selectedColor: item.selectedColor,
+            //     selectedSize: item.selectedSize || '',
+            //     quantity: 1,
+            //     removeFromWishlist: true
+            // }, {
+            //     withCredentials: true,
+            //     headers: {
+            //         "Content-Type": "application/json"
+            //     }
+            // });
+
+            const data = {
                 productId: item.product._id,
                 selectedColor: item.selectedColor,
                 selectedSize: item.selectedSize || '',
                 quantity: 1,
                 removeFromWishlist: true
-            }, {
-                withCredentials: true,
-                headers: {
-                    "Content-Type": "application/json"
-                }
-            });
+            }
+            const response = await addToCartService(data)
 
             if (response.data.success) {
                 setWishlistItems(wishlistItems.filter(wishlistItem =>

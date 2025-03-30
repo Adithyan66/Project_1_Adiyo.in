@@ -11,6 +11,8 @@ import { toast } from "react-toastify";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { CloseIcon } from "../../../icons/icons";
+import { getCategoryList } from "../../../services/categoryService";
+import { editProduct, getProductDetils } from "../../../services/productService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -52,8 +54,9 @@ function EditProduct({ setSelectedSection }) {
         async function fetchCategories() {
 
             try {
-                const response = await axios.get(`${API_BASE_URL}/seller/categories`);
+                //const response = await axios.get(`${API_BASE_URL}/seller/categories`);
                 // Assuming the response returns an array of categories
+                const response = await getCategoryList()
                 setCategories(response.data.categories);
             } catch (error) {
                 console.error("Error fetching categories:", error);
@@ -183,9 +186,11 @@ function EditProduct({ setSelectedSection }) {
     useEffect(() => {
         async function fetchProductDetails() {
             try {
-                const response = await axios.get(
-                    `${API_BASE_URL}/seller/products/${productId}`
-                );
+                // const response = await axios.get(
+                //     `${API_BASE_URL}/seller/products/${productId}`
+                // );
+                const response = await getProductDetils(productId)
+
                 const product = response.data.product;
                 setOriginalProduct(product);
                 setSku(product.sku || "");
@@ -305,11 +310,13 @@ function EditProduct({ setSelectedSection }) {
         });
 
         try {
-            const response = await axios.put(
-                `${API_BASE_URL}/seller/edit-product/${productId}`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
+            // const response = await axios.put(
+            //     `${API_BASE_URL}/seller/edit-product/${productId}`,
+            //     formData,
+            //     { headers: { "Content-Type": "multipart/form-data" } }
+            // );
+            const response = await editProduct(productId, formData)
+
             console.log("Updated product:", response.data.product);
             toast.success("Product updated");
         } catch (error) {

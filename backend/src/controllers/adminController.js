@@ -270,8 +270,6 @@ export const getProducts = async (req, res) => {
 export const deleteProduct = async (req, res) => {
 
     try {
-        console.log("dellllllllllllllllllllllll");
-
         const productId = req.params.id;
         const product = await Product.findByIdAndUpdate(
             productId,
@@ -531,10 +529,16 @@ export const deleteCategories = async (req, res) => {
 
         if (!deletedCategory) {
 
-            return res.status(404).json({ error: 'Category not found.' });
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found.'
+            });
         }
 
-        res.status(200).json({ message: 'Category deleted successfully.' });
+        res.status(200).json({
+            success: false,
+            message: 'Category deleted successfully.'
+        });
 
     } catch (error) {
 

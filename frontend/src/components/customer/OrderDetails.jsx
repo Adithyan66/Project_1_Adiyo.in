@@ -32,6 +32,7 @@ import {
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import ProductReviewModal from './orderDrtails/ProductReviewModal';
+import { cancelOrder, orderDetailsById, returnRequest } from '../../services/orderService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -57,9 +58,10 @@ const OrderDetails = () => {
     const fetchOrderDetails = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/orders/${orderId}`, {
-                withCredentials: true
-            });
+            const response = await orderDetailsById(orderId);
+            // const response = await axios.get(`${API_BASE_URL}/user/orders/${orderId}`, {
+            //     withCredentials: true
+            //});
             const orderData = response.data.order;
             setOrder(orderData);
 
@@ -91,10 +93,12 @@ const OrderDetails = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await axios.put(`${API_BASE_URL}/user/orders/${orderId}/cancel`,
-                { reason: cancelReason },
-                { withCredentials: true }
-            );
+            // const response = await axios.put(`${API_BASE_URL}/user/orders/${orderId}/cancel`,
+            //     { reason: cancelReason },
+            //     { withCredentials: true }
+            // );
+
+            const response = await cancelOrder(orderId, cancelReason);
 
             if (response.data.success) {
                 fetchOrderDetails();
@@ -125,17 +129,25 @@ const OrderDetails = () => {
 
         setIsSubmitting(true);
         try {
-            await axios.post(`${API_BASE_URL}/user/orders/${orderId}/return`,
-                {
-                    items: itemsToReturn.map(item => ({
-                        productId: item.product._id,
-                        quantity: item.returnQuantity,
-                        reason: returnReason
-                    })),
-                    reason: returnReason
-                },
-                { withCredentials: true }
-            );
+            // await axios.post(`${API_BASE_URL}/user/orders/${orderId}/return`,
+            //     {
+            //         items: itemsToReturn.map(item => ({
+            //             productId: item.product._id,
+            //             quantity: item.returnQuantity,
+            //             reason: returnReason
+            //         })),
+            //         reason: returnReason
+            //     },
+            //     { withCredentials: true }
+            // );
+
+            const items = itemsToReturn.map(item => ({
+                productId: item.product._id,
+                quantity: item.returnQuantity,
+                reason: returnReason
+            }))
+
+            await returnRequest(orderId, items, returnReason);
 
             setShowReturnModal(false);
             toast.success('Return request submitted successfully');

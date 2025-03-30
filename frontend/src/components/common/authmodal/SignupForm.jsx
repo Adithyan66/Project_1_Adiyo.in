@@ -21,6 +21,7 @@ import GoogleSignIn from './GoogleSignin.jsx';
 
 // Import the OTPVerification component
 import OtpVerification from './OtpVerification';
+import { sentOtp, signup } from '../../../services/authService.js';
 
 function SignupForm() {
     const dispatch = useDispatch();
@@ -67,8 +68,8 @@ function SignupForm() {
             return;
         }
         try {
-            // Call your backend endpoint for sending OTP for signup
-            const response = await axios.post(`http://localhost:3333/user/signup-send-otp`, { email });
+            const response = await sentOtp(email);
+            //const response = await axios.post(`http://localhost:3333/user/signup-send-otp`, { email });
             toast.success(response.data.message);
             setEmailSent(true);
             // Start a 60-second countdown for resending OTP (if needed)
@@ -110,14 +111,15 @@ function SignupForm() {
 
         try {
             const role = "customer";
-            const response = await axios.post(
-                "http://localhost:3333/user/signup",
-                { username, email, password, role },
-                {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true,
-                }
-            );
+            const response = await signup({ username, email, password, role })
+            // const response = await axios.post(
+            //     "http://localhost:3333/user/signup",
+            //     { username, email, password, role },
+            //     {
+            //         headers: { "Content-Type": "application/json" },
+            //         withCredentials: true,
+            //     }
+            // );
 
 
             if (response.data.success) {

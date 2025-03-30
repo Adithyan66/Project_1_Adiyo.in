@@ -9,6 +9,8 @@ import FilterSidebar from "../customer/productlist/FilterSidebar";
 import SortMenu from "./productlist/SortMenu";
 import ProductGrid from "./productlist/ProductGrid";
 import Pagination from "./productlist/Pagination";
+import { getProductList } from "../../services/productService";
+import { getCategoryList } from "../../services/categoryService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -105,7 +107,10 @@ function ProductLists({ searchTerm, setSearchTerm }) {
 
             console.log("Fetch parameters:", params);
 
-            const { data } = await axios.get(`${API_BASE_URL}/user/product-list`, { params });
+            // const { data } = await axios.get(`${API_BASE_URL}/user/product-list`, { params });
+
+            const { data } = await getProductList(params);
+
             setProducts(data.products);
             setTotalPages(data.totalPages);
         } catch (err) {
@@ -113,12 +118,17 @@ function ProductLists({ searchTerm, setSearchTerm }) {
         }
     };
 
-    // Fetch DB categories on mount.
+
     useEffect(() => {
         const fetchDbCategories = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+
+                // const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+
+                const response = await getCategoryList();
+
                 setDbCategories(response.data.categories);
+
                 setIsLoadingCategories(false);
             } catch (error) {
                 console.error("Error fetching categories:", error);

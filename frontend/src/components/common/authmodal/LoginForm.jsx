@@ -15,7 +15,8 @@ import { setLoginPopup, setActiveForm } from '../../../store/slices/authModalSli
 
 import GoogleSignIn from './GoogleSignin.jsx';
 import { Navigate, useNavigate } from 'react-router';
-
+import httpClient from '../../../services/httpClient.js';
+import { login } from '../../../services/authService.js';
 
 function LoginForm() {
 
@@ -55,14 +56,21 @@ function LoginForm() {
 
         try {
 
-            const response = await axios.post(
-                "http://localhost:3333/user/login",
-                { email, password },
-                {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true,
-                }
-            );
+            // const response = await axios.post(
+            //     "http://localhost:3333/user/login",
+            //     { email, password },
+            //     {
+            //         headers: { "Content-Type": "application/json" },
+            //         withCredentials: true,
+            //     }
+            // );
+
+            // const response = await httpClient.post("/user/login",
+            //     { email, password },
+            //     { headers: { "Content-Type": "application/json" }, }
+            // )
+
+            const response = await login({ email, password })
 
             if (response.data.success) {
 

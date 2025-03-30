@@ -1,6 +1,7 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { changePassword } from '../../../services/profileService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -41,10 +42,12 @@ const PasswordChangeModal = ({ user, setPasswordModal }) => {
 
         try {
 
-            const response = await axios.put(`${API_BASE_URL}/user/${user._id}/change-password`, {
-                currentPassword,
-                newPassword
-            })
+            // const response = await axios.put(`${API_BASE_URL}/user/${user._id}/change-password`, {
+            //     currentPassword,
+            //     newPassword
+            // })
+
+            const response = await changePassword(user._id, currentPassword, newPassword);
 
             if (response.data.success) {
                 setSuccess(true);
