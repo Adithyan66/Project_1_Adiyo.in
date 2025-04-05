@@ -292,7 +292,7 @@ function ProductDetail({ product }) {
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
             {/* Breadcrumbs */}
-            <Breadcrumbs product={product} />
+            {/* <Breadcrumbs product={product} /> */}
 
             {/* Main Content */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -339,6 +339,26 @@ function ProductDetail({ product }) {
                                     <img src={image} alt={`Thumb ${index + 1}`} className="w-20 h-auto object-cover" />
                                 </div>
                             ))}
+                    </div>
+                    {/* Action Buttons */}
+                    <div className="mt-12 flex space-x-4">
+                        <button
+                            className={`border border-black text-black  px-8 py-3 text-lg rounded-md transition-colors hover:cursor-pointer ${isInCart ? "bg-gray-200" : "hover:bg-black hover:text-white"
+                                }`}
+                            onClick={() => {
+                                handleAddtoCart()
+                            }}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? "Processing..." : isInCart ? "View Cart" : "Add to Cart"}
+                        </button>
+                        <button className="bg-black text-white px-8 py-3 ml-5 text-lg rounded-md hover:bg-gray-800 transition-colors hover:cursor-pointer"
+                            onClick={() => {
+                                handleBuynow()
+                            }}
+                        >
+                            Buy Now
+                        </button>
                     </div>
                 </div>
 
@@ -467,12 +487,12 @@ function ProductDetail({ product }) {
                         </p>
                     </div>
 
-                    <hr className="border-t border-gray-300 my-4" />
+                    {/* <hr className="border-t border-gray-300 my-4" /> */}
 
 
 
                     {/* Action Buttons */}
-                    <div className="mt-6 flex space-x-4">
+                    {/* <div className="mt-6 flex space-x-4">
                         <button
                             className={`border border-black text-black px-8 py-3 text-lg rounded-md transition-colors hover:cursor-pointer ${isInCart ? "bg-gray-200" : "hover:bg-black hover:text-white"
                                 }`}
@@ -490,7 +510,7 @@ function ProductDetail({ product }) {
                         >
                             Buy Now
                         </button>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </div>

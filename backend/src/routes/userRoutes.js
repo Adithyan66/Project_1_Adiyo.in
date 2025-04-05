@@ -50,7 +50,8 @@ import {
     getWalletDetails,
     getWalletBalance,
     walletRecharge,
-    checkOffer
+    checkOffer,
+    referalDetails
 } from
     "../controllers/userController.js"
 
@@ -99,6 +100,10 @@ router.get("/wishlist", authenticateUser, getWishlist)
 router.get("/wallet", authenticateUser, getWalletDetails)
 router.get("/get-wallet-balance", authenticateUser, getWalletBalance)
 router.get("/offers/product/:productId", checkOffer)
+router.get("/referrals", authenticateUser, referalDetails)
+
+
+
 
 
 

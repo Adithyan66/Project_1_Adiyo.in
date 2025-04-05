@@ -13,31 +13,15 @@ const ReferralOfferSchema = new mongoose.Schema({
         required: true,
         min: 1
     },
-    rewardType: {
-        type: String,
-        enum: ['percentage', 'fixed'],
-        default: 'percentage'
-    },
-    method: {
-        type: String,
-        enum: ['token', 'code'],
-        default: 'token'
-    },
-    minPurchase: {
-        type: Number,
-        default: 0,
-        min: 0
-    },
     validity: {
         type: Number,
         required: true,
         min: 1,
         description: 'Validity period in days'
     },
-    status: {
-        type: String,
-        enum: ['active', 'inactive'],
-        default: 'active'
+    isActive: {
+        type: Boolean,
+        default: false
     },
     createdAt: {
         type: Date,
@@ -46,6 +30,13 @@ const ReferralOfferSchema = new mongoose.Schema({
     updatedAt: {
         type: Date,
         default: Date.now
+    },
+    referralToken: {
+        type: String,
+    },
+    deletedAt: {
+        type: Date,
+        default: null
     }
 });
 

@@ -153,8 +153,8 @@ const CheckOut = () => {
             <div className="max-w-[1500px] mx-auto px-2 mb-20">
                 <div className="flex flex-col lg:flex-row gap-6">
                     {/* Vertical Checkout Steps (Left Side) */}
-                    <div className="lg:w-1/6">
-                        <div className="bg-white rounded-lg shadow-sm p-4">
+                    <div className="lg:w-1/6 ">
+                        <div className="bg-white rounded-lg shadow-sm p-4 sticky top-40">
                             <div className="flex flex-col">
                                 {steps.map((step, index) => (
                                     <div key={step.id} className="mb-6 last:mb-0">
@@ -171,13 +171,13 @@ const CheckOut = () => {
 
                                         {/* Arrow between steps */}
                                         {index < steps.length - 1 && (
-                                            <div className="ml-6 my-2 h-8 w-px relative">
-                                                <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-200"></div>
+                                            <div className="ml-4 my-2 h-8 w-px relative">
+                                                <div className="absolute left-0 top-0 bottom-0 w-px "></div>
                                                 <div
-                                                    className={`absolute left-0 top-0 w-px ${steps.findIndex(s => s.id === currentStep) > index ? 'bg-black h-full' : 'bg-gray-200 h-0'
+                                                    className={`absolute left-1 top-0 w-px ${steps.findIndex(s => s.id === currentStep) > index ? 'bg-black h-full border-4 ' : 'bg-gray-200 h-0 border-4'
                                                         } transition-all duration-300`}
                                                 ></div>
-                                                <div className={`absolute -left-[3px] bottom-0 transform rotate-45 w-2 h-2 ${steps.findIndex(s => s.id === currentStep) > index ? 'border-r border-b border-black' : 'border-r border-b border-gray-200'
+                                                <div className={`absolute -left-[3px] bottom-0 transform rotate-45 w-6 h-6 ${steps.findIndex(s => s.id === currentStep) > index ? ' border-r-4 border-black border-b-4 ' : 'border-r-4 border-b-4 border-gray-200'
                                                     }`}></div>
                                             </div>
                                         )}
@@ -206,7 +206,7 @@ const CheckOut = () => {
 
                                 {/* Sidebar Column */}
                                 {order?.productDetails && (
-                                    <div className="lg:w-1/3">
+                                    <div className="lg:w-1/3 ">
                                         <OrderSummarySidebar orderDetails={calculateOrderSummary()} />
                                     </div>
                                 )}

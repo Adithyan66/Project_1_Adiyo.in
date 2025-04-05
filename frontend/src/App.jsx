@@ -42,6 +42,8 @@ import WalletPage from './pages/customer/WalletPage';
 import OffersPage from './pages/admin/OffersPage';
 import SalesReportPage from './pages/admin/SalesReportPage';
 import SalesDetailsPage from './pages/admin/SalesDetailsPage';
+import ReferralsDetailsPage from './pages/customer/ReferralsDetailsPage';
+import WalletManagementPage from './pages/admin/WalletManagementPage';
 
 
 function App() {
@@ -115,6 +117,7 @@ function App() {
 
         <Route path="/user/wallet" element={<WalletPage />} />
 
+        <Route path="/user/referrals" element={<ReferralsDetailsPage />} />
 
 
 
@@ -148,6 +151,7 @@ function App() {
 
         <Route path="/admin/sales-details/:id" element={<AdminProtected><SalesDetailsPage /></AdminProtected>} />
 
+        <Route path="/admin/wallet-management" element={<AdminProtected><WalletManagementPage /></AdminProtected>} />
 
 
 

@@ -162,9 +162,9 @@ const OrderConfirmation = () => {
     return (
         <div className="bg-white rounded-lg overflow-hidden">
             {/* Header Banner */}
-            <div className="bg-black text-white py-8 px-6 text-center">
-                <CheckCircle className="mx-auto mb-4 text-white" size={48} />
-                <h2 className="text-2xl font-bold mb-2">Order Confirmed</h2>
+            <div className="bg-gradient-to-r from-gray-300 via-black to-gray-300  text-white py-8 px-6 text-center">
+                <CheckCircle className="mx-auto mb-4 text-white animate-ping" size={48} />
+                <h2 className="text-2xl font-bold mb-2 animate-bounce">Order Confirmed</h2>
                 <p className="text-gray-300">Thank you for your purchase!</p>
                 <p className="mt-2 text-gray-300">Order #{orderNumber}</p>
             </div>

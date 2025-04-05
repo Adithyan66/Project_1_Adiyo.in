@@ -1,4 +1,6 @@
 
+import HttpStatusCode from "../utils/httpStatusCodes.js";
+
 import User from "../models/userModel.js";
 import Product from "../models/productModel.js";
 import Coupon from "../models/couponModel.js";
@@ -9,10 +11,11 @@ import mongoose from "mongoose";
 import ProductOffer from "../models/productOfferModel.js";
 import CategoryOffer from "../models/categoryOfferModel.js";
 import ReferralOffer from "../models/referalOfferModel.js";
-
+import { updateProductDiscounts, updateProductDiscountsForSingleProduct } from "../services/discountService.js";
 
 
 export const customersList = async (req, res) => {
+
     try {
         const {
             page = 1,
@@ -26,12 +29,10 @@ export const customersList = async (req, res) => {
 
         const filter = { role: "customer" };
 
-        // Add status filter if provided
         if (status !== undefined) {
             filter.isActive = status === "true";
         }
 
-        // Add search functionality if search term is provided
         if (search) {
             filter.$or = [
                 { username: { $regex: search, $options: "i" } },
@@ -42,25 +43,21 @@ export const customersList = async (req, res) => {
             ];
         }
 
-        // Build the sort object
         const sort = {};
         sort[sortBy] = sortOrder === "asc" ? 1 : -1;
 
-        // Calculate pagination parameters
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
 
-        // Query customers with pagination and sorting
         const customers = await User.find(filter)
             .sort(sort)
             .skip(skip)
             .limit(limitNum);
 
-        // Get total count for pagination
         const totalCustomers = await User.countDocuments(filter);
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "Customers details fetched successfully",
             customers,
@@ -70,11 +67,13 @@ export const customersList = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching customers:", error);
-        res.status(500).json({
-            status: false,
-            message: "Server error",
-            error: error.message
-        });
+
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+            .json({
+                status: false,
+                message: "Server error",
+                error: error.message
+            });
     }
 };
 
@@ -86,14 +85,14 @@ export const customerDetails = async (req, res) => {
 
         const customer = await User.findById(id)
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "customer details fetched succesfully",
             customer
         })
 
     } catch (error) {
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "server error"
         })
@@ -102,57 +101,55 @@ export const customerDetails = async (req, res) => {
 }
 
 export const blockUser = async (req, res) => {
+
     const { id } = req.params;
     const { isActive } = req.query;
 
-    // Validate isActive is provided
     if (isActive === undefined) {
-        return res.status(400).json({
+        return res.status(HttpStatusCode.BAD_REQUEST).json({
             status: false,
             message: "Missing required query parameter: isActive",
         });
     }
 
-    // Validate isActive is either "true" or "false" (case-insensitive)
     const lowerIsActive = isActive.toLowerCase();
+
     if (lowerIsActive !== "true" && lowerIsActive !== "false") {
-        return res.status(400).json({
+        return res.status(HttpStatusCode.BAD_REQUEST).json({
             status: false,
             message: "Invalid value for isActive. Must be 'true' or 'false'.",
         });
     }
 
-    // Convert to boolean
     const newIsActive = lowerIsActive === "true";
 
     try {
         const user = await User.findById(id);
         if (!user) {
-            return res.status(404).json({
+            return res.status(HttpStatusCode.NOT_FOUND).json({
                 status: false,
                 message: "User does not exist",
             });
         }
 
-        // Check if the current status is the same as the new status
         if (user.isActive === newIsActive) {
-            return res.status(200).json({
+            return res.status(HttpStatusCode.OK).json({
                 status: true,
                 message: `User is already ${user.isActive ? "unblocked" : "blocked"}`,
             });
         }
 
-        // Update and save the user
         user.isActive = newIsActive;
+
         await user.save();
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: `User ${newIsActive ? "unblocked" : "blocked"} successfully`,
         });
 
     } catch (error) {
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "Server error",
             error: error.message,
@@ -172,17 +169,14 @@ export const getProducts = async (req, res) => {
             category
         } = req.query;
 
-        // Build the filter object
         const filter = {};
 
         filter.deletedAt = null;
 
-        // Add category filter if provided
         if (category && category !== "all") {
             filter.category = category;
         }
 
-        // Add search functionality
         if (search) {
             filter.$or = [
                 { name: { $regex: search, $options: "i" } },
@@ -191,12 +185,9 @@ export const getProducts = async (req, res) => {
             ];
         }
 
-        // Build the sort object
         const sort = {};
 
-        // Handle special case for category sorting
         if (sortBy === "category") {
-            // We'll use aggregation for category sorting
             const pageNum = parseInt(page);
             const limitNum = parseInt(limit);
             const skip = (pageNum - 1) * limitNum;
@@ -220,7 +211,7 @@ export const getProducts = async (req, res) => {
             const products = await Product.aggregate(pipeline);
             const totalProducts = await Product.countDocuments(filter);
 
-            return res.status(200).json({
+            return res.status(HttpStatusCode.OK).json({
                 status: true,
                 message: "Products fetched successfully",
                 products,
@@ -230,25 +221,21 @@ export const getProducts = async (req, res) => {
             });
         }
 
-        // Regular sorting for other fields
         sort[sortBy] = sortOrder === "asc" ? 1 : -1;
 
-        // Calculate pagination parameters
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const skip = (pageNum - 1) * limitNum;
 
-        // Query products with pagination and sorting
         const products = await Product.find(filter)
             .populate("category", "name")
             .sort(sort)
             .skip(skip)
             .limit(limitNum);
 
-        // Get total count for pagination
         const totalProducts = await Product.countDocuments(filter);
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "Products fetched successfully",
             products,
@@ -256,9 +243,11 @@ export const getProducts = async (req, res) => {
             currentPage: pageNum,
             totalPages: Math.ceil(totalProducts / limitNum)
         });
+
     } catch (error) {
+
         console.error("Error fetching products:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "Server error",
             error: error.message
@@ -278,10 +267,14 @@ export const deleteProduct = async (req, res) => {
         );
 
         if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+            return res.status(HttpStatusCode.NOT_FOUND)
+                .json({
+                    success: false,
+                    message: 'Product not found'
+                });
         }
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: 'Product soft deleted successfully',
             product
@@ -290,7 +283,11 @@ export const deleteProduct = async (req, res) => {
     } catch (error) {
 
         console.error('Error soft deleting product:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: 'Server error'
+            });
     }
 
 }
@@ -303,23 +300,28 @@ export const productDetails = async (req, res) => {
         const product = await Product.findById(id);
 
         if (!product) {
-            return res.status(404).json({
-                status: false,
-                message: "Product not found"
-            });
+            return res.status(HttpStatusCode.NOT_FOUND)
+                .json({
+                    status: false,
+                    message: "Product not found"
+                });
         }
 
-        res.status(200).json({
-            status: true,
-            message: "Product details fetched successfully",
-            product
-        });
+        res.status(HttpStatusCode.OK)
+            .json({
+                status: true,
+                message: "Product details fetched successfully",
+                product
+            });
+
     } catch (error) {
+
         console.error("Error fetching product:", error);
-        res.status(500).json({
-            status: false,
-            message: "Server error"
-        });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+            .json({
+                status: false,
+                message: "Server error"
+            });
     }
 
 }
@@ -333,34 +335,57 @@ export const addCoupon = async (req, res) => {
 
         await newCoupon.save()
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "coupon created succesfully"
         })
     } catch (error) {
+
         console.error("Error creating coupon:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: error.message
         });
-
     }
 }
+
+export const updateCoupon = async (req, res) => {
+
+    try {
+
+        const couponId = req.body.id
+        await Coupon.findByIdAndUpdate(couponId, req.body, { new: true })
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "coupon updated succesfully"
+        })
+
+    } catch (error) {
+        console.error("Error updating coupon:", error);
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+
 
 export const getCoupons = async (req, res) => {
 
     try {
 
-        const coupons = await Coupon.find({ deletedAt: null })
+        const coupons = await Coupon.find({ deletedAt: null }).populate("applicableCategories")
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "coupons fetched succesfully",
             coupons
         })
 
     } catch (error) {
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "server error"
         })
@@ -390,7 +415,7 @@ export const deleteCoupon = async (req, res) => {
 
         console.log("hellooo");
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             status: true,
             message: "coupon deleted succesfully",
             coupon
@@ -418,13 +443,16 @@ export const addCategory = async (req, res) => {
 
         const savedCategory = await newCategory.save();
 
-        res.status(201).json(savedCategory);
+        res.status(HttpStatusCode.CREATED).json(savedCategory);
 
     } catch (error) {
 
         console.error('Error adding category:', error);
 
-        res.status(500).json({ error: 'Server error while adding category.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Server error while adding category.'
+        });
 
     }
 }
@@ -437,13 +465,19 @@ export const addSubCategories = async (req, res) => {
         const { name } = req.body;
 
         if (!name) {
-            return res.status(400).json({ error: 'Subcategory name is required.' });
+            return res.status(HttpStatusCode.BAD_REQUEST).json({
+                success: false,
+                message: 'Subcategory name is required.'
+            });
         }
 
         const category = await Category.findById(categoryId);
 
         if (!category) {
-            return res.status(404).json({ error: 'Category not found.' });
+            return res.status(HttpStatusCode.BAD_REQUEST).json({
+                success: false,
+                message: 'Category not found.'
+            });
         }
 
         const newSubcategory = { name };
@@ -454,13 +488,13 @@ export const addSubCategories = async (req, res) => {
 
         const addedSubcategory = category.subcategories[category.subcategories.length - 1];
 
-        res.status(201).json(addedSubcategory);
+        res.status(HttpStatusCode.CREATED).json(addedSubcategory);
 
     } catch (error) {
 
         console.error('Error adding subcategory:', error);
 
-        res.status(500).json({ error: 'Server error while adding subcategory.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ error: 'Server error while adding subcategory.' });
 
     }
 }
@@ -471,14 +505,14 @@ export const getCategories = async (req, res) => {
     try {
         const categories = await Category.find();
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "category fetches succesfully",
             categories
         });
     } catch (error) {
         console.error('Error fetching categories:', error);
-        res.status(500).json({ error: 'Server error while fetching categories.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ error: 'Server error while fetching categories.' });
     }
 }
 
@@ -494,13 +528,13 @@ export const editSubcategoryName = async (req, res) => {
         const category = await Category.findById(categoryId);
 
         if (!category) {
-            return res.status(404).json({ error: 'Category not found.' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ error: 'Category not found.' });
         }
 
         const subcategory = category.subcategories.id(subcategoryId);
 
         if (!subcategory) {
-            return res.status(404).json({ error: 'Subcategory not found.' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ error: 'Subcategory not found.' });
         }
 
         Object.assign(subcategory, updateData);
@@ -508,12 +542,12 @@ export const editSubcategoryName = async (req, res) => {
         await category.save();
 
 
-        res.status(200).json(subcategory);
+        res.status(HttpStatusCode.OK).json(subcategory);
 
     } catch (error) {
 
         console.error('Error updating subcategory:', error);
-        res.status(500).json({ error: 'Server error while updating subcategory.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ error: 'Server error while updating subcategory.' });
     }
 }
 
@@ -529,13 +563,13 @@ export const deleteCategories = async (req, res) => {
 
         if (!deletedCategory) {
 
-            return res.status(404).json({
+            return res.status(HttpStatusCode.NOT_FOUND).json({
                 success: false,
                 message: 'Category not found.'
             });
         }
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: false,
             message: 'Category deleted successfully.'
         });
@@ -559,20 +593,20 @@ export const deleteSubCategories = async (req, res) => {
 
         const category = await Category.findById(categoryId);
         if (!category) {
-            return res.status(404).json({ error: 'Category not found.' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ error: 'Category not found.' });
         }
 
         category.subcategories.pull(subcategoryId);
 
         await category.save();
 
-        res.status(200).json({ message: 'Subcategory deleted successfully.' });
+        res.status(HttpStatusCode.OK).json({ message: 'Subcategory deleted successfully.' });
 
     } catch (error) {
 
         console.error('Error deleting subcategory:', error);
 
-        res.status(500).json({ error: 'Server error while deleting subcategory.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ error: 'Server error while deleting subcategory.' });
     }
 
 }
@@ -610,7 +644,7 @@ export const getOrders = async (req, res) => {
 
         const [orders, totalOrders] = await Promise.all([ordersPromise, countPromise]);
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "data fetchedn succesfully",
             orders,
@@ -619,7 +653,7 @@ export const getOrders = async (req, res) => {
 
     } catch (err) {
         console.error('Error fetching orders:', err);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to fetch orders. Please try again later.'
         });
@@ -639,7 +673,7 @@ export const getOrderDetails = async (req, res) => {
             .populate('orderItems.product', 'name colors brand sku');
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ message: 'Order not found' });
         }
 
         const formattedOrder = order.toObject({ virtuals: true });
@@ -670,7 +704,7 @@ export const getOrderDetails = async (req, res) => {
 
     } catch (error) {
         console.error('Error fetching order details:', error);
-        res.status(500).json({ message: 'Server error while fetching order details' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: 'Server error while fetching order details' });
     }
 };
 
@@ -685,12 +719,12 @@ export const updateOrderStatus = async (req, res) => {
 
         const validStatuses = ['pending', 'shipped', 'out for delivery', 'delivered', 'cancelled', 'return requested', 'returned'];
         if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: 'Invalid status value' });
+            return res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'Invalid status value' });
         }
 
         const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ message: 'Order not found' });
         }
 
         order.orderStatus = status;
@@ -698,7 +732,7 @@ export const updateOrderStatus = async (req, res) => {
 
         const formattedOrder = order.toObject({ virtuals: true });
         formattedOrder.status = order.orderStatus;
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             ststus: true,
             message: 'Order status updated successfully',
             order: formattedOrder
@@ -706,7 +740,7 @@ export const updateOrderStatus = async (req, res) => {
 
     } catch (error) {
         console.error('Error updating order status:', error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Server error while updating status'
         });
@@ -719,42 +753,43 @@ export const handleReturnVerification = async (req, res) => {
 
     try {
         const { orderId } = req.params;
-        const { approved } = req.body; // Expecting { approved: true/false }
+        const { approved } = req.body;
 
         const order = await Order.findById(orderId);
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ message: 'Order not found' });
         }
 
-        // Check if return is requested
+
         if (order.returnStatus !== 'requested') {
-            return res.status(400).json({ message: 'No return requested for this order' });
+            return res.status(HttpStatusCode.BAD_REQUEST).json({ message: 'No return requested for this order' });
         }
 
         if (approved) {
             order.returnStatus = 'approved';
             order.orderStatus = 'returned';
-            // Refund logic can be added here, e.g., updating user's wallet
-            // const user = await User.findById(order.user);
-            // user.walletBalance = (user.walletBalance || 0) + order.totalAmount;
-            // await user.save();
+            // Refund logic cheyyanam 
         } else {
             order.returnStatus = 'rejected';
-            order.orderStatus = 'delivered'; // Revert to delivered if rejected
+            order.orderStatus = 'delivered';
         }
 
         await order.save();
 
-        // Format response
+
         const formattedOrder = order.toObject({ virtuals: true });
         formattedOrder.status = order.orderStatus;
-        res.json({
+
+        res.status(HttpStatusCode.OK).json({
             message: approved ? 'Return approved successfully' : 'Return rejected',
             order: formattedOrder,
         });
     } catch (error) {
         console.error('Error processing return verification:', error);
-        res.status(500).json({ message: 'Server error while processing return' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Server error while processing return'
+        });
     }
 };
 
@@ -768,7 +803,7 @@ export const verifyReturn = async (req, res) => {
     console.log(productId, userId, approved, orderId);
 
     if (!productId || !userId || typeof approved !== "boolean") {
-        return res.status(400).json({
+        return res.status(HttpStatusCode.BAD_REQUEST).json({
             success: false,
             message: "Missing required fields: productId, userId, or approved flag.",
         });
@@ -778,20 +813,24 @@ export const verifyReturn = async (req, res) => {
     session.startTransaction();
 
     try {
+
         const order = await Order.findById(orderId).session(session);
+
         if (!order) {
+
             await session.abortTransaction();
             session.endSession();
-            return res.status(404).json({
+            return res.status(HttpStatusCode.NOT_FOUND).json({
                 success: false,
                 message: "Order not found.",
             });
         }
 
         if (order.orderStatus !== "return requested") {
+
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({
+            return res.status(HttpStatusCode.BAD_REQUEST).json({
                 success: false,
                 message: "Order is not pending return verification.",
             });
@@ -800,14 +839,13 @@ export const verifyReturn = async (req, res) => {
         if (order.user?.toString() !== userId) {
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({
+            return res.status(HttpStatusCode.BAD_REQUEST).json({
                 success: false,
                 message: "User ID mismatch with the order.",
             });
         }
 
-        // Calculate refund amount based on subtotal (already includes discounts) minus shipping
-        // For now we're assuming the entire order is being returned
+
         const refundAmount = order.totalAmount - order.shippingFee;
 
         order.orderStatus = approved ? "returned" : "delivered";
@@ -819,9 +857,9 @@ export const verifyReturn = async (req, res) => {
 
         await order.save({ session });
 
-        // Process refund if return is approved
+
         if (approved) {
-            // Find or create user wallet
+
             let wallet = await Wallet.findOne({ userId }).session(session);
             if (!wallet) {
                 wallet = new Wallet({
@@ -831,15 +869,13 @@ export const verifyReturn = async (req, res) => {
                 });
             }
 
-            // Update wallet balance
             wallet.balance += refundAmount;
             await wallet.save({ session });
 
-            // Create transaction record
             const transaction = new Transaction({
                 walletId: wallet._id,
                 userId,
-                type: 'credit',
+                type: 'return_refund',
                 amount: refundAmount,
                 balance: wallet.balance,
                 description: `Refund for returned order #${order.orderNumber || orderId}`,
@@ -859,7 +895,7 @@ export const verifyReturn = async (req, res) => {
 
             await transaction.save({ session });
 
-            // Create ReturnRefund record
+
             const returnRefund = new ReturnRefund({
                 userId,
                 orderId,
@@ -867,7 +903,7 @@ export const verifyReturn = async (req, res) => {
                 amount: refundAmount,
                 status: 'completed',
                 reason: order.returnReason || 'Return approved by admin',
-                approvedBy: req.user?._id, // Assuming the admin user is available in the request
+                approvedBy: req.user?._id,
                 approvalNotes: 'Return verified and approved',
                 approvedAt: new Date()
             });
@@ -875,11 +911,10 @@ export const verifyReturn = async (req, res) => {
             await returnRefund.save({ session });
         }
 
-        // Commit the transaction
         await session.commitTransaction();
         session.endSession();
 
-        return res.status(200).json({
+        return res.status(HttpStatusCode.OK).json({
             success: true,
             message: approved
                 ? `Return verification processed successfully. ₹${refundAmount.toFixed(2)} has been credited to the user's wallet.`
@@ -893,7 +928,7 @@ export const verifyReturn = async (req, res) => {
         session.endSession();
 
         console.error("Error processing return verification:", error);
-        return res.status(500).json({
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error while processing return verification.",
             error: error.message
@@ -907,20 +942,20 @@ export const productNames = async (req, res) => {
         const productsData = await Product.find({ deletedAt: null }, { _id: 1, name: 1 });
 
         if (!productsData || productsData.length === 0) {
-            return res.status(404).json({
+            return res.status(HttpStatusCode.NOT_FOUND).json({
                 success: false,
                 message: "No products found"
             });
         }
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "Successfully fetched product names",
             products: productsData
         });
     } catch (error) {
         console.error("Error fetching product names", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error"
         });
@@ -935,9 +970,6 @@ export const createProductOffer = async (req, res) => {
     try {
         const { name, discount, products, startDate, endDate } = req.body;
 
-        // Optionally, add any further validation here
-
-        // Create a new ProductOffer instance
         const newOffer = new ProductOffer({
             name,
             discount,
@@ -946,18 +978,22 @@ export const createProductOffer = async (req, res) => {
             endDate
         });
 
-        // Save the offer in the database
+
         const savedOffer = await newOffer.save();
         console.log(name);
 
-        res.status(201).json({
+        await updateProductDiscounts()
+
+        res.status(HttpStatusCode.CREATED).json({
             success: true,
             message: "Product offer created successfully",
             offer: savedOffer
         });
+
+
     } catch (error) {
         console.error("Error creating product offer:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Failed to create product offer",
             error: error.message
@@ -965,23 +1001,86 @@ export const createProductOffer = async (req, res) => {
     }
 };
 
+export const editProductOffer = async (req, res) => {
+
+    try {
+        const { id } = req.params
+
+        const payload = req.body
+
+        console.log("payload", payload);
 
 
+        const updatedOffer = await ProductOffer.findByIdAndUpdate(id, payload, { new: true })
 
+        if (!updatedOffer) {
+            return res.status(HttpStatusCode.FORBIDDEN).json({
+                success: false,
+                message: "offer not found"
+            })
+        }
+
+        await updateProductDiscounts()
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "offer edited succesfully"
+        })
+
+    } catch (error) {
+        console.log("error updating product offer", error)
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
+
+
+export const deleteProductOffer = async (req, res) => {
+    try {
+        const offerId = req.params.id;
+
+        const offer = await ProductOffer.findById(offerId);
+
+        if (!offer) {
+            return res.status(404).json({ success: false, message: 'Product offer not found' });
+        }
+
+        const affectedProductIds = [...offer.products];
+
+        await ProductOffer.findByIdAndDelete(offerId);
+
+        let updatedCount = 0;
+        for (const productId of affectedProductIds) {
+            const result = await updateProductDiscountsForSingleProduct(productId);
+            if (result.success) updatedCount++;
+        }
+
+        return res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: 'Product offer deleted successfully',
+            affectedProducts: affectedProductIds.length,
+            updatedProducts: updatedCount
+        });
+    } catch (error) {
+        console.error('Error deleting product offer:', error);
+        return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, error: error.message });
+    }
+};
 
 export const getAllProductOffers = async (req, res) => {
     try {
-        // Fetch all product offers and populate the products field with product names
         const productOffers = await ProductOffer.find().populate("products", "name")
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "Product offers fetched successfully",
             offers: productOffers
         });
     } catch (error) {
         console.error("Error fetching product offers:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Failed to fetch product offers",
             error: error.message
@@ -998,10 +1097,6 @@ export const createCategoryOffer = async (req, res) => {
         const { name, discount, category, startDate, endDate } = req.body;
 
 
-
-        // Optionally, add any further validation here
-
-        // Create a new ProductOffer instance
         const newOffer = new CategoryOffer({
             name,
             discount,
@@ -1010,19 +1105,18 @@ export const createCategoryOffer = async (req, res) => {
             endDate
         });
 
-        // Save the offer in the database
         const savedOffer = await newOffer.save();
 
-        console.log(category);
+        await updateProductDiscounts()
 
-        res.status(201).json({
+        res.status(HttpStatusCode.CREATED).json({
             success: true,
             message: "category offer created successfully",
             offer: savedOffer
         });
     } catch (error) {
         console.error("Error creating category offer:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Failed to create category offer",
             error: error.message
@@ -1031,21 +1125,102 @@ export const createCategoryOffer = async (req, res) => {
 };
 
 
+export const editCategoryOffer = async (req, res) => {
 
+    try {
+        const id = req.params.id
+
+        const payload = req.body
+
+        const offer = await CategoryOffer.findByIdAndUpdate(id, payload, { new: true })
+
+        if (!offer) {
+            return res.status(HttpStatusCode.NOT_FOUND).json({
+                success: false,
+                message: "offer not found"
+            })
+        }
+
+        await updateProductDiscounts()
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "offer edited succesfully"
+        })
+
+    } catch (error) {
+
+        console.log("error in editing category offer", error)
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: true,
+            message: "server error"
+        })
+    }
+}
+
+
+export const deleteCategoryOffer = async (req, res) => {
+
+    try {
+        const id = req.params.id
+
+        const offer = await CategoryOffer.findById(id)
+
+        if (!offer) {
+            return res.status(HttpStatusCode.FORBIDDEN).json({
+                success: false,
+                message: "failed to find offer"
+            })
+        }
+
+        const products = await Product.find({ deletedAt: null })
+
+        let affectedProducts = products.filter((product) => product.category.toString() == offer.category.toString());
+
+        console.log("affectedddddddddddddddddd", affectedProducts);
+
+        const isDeleted = await CategoryOffer.findByIdAndDelete(id)
+
+        if (!isDeleted) {
+            return res.status(HttpStatusCode.FORBIDDEN).json({
+                success: false,
+                message: "failed to delete offer"
+            })
+        }
+
+        for (const product of affectedProducts) {
+            await updateProductDiscountsForSingleProduct(product._id)
+        }
+
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "offer deleted succesfully"
+        })
+
+    } catch (error) {
+
+        console.log("error in category offer delection", error)
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
 
 export const getAllCategoryOffers = async (req, res) => {
     try {
-        // Fetch all product offers and populate the products field with product names
+
         const categoryOffers = await CategoryOffer.find().populate("category", "name")
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "Product offers fetched successfully",
             offers: categoryOffers
         });
     } catch (error) {
         console.error("Error fetching product offers:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Failed to fetch product offers",
             error: error.message
@@ -1060,23 +1235,29 @@ export const getAllCategoryOffers = async (req, res) => {
 export const createReferalOffer = async (req, res) => {
 
     try {
-        const { name, rewardAmount, rewardType, method, minPurchase, validity } = req.body;
 
-        // Create new offer instance
+        const { name, rewardAmount, validity } = req.body;
+
+
         const newOffer = new ReferralOffer({
             name,
             rewardAmount,
-            rewardType,
-            method,
-            minPurchase,
             validity
         });
 
         const savedOffer = await newOffer.save();
-        res.status(201).json({ success: true, data: savedOffer });
+
+        console.log("hello", name, rewardAmount, validity);
+        res.status(HttpStatusCode.CREATED).json({
+            success: true,
+            data: savedOffer
+        });
     } catch (error) {
         console.error('Error creating referral offer:', error);
-        res.status(500).json({ success: false, message: 'Server error while creating offer.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Server error while creating offer.'
+        });
     }
 }
 
@@ -1084,11 +1265,11 @@ export const createReferalOffer = async (req, res) => {
 
 export const getReferalOffers = async (req, res) => {
     try {
-        const offers = await ReferralOffer.find({});
-        res.status(200).json({ success: true, offers });
+        const offers = await ReferralOffer.find({ deletedAt: null });
+        res.status(HttpStatusCode.OK).json({ success: true, offers });
     } catch (error) {
         console.error("Error fetching referral offers:", error);
-        res.status(500).json({ success: false, message: "Server error while fetching offers." });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error while fetching offers." });
     }
 }
 
@@ -1106,13 +1287,14 @@ export const editReferalOffer = async (req, res) => {
         );
 
         if (!updatedOffer) {
-            return res.status(404).json({ success: false, message: 'Referral offer not found.' });
+            return res.status(HttpStatusCode.NOT_FOUND).json({ success: false, message: 'Referral offer not found.' });
         }
 
-        res.status(200).json({ success: true, data: updatedOffer });
+        res.status(HttpStatusCode.OK).json({ success: true, data: updatedOffer });
+
     } catch (error) {
         console.error('Error updating referral offer:', error);
-        res.status(500).json({ success: false, message: 'Server error while updating offer.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error while updating offer.' });
     }
 }
 
@@ -1128,23 +1310,21 @@ export const salesReport = async (req, res) => {
 
 
     try {
-        // Retrieve query parameters for filtering, sorting, and pagination
+
         const {
             searchTerm,
-            dateRange,       // Options: all, today, last7days, thisMonth, custom
-            customStartDate, // used when dateRange === 'custom'
-            customEndDate,   // used when dateRange === 'custom'
+            dateRange,
+            customStartDate,
+            customEndDate,
             page = 1,
             pageSize = 10,
-            sortBy = 'createdAt', // default sort field (you can allow others like totalAmount)
+            sortBy = 'createdAt',
             sortOrder = 'desc'
         } = req.query;
 
-        // Build filter object based on provided parameters
+
         let filters = {};
 
-        // For a search term, you might want to search in order status or totalAmount.
-        // Note: orderNumber is a virtual field and cannot be directly queried.
         if (searchTerm) {
             filters.$or = [
                 { orderStatus: { $regex: searchTerm, $options: 'i' } },
@@ -1153,7 +1333,6 @@ export const salesReport = async (req, res) => {
             ];
         }
 
-        // Filter by date range using the createdAt field
         const now = new Date();
         if (dateRange === 'today') {
             const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -1162,7 +1341,7 @@ export const salesReport = async (req, res) => {
             filters.createdAt = { $gte: start, $lt: end };
         } else if (dateRange === 'last7days') {
             const start = new Date();
-            start.setDate(now.getDate() - 6); // last 7 days (including today)
+            start.setDate(now.getDate() - 6);
             filters.createdAt = { $gte: start, $lte: now };
         } else if (dateRange === 'thisMonth') {
             const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -1173,23 +1352,19 @@ export const salesReport = async (req, res) => {
             const end = new Date(customEndDate);
             filters.createdAt = { $gte: start, $lte: end };
         }
-        // For 'all', no date filter is applied
 
-        // Set up sort options based on provided sort field and order.
-        // You can extend this logic to allow sorting on additional fields.
+
         let sortOptions = {};
         if (sortBy === 'totalAmount' || sortBy === 'discount') {
             sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
         } else if (sortBy === 'createdAt') {
             sortOptions.createdAt = sortOrder === 'asc' ? 1 : -1;
         } else {
-            sortOptions.createdAt = -1; // default fallback
+            sortOptions.createdAt = -1;
         }
 
-        // Count the total number of documents that match the filters (for pagination)
         const totalCount = await Order.countDocuments(filters);
 
-        // Build an aggregation pipeline to return both summary info and paginated data
         const pipeline = [
             { $match: filters },
             {
@@ -1221,8 +1396,7 @@ export const salesReport = async (req, res) => {
         };
         const data = result[0].data;
 
-        // Send the report response in a format that the frontend can easily use
-        res.json({
+        res.status(HttpStatusCode.OK).json({
             summary,
             data,
             pagination: {
@@ -1234,6 +1408,76 @@ export const salesReport = async (req, res) => {
         });
     } catch (error) {
         console.error('Error generating sales report:', error);
-        res.status(500).json({ error: 'Failed to generate sales report.' });
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ error: 'Failed to generate sales report.' });
+    }
+}
+
+
+export const toggleReferalStatus = async (req, res) => {
+
+    try {
+
+        const { id } = req.params
+
+        const { status } = req.body
+
+        if (status) {
+
+            const offers = await ReferralOffer.updateMany({}, { isActive: false })
+            console.log(offers);
+        }
+
+
+        const update = await ReferralOffer.findByIdAndUpdate(id, { isActive: status }, { new: true })
+
+        if (!update) {
+            return res.status(404).json({
+                success: false,
+                message: "offer not found"
+            })
+        }
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "status updated successfully",
+            offer: update
+        })
+
+
+    } catch (error) {
+        console.error('Error updating referral offer status:', error);
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Server error while updating offer status.'
+        });
+    }
+}
+
+export const deleteReferealOffer = async (req, res) => {
+
+    try {
+
+        const { id } = req.params
+
+        const offer = await ReferralOffer.findByIdAndUpdate(id, { deletedAt: new Date() }, { new: true })
+
+        if (!offer) {
+            return res.status(404).json({
+                success: false,
+                message: "failed to delete offer"
+            })
+        }
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "offer deleted succesfully"
+        })
+
+    } catch (error) {
+        console.log("error in deleting referral offer", error)
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "server error"
+        })
     }
 }

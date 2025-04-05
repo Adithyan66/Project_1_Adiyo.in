@@ -1,25 +1,47 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Coupen } from "../../../icons/icons";
 import axios from "axios";
+import { getCategoryList } from "../../../services/categoryService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 
 
-const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal }) => {
+const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal, fetchCoupons }) => {
 
+    console.log("EditCouponModal", coupon);
 
-    // Local state for form fields
     const [couponName, setCouponName] = useState(coupon.name);
     const [couponCode, setCouponCode] = useState(coupon.code);
     const [discountValue, setDiscountValue] = useState(coupon.discountValue);
     const [limit, setLimit] = useState(coupon.maxUsage);
-    const [activeDate, setActiveDate] = useState(coupon.activeFrom);
-    const [expireDate, setExpireDate] = useState(coupon.expiresAt);
-    const [mimimumOrder, setMimimumOrder] = useState(coupon.minOrderValue);
-    const [selectedCategory, setSelectedCategory] = useState(coupon.applicableCategories[0])
+    const [activeDate, setActiveDate] = useState(formatDate(coupon.activeFrom));
+    const [expireDate, setExpireDate] = useState(formatDate(coupon.expiresAt));
+    const [mimimumOrder, setMimimumOrder] = useState(coupon.minimumOrderValue);
+    const [selectedCategory, setSelectedCategory] = useState(coupon.applicableCategories._id);
+    const [categoryList, setCategoryList] = useState([]);
     const [error, setError] = useState("");
 
+    useEffect(() => {
+
+        fetchCategoryList()
+
+    }, [])
+
+    function formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+
+
+    const fetchCategoryList = async () => {
+        const response = await getCategoryList()
+        setCategoryList(response.data.categories)
+    }
 
     const handleCreate = () => {
 
@@ -34,10 +56,7 @@ const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal }) 
             }
         }
 
-        // Clear any existing error
         setError("");
-
-        // Construct coupon data
 
 
         const handleSubmit = async () => {
@@ -49,13 +68,16 @@ const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal }) 
                 maxUsage: limit,
                 activeFrom: activeDate,
                 expiresAt: expireDate,
-                applicableCategories: selectedCategory
+                applicableCategories: selectedCategory,
+                id: coupon._id,
+                minimumOrderValue: mimimumOrder
             };
 
             try {
-                const response = await axios.post(`${API_BASE_URL}/admin/add-coupon`,
+                const response = await axios.patch(`${API_BASE_URL}/admin/edit-coupon`,
                     newCoupon
                 )
+                handleCloseEditModal(false)
                 console.log(response.data);
                 fetchCoupons()
 
@@ -80,9 +102,6 @@ const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal }) 
 
 
 
-
-    // If modal is not open, do not render
-    // if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-30 backdrop-blur-xs">
@@ -178,19 +197,19 @@ const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal }) 
                         {/* Limit */}
                         <div className="w-1/2">
                             <label className="block font-medium mb-1">Applicable Categories</label>
-                            <select
-                                className="w-full border-gray-200 border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black"
-                                value={selectedCategory}
-                                onChange={(e) => setSelectedCategory(e.target.value)}
-                            >
-                                <option value="">Select Category</option>
-                                <option value="formal">Formal</option>
-                                <option value="casual">Casual</option>
-                                <option value="party">Party</option>
-                                <option value="gym">Gym</option>
-                                <option value="business">Business</option>
-                                <option value="outdoor">Outdoor</option>
-                            </select>
+
+                            {categoryList.length > 0 && (
+                                <>
+                                    <select
+                                        className="w-full border-gray-200 border rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-black"
+                                        value={selectedCategory}
+                                        onChange={(e) => setSelectedCategory(e.target.value)}
+                                    >
+                                        {categoryList.map((category, ind) =>
+                                            <option key={ind} value={category._id}>{category.name}</option>)}
+                                    </select>
+                                </>
+                            )}
                         </div>
 
                     </div>

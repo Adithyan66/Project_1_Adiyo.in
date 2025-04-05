@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
+import HttpStatusCode from "../utils/httpStatusCodes.js";
 
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
@@ -29,6 +30,8 @@ import Coupon from "../models/couponModel.js";
 import { Wallet, Transaction, ReturnRefund } from "../models/walletModel.js";
 import ProductOffer from "../models/productOfferModel.js";
 import CategoryOffer from "../models/categoryOfferModel.js";
+import { UserReferral, Referral } from "../models/referralModel.js";
+import ReferralOffer from "../models/referalOfferModel.js";
 
 
 const salt = await bcrypt.genSalt(10);
@@ -37,11 +40,12 @@ const salt = await bcrypt.genSalt(10);
 
 
 
+
 export const signUp = async (req, res) => {
 
-    try {
-        const { username, email, password, role } = req.body;
 
+    try {
+        const { username, email, password, role, referralCode } = req.body;
 
         if (!username || !email || !password) {
             return res.status(400).json({
@@ -55,10 +59,32 @@ export const signUp = async (req, res) => {
             return res.status(400).json({ success: false, message: "User already exists" });
         }
 
-        const userId = await generateUniqueUserId(role)
+        const userId = await generateUniqueUserId(role);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        // const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+        let referrerUserReferral = null;
+        let referralOffer = null;
+
+        if (referralCode) {
+            referralOffer = await ReferralOffer.findOne({ isActive: true, deletedAt: null });
+
+            if (!referralOffer) {
+                return res.status(400).json({
+                    success: false,
+                    message: "No active referral program is available at the moment"
+                });
+            }
+
+
+            referrerUserReferral = await UserReferral.findOne({ referralCode })
+
+            if (!referrerUserReferral) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid referral code"
+                });
+            }
+        }
 
         const user = await User.create({
             username,
@@ -67,6 +93,80 @@ export const signUp = async (req, res) => {
             password: hashedPassword,
             role: role || "customer",
         });
+
+        if (referralCode && referrerUserReferral && referralOffer) {
+
+            const referalAmount = referralOffer.rewardAmount;
+
+            const wallet = await Wallet.findOne({ userId: referrerUserReferral.user })
+
+            const session = await mongoose.startSession();
+
+            session.startTransaction();
+
+            try {
+
+                const transaction = new Transaction({
+                    walletId: wallet._id,
+                    userId: referrerUserReferral.user,
+                    type: "referral",
+                    amount: referalAmount,
+                    balance: wallet.balance + referalAmount,
+                    description: `Referral bonus from ${username}`,
+                    status: "completed",
+                    source: "referral",
+                })
+
+                await transaction.save({ session });
+                wallet.balance += referalAmount;
+                wallet.updatedAt = new Date();
+                await wallet.save({ session });
+
+                await session.commitTransaction();
+                session.endSession();
+
+            } catch (error) {
+
+                console.log("Transaction error:", error);
+
+
+                await session.abortTransaction();
+                session.endSession();
+                throw error;
+
+            }
+
+            const newReferral = await Referral.create({
+                user: referrerUserReferral.user,
+                name: username,
+                email,
+                status: 'inactive',
+                amount: referalAmount,
+                isPaid: true,
+            });
+
+            referrerUserReferral.referrals.push(newReferral._id);
+
+            await referrerUserReferral.updateStats();
+
+            await UserReferral.create({
+                user: user._id,
+                referralCode: await generateUniqueReferralCode(),
+                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referrals: []
+            });
+
+        } else if (!referralCode) {
+
+            const referralCode = await generateUniqueReferralCode()
+
+            await UserReferral.create({
+                user: user._id,
+                referralCode,
+                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referrals: []
+            });
+        }
 
         const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
 
@@ -77,11 +177,10 @@ export const signUp = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-
         res.status(201).json({
             success: true,
-            message: "User created successfull",
-            token: token,
+            message: "User created successfully",
+            token,
             role: user.role,
             user: {
                 _id: user._id,
@@ -96,6 +195,56 @@ export const signUp = async (req, res) => {
         res.status(500).json({ success: false, message: "Internal server error" });
     }
 };
+
+
+
+
+const generateUniqueReferralCode = async () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let referralCode;
+    let isUnique = false;
+
+    while (!isUnique) {
+        referralCode = '';
+        for (let i = 0; i < 10; i++) {
+            referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+
+        // Check if this code already exists
+        const existingCode = await UserReferral.findOne({ referralCode });
+        if (!existingCode) {
+            isUnique = true;
+        }
+    }
+
+    return referralCode;
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const login = async (req, res) => {
 
@@ -334,7 +483,7 @@ export const googleLogin = async (req, res) => {
     }
 
     try {
-        // Verify the Google ID token
+
         const ticket = await client.verifyIdToken({
             idToken,
             audience: process.env.GOOGLE_CLIENT_ID,
@@ -342,40 +491,54 @@ export const googleLogin = async (req, res) => {
         const payload = ticket.getPayload();
         const { sub: googleId, email, name } = payload;
 
-        // Check if user exists; if not, create a new one
         let user = await User.findOne({ email });
+        let role = "customer";
+
         if (!user) {
+
+            const userId = await generateUniqueUserId(role);
+
             user = new User({
                 username: name,
                 email,
                 googleId,
+                userId,
             });
             await user.save();
+
+            const referralCode = await generateUniqueReferralCode()
+
+            await UserReferral.create({
+                user: user._id,
+                referralCode,
+                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referrals: []
+            });
+
         }
 
-        // Optional: You could re-fetch the user if needed
-        // user = await User.findOne({ email });
+        user = await User.findOne({ email });
 
-        // If the user is blocked, stop further processing
         if (!user.isActive) {
+
             return res.status(400).json({
                 success: false,
                 message: 'User is Blocked'
             });
         }
 
-        // Sign a JWT token with the user's ID. Use an environment variable for the secret.
+
+
+
         const sessionToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "30d" });
 
-        // Set the token in an HTTP-only cookie
         res.cookie("session", sessionToken, {
             httpOnly: true,
-            secure: false,      // Set to true in production (with HTTPS)
+            secure: false,
             sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,  // 30 days
+            maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        // Send response (Note: consider not sending the token in JSON if you're relying on cookies)
         res.status(200).json({
             success: true,
             message: 'Google login successful',
@@ -636,7 +799,7 @@ export const productList = async (req, res) => {
         const skip = (page - 1) * limit;
         pipeline.push({ $skip: skip }, { $limit: limit });
 
-        // Debug: Log the pipeline to help diagnose issues
+
         // console.log("Pipeline:", JSON.stringify(pipeline, null, 2));
 
         const products = await Product.aggregate(pipeline);
@@ -1772,7 +1935,7 @@ export const createOrder = async (req, res) => {
                 activeFrom: { $lte: new Date() },
                 expiresAt: { $gt: new Date() },
                 $expr: { $lt: ["$usedCount", "$maxUsage"] }
-            });
+            }).populate('applicableCategories');
 
             if (!appliedCoupon) {
                 return res.status(400).json({
@@ -1781,25 +1944,31 @@ export const createOrder = async (req, res) => {
                 });
             }
 
-            if (appliedCoupon.minOrderValue && totalSubtotal < appliedCoupon.minOrderValue) {
+            if (appliedCoupon.minimumOrderValue && totalSubtotal < appliedCoupon.minimumOrderValue) {
                 return res.status(400).json({
                     success: false,
-                    message: `Minimum order value of ${appliedCoupon.minOrderValue} required for this coupon`
+                    message: `Minimum order value of ${appliedCoupon.minimumOrderValue} required for this coupon`
                 });
             }
 
             let isCouponApplicable = false;
 
-            if (!appliedCoupon.applicableCategories || appliedCoupon.applicableCategories.length === 0) {
+            if (
+                !appliedCoupon.applicableCategories ||
+                Object.keys(appliedCoupon.applicableCategories).length === 0
+            ) {
                 isCouponApplicable = true;
             } else {
                 for (const category of productCategories) {
-                    if (appliedCoupon.applicableCategories.includes(category)) {
+                    console.log("category", appliedCoupon.applicableCategories._id, "          ji", category);
+
+                    if (appliedCoupon.applicableCategories._id.equals(category)) {
                         isCouponApplicable = true;
                         break;
                     }
                 }
             }
+
 
             if (!isCouponApplicable) {
                 return res.status(400).json({
@@ -1854,7 +2023,7 @@ export const createOrder = async (req, res) => {
             walletTransaction = new Transaction({
                 walletId: wallet._id,
                 userId: req.user.userId,
-                type: 'debit',
+                type: 'order_payment',
                 amount: finalTotalAmount,
                 balance: wallet.balance - finalTotalAmount,
                 description: `Payment for order #ORD-${Date.now()}`,
@@ -2033,7 +2202,7 @@ export const createOrder = async (req, res) => {
         // Create consolidated response object
         const consolidatedOrderDetails = {
             orderNumber: commonOrderNumber,
-            orderId: commonOrderNumber, // Include orderId in the response
+            orderId: commonOrderNumber,
             totalAmount: finalTotalAmount,
             shippingAddress: selectedAddress,
             paymentMethod,
@@ -2164,22 +2333,6 @@ export const cancelOrder = async (req, res) => {
             });
         }
 
-        // const productId = order.orderItems[0].product
-
-        // const product = await Product.findById(productId)
-
-        // const price = product.colors.find((c) => c.color == order.orderItems[0].color)
-
-        // console.log(price);
-
-        // if (price.discountPrice >1000 && price.totalStock<5){
-
-        //     let refundAmount = price.discountPrice*0.95
-
-        // }
-
-
-
 
         order.orderStatus = "cancelled";
         order.cancelReason = reason;
@@ -2213,7 +2366,7 @@ export const cancelOrder = async (req, res) => {
             const transaction = new Transaction({
                 walletId: wallet._id,
                 userId: order.user,
-                type: 'credit',
+                type: 'cancellation_refund',
                 amount: refundAmount,
                 balance: wallet.balance,
                 description: `Refund for cancelled order #${order.orderNumber || orderId}`,
@@ -2574,10 +2727,10 @@ export const validateCoupon = async (req, res) => {
             });
         }
 
-        if (coupon.minOrderValue && orderTotal < coupon.minOrderValue) {
+        if (coupon.minimumOrderValue && orderTotal < coupon.minimumOrderValue) {
             return res.status(400).json({
                 success: false,
-                message: `Minimum order value for this coupon is ${coupon.minOrderValue}`
+                message: `Minimum order value for this coupon is ${coupon.minimumOrderValue}`
             });
         }
 
@@ -2765,7 +2918,7 @@ export const getWalletBalance = async (req, res) => {
 export const walletRecharge = async (req, res) => {
 
 
-    const { userId } = req.user; // Assuming user is authenticated and available in req.user
+    const { userId } = req.user;
     const { paymentMethod, paypalOrderID } = req.body;
     let { amount } = req.body;
 
@@ -2833,13 +2986,11 @@ export const walletRecharge = async (req, res) => {
                     message: error.message || "Failed to verify PayPal payment"
                 });
             }
-        } else if (paymentMethod === 'credit_card') {
-            // Handle credit card payment verification
-            // This is a placeholder - implement actual credit card verification
-            // paymentVerified = await verifyCardPayment(req.body.cardDetails);
+        } else if (paymentMethod === 'razopay') {
+
             return res.status(501).json({
                 success: false,
-                message: "Credit card payment method not implemented yet"
+                message: "razopay payment method not implemented yet"
             });
         } else {
             return res.status(400).json({
@@ -2848,9 +2999,7 @@ export const walletRecharge = async (req, res) => {
             });
         }
 
-        // If payment is verified, create transaction and update wallet
         if (paymentVerified) {
-            // Start a session for transaction atomicity
             const session = await mongoose.startSession();
             session.startTransaction();
 
@@ -2873,12 +3022,12 @@ export const walletRecharge = async (req, res) => {
 
                 await transaction.save({ session });
 
-                // Update wallet balance
+
                 wallet.balance += amount;
                 wallet.updatedAt = new Date();
                 await wallet.save({ session });
 
-                // Commit the transaction
+
                 await session.commitTransaction();
                 session.endSession();
 
@@ -2901,7 +3050,7 @@ export const walletRecharge = async (req, res) => {
                     }
                 });
             } catch (error) {
-                // Abort transaction in case of error
+
                 await session.abortTransaction();
                 session.endSession();
                 throw error;
@@ -2931,7 +3080,7 @@ export const checkOffer = async (req, res) => {
 
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({ message: "Product not found" });
+            return res.status(HttpStatusCode.FORBIDDEN).json({ message: "Product not found" });
         }
 
         const currentDate = new Date();
@@ -2965,7 +3114,7 @@ export const checkOffer = async (req, res) => {
             }))
         ];
 
-        res.status(200).json({
+        res.status(HttpStatusCode.OK).json({
             success: true,
             message: "offer vailable",
             offers
@@ -2974,7 +3123,7 @@ export const checkOffer = async (req, res) => {
     } catch (error) {
 
         console.error("Error fetching offers:", error);
-        res.status(500).json({
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });
@@ -2982,3 +3131,80 @@ export const checkOffer = async (req, res) => {
 }
 
 
+
+
+export const referalDetails = async (req, res) => {
+
+    try {
+        const userId = req.user.userId
+        const { page, limit, search } = req.query
+
+
+
+        const referralData = await UserReferral.findOne({ user: userId }).populate({
+            path: "referrals",
+            match: search ? {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } }
+                ]
+            } : {},
+            options: {
+                sort: { createdAt: -1 },
+                skip: (page - 1) * limit,
+                limit: limit
+            }
+        }
+        )
+
+        if (!referralData) {
+            return res.status(HttpStatusCode.NOT_FOUND).json({
+                success: false,
+                message: "Referral data not found"
+            })
+        }
+        console.log(referralData);
+
+        const formattedRefferals = referralData.referrals.map(ref =>
+        ({
+            id: ref._id,
+            name: ref.name,
+            email: ref.email,
+            joinedDate: ref.joinedDate,
+            status: ref.status,
+            amount: ref.amount,
+        })
+        )
+
+        const totalReferrals = search
+            ? referralData.referrals.length
+            : referralData.stats.totalReferrals;
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "Referral data fetched successfully",
+            referralDetails: {
+                referralCode: referralData.referralCode,
+                referralLink: referralData.referralLink,
+                totalEarned: referralData.stats.totalEarned,
+                pendingAmount: referralData.stats.pendingAmount,
+                totalReferrals: referralData.stats.totalReferrals,
+                activeReferrals: referralData.stats.activeReferrals,
+            },
+            referrals: formattedRefferals,
+            pagination: {
+                page: page || 1,
+                limit,
+                totalReferrals,
+                totalPages: Math.ceil(totalReferrals / limit)
+            }
+        })
+
+    } catch (error) {
+        console.error("Error fetching referral details:", error);
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}

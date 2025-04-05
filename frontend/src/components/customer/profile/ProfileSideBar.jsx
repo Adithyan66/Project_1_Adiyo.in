@@ -186,6 +186,13 @@ const ProfileSideBar = () => {
                             </div>
                             <div
                                 className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                onClick={() => handleNavigation("/user/referrals", "referrals")}
+                            >
+                                <Star size={16} className="mr-2 text-gray-500" />
+                                <span>My Referrals</span>
+                            </div>
+                            <div
+                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
                                 onClick={() => handleNavigation("/user/wallet", "wallet")}
                             >
                                 <Wallet size={16} className="mr-2 text-gray-500" />

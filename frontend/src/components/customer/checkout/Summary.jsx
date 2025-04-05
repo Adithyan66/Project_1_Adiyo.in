@@ -66,7 +66,7 @@ function Summary() {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg  p-6">
             <div className="flex items-center mb-6">
                 <ShoppingBag className="text-black mr-2" size={24} />
                 <h2 className="text-xl font-semibold text-gray-800">Order Summary</h2>
@@ -107,7 +107,7 @@ function Summary() {
                 )}
 
                 {/* Order Product Section */}
-                <div className="border rounded-lg p-4">
+                <div className="shadow-2xl rounded-lg p-4">
                     <div className="flex">
                         <div className="flex-shrink-0">
                             <img

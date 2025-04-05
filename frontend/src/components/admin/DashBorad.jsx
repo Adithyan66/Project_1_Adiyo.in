@@ -49,6 +49,7 @@ const DashBoard = () => {
         { id: 'manageCategory', label: 'Manage Category', icon: <ManageCatogeryIcon className="w-5 h-5" />, path: "/admin/manage-Category" },
         { id: 'offers', label: 'Manage Offers', icon: <ManageCatogeryIcon className="w-5 h-5" />, path: "/admin/manage-offers" },
         { id: 'salesReport', label: 'Sales Report', icon: <ManageCatogeryIcon className="w-5 h-5" />, path: "/admin/sales-report" },
+        { id: 'walletManagement', label: 'Wallet Management', icon: <ManageCatogeryIcon className="w-5 h-5" />, path: "/admin/wallet-management" },
     ];
 
     const handleMenuClick = (id, path) => {

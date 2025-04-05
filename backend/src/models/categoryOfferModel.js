@@ -15,7 +15,7 @@ const CategoryOfferSchema = new mongoose.Schema({
         max: 99
     },
     category: {
-        type: [mongoose.Schema.Types.ObjectId],
+        type: mongoose.Schema.Types.ObjectId,
         ref: "Category",
         required: true,
         trim: true

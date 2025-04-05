@@ -23,7 +23,7 @@ const CouponSchema = new mongoose.Schema(
             type: Number,
             min: 0,
         },
-        minOrderValue: {
+        minimumOrderValue: {
             type: Number,
             min: 0,
         },
@@ -45,11 +45,12 @@ const CouponSchema = new mongoose.Schema(
             default: 0,
             min: 0,
         },
-        applicableCategories: [
-            {
-                type: String,
-            },
-        ],
+        applicableCategories:
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category"
+        },
+
         deletedAt: { type: Date, default: null }
     },
     {

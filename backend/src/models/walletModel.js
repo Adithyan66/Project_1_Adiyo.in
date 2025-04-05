@@ -59,7 +59,7 @@ const TransactionSchema = new Schema({
     },
     type: {
         type: String,
-        enum: ['credit', 'debit'],
+        enum: ['credit', 'debit', 'refund', 'withdrawal', 'order_payment', 'order_refund', 'return_refund', 'cancellation_refund', 'referral'],
         required: true
     },
     amount: {
@@ -83,14 +83,14 @@ const TransactionSchema = new Schema({
     },
     source: {
         type: String,
-        enum: ['order_refund', 'order_payment', 'manual_credit', 'withdrawal', 'return_refund', 'cancellation_refund'],
+        enum: ['order_refund', 'order_payment', 'manual_credit', 'withdrawal', 'return_refund', 'cancellation_refund', 'referral'],
         required: true
     },
     reference: {
         orderId: {
             type: Schema.Types.ObjectId,
             ref: 'Order',
-            index: true  // inline index declaration
+            index: true
         },
         returnId: {
             type: Schema.Types.ObjectId,

@@ -2,6 +2,7 @@
 
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -27,9 +28,6 @@ const ManageOffers = () => {
         startDate: '',
         endDate: '',
         rewardAmount: '',
-        rewardType: 'percentage',
-        method: 'token',
-        minPurchase: '',
         validity: ''
     });
 
@@ -51,14 +49,20 @@ const ManageOffers = () => {
             startDate: '',
             endDate: '',
             rewardAmount: '',
-            rewardType: 'percentage',
-            method: 'token',
-            minPurchase: '',
             validity: ''
         });
         setSelectedProducts([]);
         setIsAddModalOpen(true);
     };
+
+    function formatDate(date) {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
 
     const handleEditOffer = (offer) => {
         setCurrentEditOffer(offer);
@@ -215,13 +219,16 @@ const ManageOffers = () => {
                 endDate: formData.endDate,
             };
 
-            let response;
-            console.log("payloadddddddddddddd", payload);
+            if (new Date(formData.startDate) > new Date(formData.endDate)) {
+                toast.error("Starting Date should be before Ending Date");
+                return;
+            }
 
+            let response;
 
             if (currentEditOffer) {
                 response = await axios.put(
-                    `${API_BASE_URL}/admin/product-offer/${currentEditOffer._id}`,
+                    `${API_BASE_URL}/admin/edit-product-offer/${currentEditOffer._id}`,
                     payload,
                     { withCredentials: true }
                 );
@@ -272,6 +279,11 @@ const ManageOffers = () => {
                 endDate: formData.endDate,
             };
 
+            if (new Date(formData.startDate) > new Date(formData.endDate)) {
+                toast.error("Starting Date should be before Ending Date");
+                return;
+            }
+
             let response;
 
             if (currentEditOffer) {
@@ -321,9 +333,6 @@ const ManageOffers = () => {
             const payload = {
                 name: formData.name,
                 rewardAmount: Number(formData.rewardAmount),
-                rewardType: formData.rewardType,
-                method: formData.method,
-                minPurchase: Number(formData.minPurchase),
                 validity: Number(formData.validity)
             };
 
@@ -421,13 +430,13 @@ const ManageOffers = () => {
                 endpoint = `${API_BASE_URL}/admin/category-offer/toggle-status/${id}`;
             } else if (activeTab === 'referralOffers') {
                 const offer = referralOffers.find(offer => offer._id === id);
-                currentStatus = offer.status;
+                currentStatus = offer.isActive;
                 endpoint = `${API_BASE_URL}/admin/referral-offer/toggle-status/${id}`;
             }
 
             const response = await axios.patch(
                 endpoint,
-                { status: currentStatus === 'active' ? 'inactive' : 'active' },
+                { status: currentStatus === true ? false : true },
                 { withCredentials: true }
             );
 
@@ -451,6 +460,8 @@ const ManageOffers = () => {
     // Function to render product names in the table
     const renderProductNames = (products) => {
         if (!products || products.length === 0) return "None";
+
+        products = Array.isArray(products) ? products : [products];
 
         if (products.length === 1) {
             const product = products[0];
@@ -559,12 +570,12 @@ const ManageOffers = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">
-                                            <button
+                                            {/* <button
                                                 onClick={() => toggleOfferStatus(offer._id)}
                                                 className={`px-2 py-1 rounded ${offer.status === 'active' ? 'bg-gray-200 text-gray-800' : 'bg-green-100 text-green-800'} hover:bg-opacity-80`}
                                             >
                                                 {offer.status === 'active' ? 'Deactivate' : 'Activate'}
-                                            </button>
+                                            </button> */}
                                             <button
                                                 onClick={() => handleEditOffer(offer)}
                                                 className="px-2 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
@@ -613,12 +624,12 @@ const ManageOffers = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">
-                                            <button
+                                            {/* <button
                                                 onClick={() => toggleOfferStatus(offer._id)}
                                                 className={`px-2 py-1 rounded ${offer.status === 'active' ? 'bg-gray-200 text-gray-800' : 'bg-green-100 text-green-800'} hover:bg-opacity-80`}
                                             >
                                                 {offer.status === 'active' ? 'Deactivate' : 'Activate'}
-                                            </button>
+                                            </button> */}
                                             <button
                                                 onClick={() => handleEditOffer(offer)}
                                                 className="px-2 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
@@ -645,8 +656,7 @@ const ManageOffers = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Offer Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reward</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Min Purchase</th>
+
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Validity (days)</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -656,30 +666,24 @@ const ManageOffers = () => {
                             {referralOffers.map((offer) => (
                                 <tr key={offer._id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {offer.rewardAmount}{offer.rewardType === 'percentage' ? '%' : 'fixed'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {offer.method === 'token' ? 'Referral Code' : 'Email Invite'}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        ${offer.minPurchase.toFixed(2)}
-                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{offer.rewardAmount}</td>
+
+
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         {offer.validity}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${offer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                            {offer.status === 'active' ? 'Active' : 'Inactive'}
+                                            {offer.isActive === true ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">
                                             <button
                                                 onClick={() => toggleOfferStatus(offer._id)}
-                                                className={`px-2 py-1 rounded ${offer.status === 'active' ? 'bg-gray-200 text-gray-800' : 'bg-green-100 text-green-800'} hover:bg-opacity-80`}
+                                                className={`px-2 py-1 rounded ${offer.isActive === true ? 'bg-gray-200 text-gray-800' : 'bg-green-100 text-green-800'} hover:bg-opacity-80`}
                                             >
-                                                {offer.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                {offer.isActive === true ? 'Deactivate' : 'Activate'}
                                             </button>
                                             <button
                                                 onClick={() => handleEditOffer(offer)}
@@ -789,7 +793,7 @@ const ManageOffers = () => {
                                                 <input
                                                     type="date"
                                                     name="startDate"
-                                                    value={formData.startDate}
+                                                    value={formatDate(formData.startDate)}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                                     required
@@ -802,7 +806,7 @@ const ManageOffers = () => {
                                                 <input
                                                     type="date"
                                                     name="endDate"
-                                                    value={formData.endDate}
+                                                    value={formatDate(formData.endDate)}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                                     required
@@ -837,7 +841,7 @@ const ManageOffers = () => {
                                             </label>
                                             <select
                                                 name="category"
-                                                value={formData.category}
+                                                value={formData.category._id}
                                                 onChange={handleInputChange}
                                                 className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                                 required
@@ -859,7 +863,7 @@ const ManageOffers = () => {
                                                 <input
                                                     type="date"
                                                     name="startDate"
-                                                    value={formData.startDate}
+                                                    value={formatDate(formData.startDate)}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                                     required
@@ -872,7 +876,7 @@ const ManageOffers = () => {
                                                 <input
                                                     type="date"
                                                     name="endDate"
-                                                    value={formData.endDate}
+                                                    value={formatDate(formData.endDate)}
                                                     onChange={handleInputChange}
                                                     className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
                                                     required
@@ -902,55 +906,6 @@ const ManageOffers = () => {
                                             </div>
                                             <div>
                                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Reward Type
-                                                </label>
-                                                <select
-                                                    name="rewardType"
-                                                    value={formData.rewardType}
-                                                    onChange={handleInputChange}
-                                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
-                                                    required
-                                                >
-                                                    <option value="percentage">Percentage (%)</option>
-                                                    <option value="fixed">fixed</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div className="mb-4">
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                Referral Method
-                                            </label>
-                                            <select
-                                                name="method"
-                                                value={formData.method}
-                                                onChange={handleInputChange}
-                                                className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
-                                                required
-                                            >
-                                                <option value="token">Referral Code</option>
-                                                <option value="email">Email Invite</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="grid grid-cols-2 gap-4 mb-4">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                                    Minimum Purchase ($)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    name="minPurchase"
-                                                    min="0"
-                                                    step="0.01"
-                                                    value={formData.minPurchase}
-                                                    onChange={handleInputChange}
-                                                    className="w-full p-2 border border-gray-300 rounded-md shadow-sm"
-                                                    required
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                                     Validity (days)
                                                 </label>
                                                 <input
@@ -964,6 +919,7 @@ const ManageOffers = () => {
                                                 />
                                             </div>
                                         </div>
+
                                     </>
                                 )}
 
