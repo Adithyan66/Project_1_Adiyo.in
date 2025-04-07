@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -16,6 +17,14 @@ const WalletManagement = () => {
         fetchTransactions();
     }, []);
 
+    // function formatDate(date) {
+    //     const d = new Date(date);
+    //     const year = d.getFullYear();
+    //     const month = String(d.getMonth() + 1).padStart(2, '0');
+    //     const day = String(d.getDate()).padStart(2, '0');
+    //     return `${year}-${month}-${day}`;
+    // }
+
     const fetchTransactions = async () => {
         setIsLoading(true);
         try {
@@ -26,6 +35,8 @@ const WalletManagement = () => {
 
             if (response.data.success) {
                 setTransactions(response.data.transactions);
+                console.log("Transactions fetched successfully:", response.data.transactions);
+
             } else {
                 toast.error('Failed to load transactions');
             }
@@ -162,16 +173,16 @@ const WalletManagement = () => {
                                 filteredTransactions.map((transaction) => (
                                     <tr key={transaction._id} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {transaction._id.substring(0, 8)}...
+                                            {transaction.transactionId}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {formatDate(transaction.date)}
+                                            {formatDate(transaction.createdAt)}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {transaction.user.name}
+                                            {transaction?.userId?.username}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {getTransactionTypeLabel(transaction.type)}
+                                            {getTransactionTypeLabel(transaction.type.replace("_", " "))}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm">
                                             {getTransactionStatusBadge(transaction.status)}
@@ -181,7 +192,11 @@ const WalletManagement = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button
-                                                onClick={() => handleViewDetails(transaction)}
+                                                onClick={() => {
+                                                    console.log("View details for transaction:", transaction);
+
+                                                    handleViewDetails(transaction)
+                                                }}
                                                 className="px-3 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200 mr-2"
                                             >
                                                 View Details
@@ -203,7 +218,7 @@ const WalletManagement = () => {
 
             {/* Transaction Details Modal */}
             {isDetailModalOpen && currentTransaction && (
-                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg max-w-2xl w-full shadow-2xl">
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-6">
@@ -225,14 +240,14 @@ const WalletManagement = () => {
                                 <div className="bg-gray-50 p-4 rounded-lg">
                                     <div className="flex justify-between">
                                         <h4 className="font-medium text-gray-900">
-                                            {getTransactionTypeLabel(currentTransaction.type)}
+                                            {getTransactionTypeLabel(currentTransaction.type.replace("_", " "))}
                                         </h4>
                                         <div>
                                             {formatAmount(currentTransaction.amount, currentTransaction.type)}
                                         </div>
                                     </div>
                                     <div className="mt-1 text-sm text-gray-500">
-                                        {formatDate(currentTransaction.date)}
+                                        {formatDate(currentTransaction.createdAt)}
                                     </div>
                                 </div>
 
@@ -240,7 +255,7 @@ const WalletManagement = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <h5 className="text-xs font-medium text-gray-500 uppercase mb-1">Transaction ID</h5>
-                                        <p className="text-sm text-gray-900">{currentTransaction._id}</p>
+                                        <p className="text-sm text-gray-900">{currentTransaction.transactionId}</p>
                                     </div>
                                     <div>
                                         <h5 className="text-xs font-medium text-gray-500 uppercase mb-1">Status</h5>
@@ -255,51 +270,35 @@ const WalletManagement = () => {
                                         <div className="grid grid-cols-2 gap-2">
                                             <div>
                                                 <p className="text-xs text-gray-500">Name</p>
-                                                <p className="text-sm font-medium">{currentTransaction.user.name}</p>
+                                                <p className="text-sm font-medium">{currentTransaction.userId.username}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500">Email</p>
-                                                <p className="text-sm">{currentTransaction.user.email}</p>
+                                                <p className="text-sm">{currentTransaction.userId.email}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500">User ID</p>
-                                                <p className="text-sm">{currentTransaction.user._id}</p>
+                                                <p className="text-sm">{currentTransaction.userId.userId}</p>
                                             </div>
                                             <div>
                                                 <p className="text-xs text-gray-500">Current Wallet Balance</p>
-                                                <p className="text-sm font-medium">₹{currentTransaction.user.walletBalance?.toFixed(2) || '0.00'}</p>
+                                                <p className="text-sm font-medium">₹{currentTransaction?.walletId?.balance?.toFixed(2) || '0.00'}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Source of Transaction */}
-                                {currentTransaction.order && (
-                                    <div>
-                                        <h5 className="text-xs font-medium text-gray-500 uppercase mb-2">Source of Transaction</h5>
-                                        <div className="bg-gray-50 p-3 rounded-md">
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <p className="text-xs text-gray-500">Order ID</p>
-                                                    <p className="text-sm font-medium">{currentTransaction.order._id}</p>
-                                                </div>
-                                                <button
-                                                    onClick={() => navigateToOrder(currentTransaction.order._id)}
-                                                    className="px-3 py-1 bg-gray-800 text-white text-sm rounded hover:bg-gray-700"
-                                                >
-                                                    View Order
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 {/* Additional Details */}
                                 {currentTransaction.description && (
                                     <div>
                                         <h5 className="text-xs font-medium text-gray-500 uppercase mb-2">Description</h5>
                                         <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-md">
-                                            {currentTransaction.description}
+                                            {(currentTransaction.reference.orderId) ?
+                                                <Link to={`/admin/order-details/${currentTransaction.reference.orderId}`}>{currentTransaction.description}</Link> :
+                                                currentTransaction.description
+                                            }
                                         </p>
                                     </div>
                                 )}

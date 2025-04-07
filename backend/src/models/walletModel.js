@@ -41,21 +41,27 @@ const WalletSchema = new Schema({
     }
 }, { timestamps: true });
 
-// Removed: WalletSchema.index({ userId: 1 });
+
 
 
 const TransactionSchema = new Schema({
+    transactionId: {
+        type: String,
+        required: true,
+        unique: true,
+        index: true
+    },
     walletId: {
         type: Schema.Types.ObjectId,
         ref: 'Wallet',
         required: true,
-        index: true  // inline index declaration
+        index: true
     },
     userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         required: true,
-        index: true  // inline index declaration
+        index: true
     },
     type: {
         type: String,

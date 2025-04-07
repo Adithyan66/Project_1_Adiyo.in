@@ -15,7 +15,8 @@ import LastTransaction from "../../../assets/images/Last Transaction.png";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomerRightSection({ customer }) {
-    // Use local state for the active status
+
+
     const [isActive, setIsActive] = useState(customer.isActive);
     const [blockLoading, setBlockLoading] = useState(false);
 

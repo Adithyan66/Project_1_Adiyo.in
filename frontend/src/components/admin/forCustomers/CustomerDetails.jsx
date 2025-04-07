@@ -60,54 +60,6 @@ function CustomerDetails() {
 
     return (
         <div className="flex bg-gray-100">
-            {/* Sidebar */}
-            {/* <aside className="w-64 bg-white shadow-md p-4">
-                <h2 className="text-xl font-bold mb-6">Admin</h2>
-                <nav className="space-y-2">
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/admin/dashboard')}
-                    >
-                        Dashboard
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/admin/sellers')}
-                    >
-                        Sellers
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200 bg-gray-200"
-                        onClick={() => navigate('/admin/customers')}
-                    >
-                        Customers
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/admin/delivery-agents')}
-                    >
-                        Delivery Agent
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/admin/manage-products')}
-                    >
-                        Manage Products
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/admin/edit-coupon')}
-                    >
-                        Edit Coupon
-                    </button>
-                    <button
-                        className="w-full text-left p-2 rounded hover:bg-gray-200"
-                        onClick={() => navigate('/logout')}
-                    >
-                        Sign out
-                    </button>
-                </nav>
-            </aside> */}
 
             <aside className="w-64 bg-white shadow-md p-4 sticky top-5 h-[800px]">
                 <h2 className="text-xl font-bold mb-6">Admin</h2>

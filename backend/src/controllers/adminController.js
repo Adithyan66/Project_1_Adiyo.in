@@ -1481,3 +1481,168 @@ export const deleteReferealOffer = async (req, res) => {
         })
     }
 }
+
+export const walletTransactions = async (req, res) => {
+
+    try {
+
+        const transactions = await Transaction.find({}).populate("userId").populate("walletId")
+        console.log("transactions", transactions);
+
+
+        if (!transactions) {
+            return res.status(HttpStatusCode.NOT_FOUND).json({
+                success: false,
+                message: "no transactions found"
+            })
+        }
+
+        res.status(HttpStatusCode.OK).json({
+            success: true,
+            message: "transactions fetched successfully",
+            transactions
+        })
+
+    } catch (error) {
+        console.log("error in fetching transactions", error)
+        res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
+
+export const getDashboardData = async (req, res) => {
+
+
+    const months = [
+        'January', 'February', 'March', 'April',
+        'May', 'June', 'July', 'August',
+        'September', 'October', 'November', 'December'
+    ];
+    const currentYear = new Date().getFullYear()
+    const years = new Array.from({ length: 5, }, (_, i) => currentYear - i)
+
+    try {
+
+        const year = parseInt(req.query.year)
+        const month = parseInt(req.query.month)
+        const timeFilter = req.query.timeFilter
+        const startDate = req.query.startDate;
+        const endDate = req.query.endDate;
+
+        console.log("query", req.query);
+        let aggr = {}
+
+        if (timeFilter == "yearly") {
+            aggr = [
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: new Date(`${year}-01-01`),
+                            $lte: new Date(`${year + 1}-01-01`)
+                        },
+                        orderStatus: "shipped"
+                    }
+                }, {
+                    $group: {
+                        _id: { $year: "$createdAt" },
+                        count: { $sum: 1 }
+                    },
+                }, {
+                    $sort: {
+                        _id: 1
+                    }
+                }
+            ]
+        } else if (timeFilter == "monthly") {
+            aggr = [
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: new Date(`${date}-${month}-01`),
+                            $lte: new Date(`${date}-${month + 1}-01`)
+                        },
+                        orderStatus: "shipped"
+                    },
+                    $group: {
+                        _id: { $month: "$createdAt" },
+                        count: { $sum: 1 }
+                    },
+                    $sort: {
+                        _id: 1
+                    }
+                }
+            ]
+        } else if (timeFilter == "weekly") {
+            aggr = [
+                {
+                    $addFields: {
+                        isoWeek: { $isoWeek: "$createdAt" },
+                        isoYear: { $isoyear: "$createdAt" }
+                    },
+                    $match: {
+                        createdAt: { $gte: new Date(new Date() - 1000 * 60 * 60 * 24 * 7 * 5) }
+                    },
+                    $group: {
+                        _id: {
+                            week: "$isoWeek",
+                            year: "$isoYear"
+                        }
+                    }
+                }
+            ]
+        } else if (timeFilter == "custom") {
+            aggr = [
+                {
+                    $match: {
+                        createdAt: {
+                            $gte: new Date(startDate),
+                            $lte: new Date(endDate)
+                        }
+                    },
+                    $group: {
+                        _id: {
+                            $month: "$createdAt"
+                        },
+                        count: { $sum: 1 }
+                    },
+                    $sort: {
+                        _id: 1
+                    }
+                }
+            ]
+        }
+
+
+        const ordersData = await Order.aggregate(aggr)
+
+        if (timeFilter == "monthly") {
+            const orders = months.map((month, ind) => {
+                const match = ordersData.find((order) => order._id == ind + 1)
+                return {
+                    month,
+                    count: match ? match.count : 0
+                }
+            })
+        } else if (timeFilter == "yearly") {
+            const orders = years.map((year, ind) => {
+                const match = ordersData.find((order) => order._id == year)
+                return {
+                    year,
+                    count: match ? match.count : 0
+                }
+            })
+        }
+
+
+        console.log(orders);
+
+
+
+
+
+    } catch (error) {
+
+    }
+}

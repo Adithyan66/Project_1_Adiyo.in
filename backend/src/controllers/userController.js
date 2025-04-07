@@ -7,6 +7,7 @@ import HttpStatusCode from "../utils/httpStatusCodes.js";
 
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
+import { generateTransactionId } from "../services/generateTransactionId.js";
 
 
 import { verifyPayPalOrder, capturePayPalPayment } from "../services/paypal.js";
@@ -106,7 +107,10 @@ export const signUp = async (req, res) => {
 
             try {
 
+                const transactionId = generateTransactionId()
+
                 const transaction = new Transaction({
+                    transactionId,
                     walletId: wallet._id,
                     userId: referrerUserReferral.user,
                     type: "referral",
@@ -2021,6 +2025,7 @@ export const createOrder = async (req, res) => {
 
             // Create wallet transaction
             walletTransaction = new Transaction({
+                transactionId: generateTransactionId(),
                 walletId: wallet._id,
                 userId: req.user.userId,
                 type: 'order_payment',
@@ -2364,6 +2369,7 @@ export const cancelOrder = async (req, res) => {
 
             // Create transaction record
             const transaction = new Transaction({
+                transactionId: generateTransactionId(),
                 walletId: wallet._id,
                 userId: order.user,
                 type: 'cancellation_refund',
@@ -3006,6 +3012,7 @@ export const walletRecharge = async (req, res) => {
             try {
                 // Create a new transaction record
                 const transaction = new Transaction({
+                    transactionId: generateTransactionId(),
                     walletId: wallet._id,
                     userId: userId,
                     type: 'credit',

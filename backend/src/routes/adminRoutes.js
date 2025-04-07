@@ -37,7 +37,9 @@ import {
     editProductOffer,
     deleteProductOffer,
     editCategoryOffer,
-    deleteCategoryOffer
+    deleteCategoryOffer,
+    walletTransactions,
+    getDashboardData
 } from "../controllers/adminController.js"
 
 
@@ -55,7 +57,8 @@ router.get("/product-offers", getAllProductOffers)
 router.get("/category-offers", getAllCategoryOffers)
 router.get("/referral-offers", getReferalOffers)
 router.get("/sales-report", salesReport)
-
+router.get("/wallet-transactions", walletTransactions)
+router.get("/dashboard", getDashboardData)
 
 
 

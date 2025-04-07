@@ -39,7 +39,7 @@ const DashBoard = () => {
     };
 
     const menuItems = [
-        { id: 'dashboard', label: 'Dashboard', icon: <Dashboard className="w-5 h-5" />, path: "/admin/sellers" },
+        { id: 'dashboard', label: 'Dashboard', icon: <Dashboard className="w-5 h-5" />, path: "/admin/dashboard" },
         { id: 'orders', label: 'Orders', icon: <OrdersIcon className="w-5 h-5" />, path: "/admin/orders" },
         { id: 'sellers', label: 'Sellers', icon: <ShopIcon className="w-5 h-5" />, path: "/admin/sellers" },
         { id: 'customers', label: 'Customers', icon: <CustomersListIcon className="w-5 h-5" />, path: "/admin/customers" },
@@ -58,13 +58,13 @@ const DashBoard = () => {
     };
 
     return (
-        <div className="flex min-h-[100%] bg-gray-50">
+        <div className="flex min-h-[100 vh] bg-gray-50 ">
             {/* Sidebar */}
-            <aside className="w-72 bg-white shadow-lg border-r border-gray-100 transition-all duration-300">
+            <aside className="w-72 bg-white shadow-lg border-r border-gray-100 transition-all duration-300 sticky top-0 h-screen">
                 <div className="flex flex-col h-full">
                     {/* Logo/Header */}
                     <div className="h-16 flex items-center px-6 border-b border-gray-100">
-                        <h2 className="text-xl font-bold text-gray-800 tracking-wide">ADMIN PANEL</h2>
+                        <h2 className="text-xl font-bold text-gray-800 tracking-wide ">ADMIN PANEL</h2>
                     </div>
 
                     {/* Navigation */}
@@ -104,15 +104,7 @@ const DashBoard = () => {
                     </div>
                 </div>
             </aside>
-
-            {/* Main Content Area */}
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Page content will be rendered here */}
-                <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-6">
-                    {/* Content will be displayed here based on selectedSection */}
-                </div>
-            </div>
-        </div>
+        </div >
     );
 };
 
