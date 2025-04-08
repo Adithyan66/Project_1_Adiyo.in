@@ -286,59 +286,63 @@ const OrderDetails = () => {
 
     // Cancel Order Modal
     const CancelOrderModal = () => (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md border border-gray-200 shadow-xl">
-                <h3 className="text-xl font-medium mb-4">Cancel Order</h3>
-                <p className="text-gray-600 mb-4">
-                    Are you sure you want to cancel this order? This action cannot be undone.
-                </p>
-                <div className="mb-4">
-                    <label className="block text-sm font-medium mb-2">
-                        Reason for cancellation
-                    </label>
-                    <select
-                        value={cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                    >
-                        <option value="">Select a reason</option>
-                        <option value="Changed my mind">Changed my mind</option>
-                        <option value="Found a better price elsewhere">Found a better price elsewhere</option>
-                        <option value="Ordered by mistake">Ordered by mistake</option>
-                        <option value="Delivery time too long">Delivery time too long</option>
-                        <option value="Other">Other</option>
-                    </select>
-                    {cancelReason === 'Other' && (
-                        <textarea
-                            placeholder="Please specify your reason"
-                            className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                            rows="3"
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+            {/* Semi-transparent backdrop */}
+            <div className="absolute inset-0 bg-black opacity-50"></div>
+            <div className="fixed inset-0  bg-opacity-50 z-50 flex items-center justify-center">
+                <div className="bg-white rounded-lg p-6 w-full max-w-md border border-gray-200 shadow-xl">
+                    <h3 className="text-xl font-medium mb-4">Cancel Order</h3>
+                    <p className="text-gray-600 mb-4">
+                        Are you sure you want to cancel this order? This action cannot be undone.
+                    </p>
+                    <div className="mb-4">
+                        <label className="block text-sm font-medium mb-2">
+                            Reason for cancellation
+                        </label>
+                        <select
+                            value={cancelReason}
                             onChange={(e) => setCancelReason(e.target.value)}
-                        ></textarea>
-                    )}
-                </div>
-                <div className="flex justify-end space-x-3">
-                    <button
-                        onClick={() => setShowCancelModal(false)}
-                        className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 focus:outline-none"
-                        disabled={isSubmitting}
-                    >
-                        Keep Order
-                    </button>
-                    <button
-                        onClick={handleCancelOrder}
-                        className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 flex items-center focus:outline-none focus:ring-2 focus:ring-gray-500"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? (
-                            <>
-                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                                Processing...
-                            </>
-                        ) : (
-                            <>Cancel Order</>
+                            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                        >
+                            <option value="">Select a reason</option>
+                            <option value="Changed my mind">Changed my mind</option>
+                            <option value="Found a better price elsewhere">Found a better price elsewhere</option>
+                            <option value="Ordered by mistake">Ordered by mistake</option>
+                            <option value="Delivery time too long">Delivery time too long</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        {cancelReason === 'Other' && (
+                            <textarea
+                                placeholder="Please specify your reason"
+                                className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                                rows="3"
+                                onChange={(e) => setCancelReason(e.target.value)}
+                            ></textarea>
                         )}
-                    </button>
+                    </div>
+                    <div className="flex justify-end space-x-3">
+                        <button
+                            onClick={() => setShowCancelModal(false)}
+                            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-gray-700 focus:outline-none"
+                            disabled={isSubmitting}
+                        >
+                            Keep Order
+                        </button>
+                        <button
+                            onClick={handleCancelOrder}
+                            className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 flex items-center focus:outline-none focus:ring-2 focus:ring-gray-500"
+                            disabled={isSubmitting}
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                                    Processing...
+                                </>
+                            ) : (
+                                <>Cancel Order</>
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

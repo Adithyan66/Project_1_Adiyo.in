@@ -1512,137 +1512,420 @@ export const walletTransactions = async (req, res) => {
     }
 }
 
+
+
+
+const months = [
+    'January', 'February', 'March', 'April',
+    'May', 'June', 'July', 'August',
+    'September', 'October', 'November', 'December'
+];
+const currentYear = new Date().getFullYear();
+const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+
+
 export const getDashboardData = async (req, res) => {
-
-
-    const months = [
-        'January', 'February', 'March', 'April',
-        'May', 'June', 'July', 'August',
-        'September', 'October', 'November', 'December'
-    ];
-    const currentYear = new Date().getFullYear()
-    const years = new Array.from({ length: 5, }, (_, i) => currentYear - i)
 
     try {
 
-        const year = parseInt(req.query.year)
-        const month = parseInt(req.query.month)
-        const timeFilter = req.query.timeFilter
-        const startDate = req.query.startDate;
-        const endDate = req.query.endDate;
+        const { timeFilter = 'yearly', year, month, startDate, endDate } = req.query;
 
-        console.log("query", req.query);
-        let aggr = {}
+        let ordersPipeline = [];
 
-        if (timeFilter == "yearly") {
-            aggr = [
+        let customerPipeline = [];
+
+        let sellersPipeline = [];
+
+        console.log(req.query);
+
+
+        if (timeFilter === 'yearly') {
+            if (!year) {
+                return res.status(400).json({ success: false, message: 'Year is required for yearly filter.' });
+            }
+            ordersPipeline = [
                 {
                     $match: {
                         createdAt: {
                             $gte: new Date(`${year}-01-01`),
-                            $lte: new Date(`${year + 1}-01-01`)
-                        },
-                        orderStatus: "shipped"
+                            $lt: new Date(`${parseInt(year) + 1}-01-01`)
+                        }
                     }
-                }, {
+                },
+                {
                     $group: {
-                        _id: { $year: "$createdAt" },
-                        count: { $sum: 1 }
-                    },
-                }, {
-                    $sort: {
-                        _id: 1
+                        _id: { $month: '$createdAt' },
+                        count: { $sum: 1 },
+                        revenue: { $sum: '$totalAmount' }
                     }
-                }
+                },
+                { $sort: { _id: 1 } }
             ]
-        } else if (timeFilter == "monthly") {
-            aggr = [
+
+            customerPipeline = [
+                {
+                    $match: {
+                        registrationDate: {
+                            $gte: new Date(`${year}-01-01`),
+                            $lt: new Date(`${parseInt(year) + 1}-01-01`)
+                        },
+                        role: "customer"
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $month: "$registrationDate" },
+                        count: { $sum: 1 }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ]
+
+            // sellersPipeline = [
+            //     {
+            //         $match: {
+            //             registrationDate: {
+            //                 $gte: new Date(`${year}-01-01`),
+            //                 $lt: new Date(`${parseInt(year) + 1}-01-01`)
+            //             },
+            //             role: "seller"
+            //         }
+            //     },
+            //     {
+            //         $group: {
+            //             _id: { $month: "$registrationDate" },
+            //             count: { $sum: 1 }
+            //         }
+            //     }
+            // ]
+
+        } else if (timeFilter === 'monthly') {
+            if (!year || !month) {
+                return res.status(400).json({ success: false, message: 'Year and month are required for monthly filter.' });
+            }
+            ordersPipeline = [
                 {
                     $match: {
                         createdAt: {
-                            $gte: new Date(`${date}-${month}-01`),
-                            $lte: new Date(`${date}-${month + 1}-01`)
-                        },
-                        orderStatus: "shipped"
-                    },
-                    $group: {
-                        _id: { $month: "$createdAt" },
-                        count: { $sum: 1 }
-                    },
-                    $sort: {
-                        _id: 1
-                    }
-                }
-            ]
-        } else if (timeFilter == "weekly") {
-            aggr = [
-                {
-                    $addFields: {
-                        isoWeek: { $isoWeek: "$createdAt" },
-                        isoYear: { $isoyear: "$createdAt" }
-                    },
-                    $match: {
-                        createdAt: { $gte: new Date(new Date() - 1000 * 60 * 60 * 24 * 7 * 5) }
-                    },
-                    $group: {
-                        _id: {
-                            week: "$isoWeek",
-                            year: "$isoYear"
+                            $gte: new Date(`${year}-${month}-01`),
+                            $lt: new Date(`${year}-${parseInt(month) + 1}-01`)
                         }
                     }
+                },
+                {
+                    $group: {
+                        _id: { $dayOfMonth: '$createdAt' },
+                        count: { $sum: 1 },
+                        revenue: { $sum: '$totalAmount' }
+                    }
+                },
+                {
+                    $sort: { _id: 1 }
+                }
+            ];
+
+            customerPipeline = [
+                {
+                    $match: {
+                        registrationDate: {
+                            $gte: new Date(`${year}-${month}-01`),
+                            $lt: new Date(`${year}-${parseInt(month) + 1}-01`)
+                        },
+                        role: "customer"
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dayOfMonth: "$registrationDate" },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { _id: 1 }
                 }
             ]
-        } else if (timeFilter == "custom") {
-            aggr = [
+        } else if (timeFilter === 'weekly') {
+            const fiveWeeksAgo = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7 * 5);
+
+            ordersPipeline = [
+                {
+                    $match: {
+                        createdAt: { $gte: fiveWeeksAgo }
+                    }
+                },
+                {
+                    $addFields: {
+                        isoWeek: { $isoWeek: '$createdAt' }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { week: '$isoWeek' },
+                        count: { $sum: 1 },
+                        revenue: { $sum: '$totalAmount' }
+                    }
+                },
+                { $sort: { '_id.week': 1 } }
+            ];
+
+            customerPipeline = [
+                {
+                    $match: {
+                        registrationDate: { $gte: fiveWeeksAgo }
+                    }
+                },
+                {
+                    $addFields: {
+                        isoWeek: { $isoWeek: "$registrationDate" },
+                    }
+                },
+                {
+                    $group: {
+                        _id: { week: "$isoWeek" },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { "_id.week": 1 }
+                }
+            ]
+        } else if (timeFilter === 'custom') {
+
+            if (!startDate || !endDate) {
+                return res.status(400).json({ success: false, message: 'StartDate and endDate are required for custom filter.' });
+            }
+
+            ordersPipeline = [
                 {
                     $match: {
                         createdAt: {
                             $gte: new Date(startDate),
                             $lte: new Date(endDate)
                         }
-                    },
-                    $group: {
-                        _id: {
-                            $month: "$createdAt"
-                        },
-                        count: { $sum: 1 }
-                    },
-                    $sort: {
-                        _id: 1
                     }
+                },
+                {
+                    $group: {
+                        _id: { $dayOfMonth: '$createdAt' },
+                        count: { $sum: 1 },
+                        revenue: { $sum: '$totalAmount' }
+                    }
+                },
+                { $sort: { _id: 1 } }
+            ];
+
+            customerPipeline = [
+                {
+                    $match: {
+                        registrationDate: {
+                            $gte: new Date(startDate),
+                            $lte: new Date(endDate)
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: { $dayOfMonth: "$registrationDate" },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $sort: { _id: 1 }
                 }
             ]
         }
 
 
-        const ordersData = await Order.aggregate(aggr)
 
-        if (timeFilter == "monthly") {
-            const orders = months.map((month, ind) => {
-                const match = ordersData.find((order) => order._id == ind + 1)
-                return {
-                    month,
-                    count: match ? match.count : 0
+        const ordersData = await Order.aggregate(ordersPipeline);
+        const customerData = await User.aggregate(customerPipeline)
+        console.log("hiiiiiiiiiii", customerData);
+
+        const summaryAgg = await Order.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalOrders: { $sum: 1 },
+                    totalRevenue: { $sum: '$totalAmount' }
                 }
+            }
+        ]);
+        const summaryData = summaryAgg[0] || { totalOrders: 0, totalRevenue: 0 };
+
+
+        const pendingOrders = await Order.countDocuments({ orderStatus: 'Pending' });
+
+        const totalUsers = await User.countDocuments({ role: "customer" });
+        const totalSellers = await User.countDocuments({ role: "seller" });
+
+        let ordersChart = [];
+        let revenueChart = [];
+        let usersChart = [];
+
+        if (timeFilter === 'yearly') {
+
+            ordersChart = months.map((monthName, index) => {
+                const record = ordersData.find(item => item._id === index + 1);
+                console.log("record", record);
+
+                return { name: monthName, value: record ? record.count : 0 };
+            });
+
+            revenueChart = months.map((monthName, index) => {
+                const record = ordersData.find(item => item._id === index + 1);
+                return { name: monthName, value: record ? record.revenue : 0 };
+            });
+
+            usersChart = months.map((monthName, index) => {
+                const record = customerData.find((item => item._id == index + 1));
+                return { name: monthName, value: record ? record.count : 0 }
             })
-        } else if (timeFilter == "yearly") {
-            const orders = years.map((year, ind) => {
-                const match = ordersData.find((order) => order._id == year)
-                return {
-                    year,
-                    count: match ? match.count : 0
-                }
-            })
+
+
+        } else if (timeFilter === 'monthly' || timeFilter === 'custom') {
+
+            ordersChart = ordersData.map(item => ({ name: `Day ${item._id}`, value: item.count }));
+            revenueChart = ordersData.map(item => ({ name: `Day ${item._id}`, value: item.revenue }));
+            usersChart = customerData.map(item => ({ name: `Day ${item._id}`, value: item.count }))
+
+        } else if (timeFilter === 'weekly') {
+
+            ordersChart = ordersData.map(item => ({ name: `Week ${item._id.week}`, value: item.count }));
+            revenueChart = ordersData.map(item => ({ name: `Week ${item._id.week}`, value: item.revenue }));
+            usersChart = customerData.map(item => ({ name: `Week ${item._id.week}`, value: item.count }))
         }
 
 
-        console.log(orders);
+
+        const topCategorysData = await Order.aggregate([
+            { $unwind: "$orderItems" },
+            {
+                $lookup: {
+                    from: "products",
+                    localField: "orderItems.product",
+                    foreignField: "_id",
+                    as: "productData"
+                }
+            },
+            {
+                $unwind: "$productData"
+            },
+            {
+                $group: {
+                    _id: "$productData.category",
+                    totalSales: { $sum: "$orderItems.quantity" },
+                    revenue: { $sum: { $multiply: ['$orderItems.quantity', '$orderItems.price'] } }
+                }
+            },
+            {
+                $sort: { totalSales: -1 }
+            },
+            {
+                $limit: 5
+            }
+        ])
+        console.log("cattttttttttttttttttttttttttttttttttttttttttttttttttt", topCategorysData);
+
+
+        const topCategorys = await Promise.all(
+            topCategorysData.map(async (item) => {
+                const category = await Category.findById(item._id).lean();
+                return {
+                    name: category ? category.name : "unknown Category",
+                    sales: item.totalSales,
+                    revenue: item.revenue
+                }
+            })
+        )
+        console.log("ssssssssssssssssssssssssssssssssssssssssssssssss", topCategorys);
 
 
 
+        const topProductsAgg = await Order.aggregate([
+            { $unwind: '$orderItems' },
+            {
+                $group: {
+                    _id: '$orderItems.product',
+                    sales: { $sum: '$orderItems.quantity' },
+                    revenue: { $sum: { $multiply: ['$orderItems.quantity', '$orderItems.price'] } }
+                }
+            },
+            { $sort: { revenue: -1 } },
+            { $limit: 5 }
+        ]);
 
 
+        const topProducts = await Promise.all(
+            topProductsAgg.map(async (item) => {
+                const product = await Product.findById(item._id).lean();
+                return {
+                    name: product ? product.name : 'Unknown Product',
+                    sales: item.sales,
+                    revenue: item.revenue
+                };
+            })
+        );
+
+
+        const orderStatusesData = await Order.aggregate([
+            {
+                $group: {
+                    _id: {
+                        name: '$orderStatus'
+                    },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+
+        const orderStatuses = orderStatusesData.map(order => ({ name: order._id.name, value: order.count }))
+
+
+        const geoDistribution = await Order.aggregate([
+            {
+                $group: {
+                    _id: '$shippingAddress.city',
+                    count: { $sum: 1 }
+                }
+            },
+            { $sort: { count: -1 } }
+        ]);
+
+        const geoDistFormatted = geoDistribution.map(item => ({
+            name: item._id || 'Unknown',
+            value: item.count
+        }));
+
+
+        const data = {
+            summary: {
+                totalOrders: summaryData.totalOrders,
+                totalRevenue: summaryData.totalRevenue,
+                totalUsers,
+                totalSellers,
+                pendingOrders
+            },
+            charts: {
+                orders: ordersChart,
+                revenue: revenueChart,
+                users: usersChart
+
+            },
+            topProducts,
+            topCategorys,
+            orderStatuses,
+            geoDistribution: geoDistFormatted
+        };
+
+        return res.status(200).json({
+            success: true,
+            data
+        });
     } catch (error) {
-
+        console.error('Error fetching dashboard data:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Server Error. We couldn't drop the data right now."
+        });
     }
-}
+};

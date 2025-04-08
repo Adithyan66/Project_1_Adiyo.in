@@ -298,7 +298,7 @@ const Products = ({ setSelectedSection }) => {
                                         <div className="text-sm text-gray-900">{product?.category?.name || "N/A"}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
-                                        <div className="text-sm text-gray-900">{product.colors[0]?.totalStock || 0}</div>
+                                        <div className="text-sm text-gray-900">{product?.totalQuantity || 0}</div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-center">
                                         <div className="text-sm text-gray-900">{product.colors?.length || 0}</div>

@@ -570,157 +570,141 @@ const Wallet = () => {
 
             {/* Add Money Modal */}
             {isAddMoneyModalOpen && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                    <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
-                        {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                            <h3 className="text-xl font-semibold text-gray-900">
-                                {addMoneyStep === 'amount' ? 'Add Money to Wallet' : 'Select Payment Method'}
-                            </h3>
-                            <button
-                                onClick={closeAddMoneyModal}
-                                className="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100"
-                            >
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6">
-                            {/* Step 1: Amount Selection */}
-                            {addMoneyStep === 'amount' && (
-                                <>
-                                    <div className="mb-6">
-                                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
-                                            Enter Amount (₹)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="amount"
-                                            value={amount}
-                                            onChange={handleAmountChange}
-                                            placeholder="Enter amount"
-                                            className="w-full px-4 py-3 text-xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                                        />
-                                    </div>
-
-                                    <div className="mb-6">
-                                        <p className="text-sm font-medium text-gray-700 mb-2">Quick Select</p>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            {AMOUNT_OPTIONS.map((option) => (
-                                                <button
-                                                    key={option}
-                                                    onClick={() => handleAmountSelection(option)}
-                                                    className={`py-3 rounded-lg text-center border ${amount === option.toString()
-                                                        ? 'border-black bg-gray-100'
-                                                        : 'border-gray-300 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    ₹{option}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </>
-                            )}
-
-                            {/* Step 2: Payment Method Selection */}
-                            {addMoneyStep === 'payment' && (
-                                <div>
-                                    <div className="mb-4">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <p className="text-gray-700">Amount to Add</p>
-                                            <p className="text-xl font-bold">₹{amount}</p>
-                                        </div>
-                                        <div className="h-px bg-gray-200 w-full mb-4"></div>
-                                    </div>
-
-                                    <p className="text-sm font-medium text-gray-700 mb-3">Select Payment Method</p>
-
-                                    <div className="space-y-3 mb-6">
-                                        {PAYMENT_METHODS.map((method) => (
-                                            <div
-                                                key={method.id}
-                                                onClick={() => handlePaymentMethodSelection(method.id)}
-                                                className={`p-4 rounded-lg border cursor-pointer flex items-center ${selectedPaymentMethod === method.id
-                                                    ? 'border-black bg-gray-50'
-                                                    : 'border-gray-300 hover:bg-gray-50'
-                                                    }`}
-                                            >
-                                                <div className="text-2xl mr-3">{method.logo}</div>
-                                                <div className="flex-1">{method.name}</div>
-                                                <div className={`w-6 h-6 rounded-full border ${selectedPaymentMethod === method.id
-                                                    ? 'border-4 border-black'
-                                                    : 'border border-gray-400'
-                                                    }`}></div>
-                                            </div>
-                                        ))}
-
-                                    </div>
-                                    <PayPalButtons
-                                        createOrder={createPaypalOrder}
-                                        onApprove={onApprovePaypal}
-                                        onError={onPaypalError}
-                                        onCancel={() => console.log("PayPal transaction cancelled")}
-                                        style={{
-                                            layout: 'horizontal',
-                                            color: 'blue',
-                                            shape: 'rect',
-                                            label: 'pay'
-                                        }}
-                                    />
-
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-                            {addMoneyStep === 'amount' ? (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    {/* Semi-transparent backdrop */}
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="fixed inset-0  bg-opacity-50 z-50 flex items-center justify-center">
+                        <div className="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+                            {/* Modal Header */}
+                            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                                <h3 className="text-xl font-semibold text-gray-900">
+                                    {addMoneyStep === 'amount' ? 'Add Money to Wallet' : 'Select Payment Method'}
+                                </h3>
                                 <button
-                                    onClick={proceedToPayment}
-                                    disabled={!amount || parseInt(amount) <= 0}
-                                    className={`w-full py-3 rounded-lg flex items-center justify-center font-medium ${!amount || parseInt(amount) <= 0
-                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'bg-black text-white hover:bg-gray-800'
-                                        }`}
+                                    onClick={closeAddMoneyModal}
+                                    className="text-gray-500 hover:text-gray-700 rounded-full p-1 hover:bg-gray-100"
                                 >
-                                    Continue
-                                    <ArrowRight size={16} className="ml-2" />
+                                    <X size={20} />
                                 </button>
-                            ) : (
-                                <div className="space-y-3">
+                            </div>
+
+                            {/* Modal Body */}
+                            <div className="p-6">
+                                {/* Step 1: Amount Selection */}
+                                {addMoneyStep === 'amount' && (
+                                    <>
+                                        <div className="mb-6">
+                                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-2">
+                                                Enter Amount (₹)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="amount"
+                                                value={amount}
+                                                onChange={handleAmountChange}
+                                                placeholder="Enter amount"
+                                                className="w-full px-4 py-3 text-xl border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
+                                            />
+                                        </div>
+
+                                        <div className="mb-6">
+                                            <p className="text-sm font-medium text-gray-700 mb-2">Quick Select</p>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                {AMOUNT_OPTIONS.map((option) => (
+                                                    <button
+                                                        key={option}
+                                                        onClick={() => handleAmountSelection(option)}
+                                                        className={`py-3 rounded-lg text-center border ${amount === option.toString()
+                                                            ? 'border-black bg-gray-100'
+                                                            : 'border-gray-300 hover:bg-gray-50'
+                                                            }`}
+                                                    >
+                                                        ₹{option}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Step 2: Payment Method Selection */}
+                                {addMoneyStep === 'payment' && (
+                                    <div>
+                                        <div className="mb-4">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <p className="text-gray-700">Amount to Add</p>
+                                                <p className="text-xl font-bold">₹{amount}</p>
+                                            </div>
+                                            <div className="h-px bg-gray-200 w-full mb-4"></div>
+                                        </div>
+
+                                        <p className="text-sm font-medium text-gray-700 mb-3">Select Payment Method</p>
+
+                                        <PayPalButtons
+                                            createOrder={createPaypalOrder}
+                                            onApprove={onApprovePaypal}
+                                            onError={onPaypalError}
+                                            onCancel={() => console.log("PayPal transaction cancelled")}
+                                            style={{
+                                                layout: 'horizontal',
+                                                color: 'blue',
+                                                shape: 'rect',
+                                                label: 'pay'
+                                            }}
+                                        />
+
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Modal Footer */}
+                            <div className="p-6 border-t border-gray-200 bg-gray-50 rounded-b-xl">
+                                {addMoneyStep === 'amount' ? (
                                     <button
-                                        onClick={processPayment}
-                                        disabled={!selectedPaymentMethod || isProcessing}
-                                        className={`w-full py-3 rounded-lg flex items-center justify-center font-medium ${!selectedPaymentMethod || isProcessing
+                                        onClick={proceedToPayment}
+                                        disabled={!amount || parseInt(amount) <= 0}
+                                        className={`w-full py-3 rounded-lg flex items-center justify-center font-medium ${!amount || parseInt(amount) <= 0
                                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             : 'bg-black text-white hover:bg-gray-800'
                                             }`}
                                     >
-                                        {isProcessing ? (
-                                            <>
-                                                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
-                                                Processing...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <CreditCard size={16} className="mr-2" />
-                                                Pay ₹{amount}
-                                            </>
-                                        )}
+                                        Continue
+                                        <ArrowRight size={16} className="ml-2" />
                                     </button>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={processPayment}
+                                            disabled={!selectedPaymentMethod || isProcessing}
+                                            className={`w-full py-3 rounded-lg flex items-center justify-center font-medium ${!selectedPaymentMethod || isProcessing
+                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                                : 'bg-black text-white hover:bg-gray-800'
+                                                }`}
+                                        >
+                                            {isProcessing ? (
+                                                <>
+                                                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
+                                                    Processing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CreditCard size={16} className="mr-2" />
+                                                    Pay ₹{amount}
+                                                </>
+                                            )}
+                                        </button>
 
-                                    <button
-                                        onClick={() => setAddMoneyStep('amount')}
-                                        disabled={isProcessing}
-                                        className="w-full py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center justify-center font-medium"
-                                    >
-                                        <ChevronLeft size={16} className="mr-2" />
-                                        Back to Amount
-                                    </button>
-                                </div>
-                            )}
+                                        <button
+                                            onClick={() => setAddMoneyStep('amount')}
+                                            disabled={isProcessing}
+                                            className="w-full py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center justify-center font-medium"
+                                        >
+                                            <ChevronLeft size={16} className="mr-2" />
+                                            Back to Amount
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

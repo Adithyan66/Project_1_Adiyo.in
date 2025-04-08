@@ -458,25 +458,29 @@ const PersonalInformation = () => {
             {passwordModal && <PasswordChangeModal user={profileData} setPasswordModal={setPasswordModal} fetchProfileData={fetchProfileData} />}
 
             {saveAlert && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 shadow-2xl bg-opacity-50">
-                    <div ref={saveAlertRef} className="bg-white rounded p-6 w-100 shadow-2xl border-4 border-black">
-                        <h2 className="text-xl font-bold mb-4 text-center">Confirm Changes</h2>
-                        <p className="mb-6 text-center">
-                            Are you sure want to Save the Changes?
-                        </p>
-                        <div className="flex justify-center gap-4">
-                            <button
-                                className="bg-gray-300 text-black px-4 py-2 rounded hover:cursor-pointer"
-                                onClick={() => setSaveAlert(false)}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="bg-black text-white px-4 py-2 rounded hover:cursor-pointer"
-                                onClick={handleSave}
-                            >
-                                Save
-                            </button>
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    {/* Semi-transparent backdrop */}
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="fixed inset-0 flex items-center justify-center z-50 shadow-2xl bg-opacity-50">
+                        <div ref={saveAlertRef} className="bg-white rounded p-6 w-100 shadow-2xl  ">
+                            <h2 className="text-xl font-bold mb-4 text-center">Confirm Changes</h2>
+                            <p className="mb-6 text-center">
+                                Are you sure want to Save the Changes?
+                            </p>
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    className="bg-gray-300 text-black px-4 py-2 rounded hover:cursor-pointer"
+                                    onClick={() => setSaveAlert(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="bg-black text-white px-4 py-2 rounded hover:cursor-pointer"
+                                    onClick={handleSave}
+                                >
+                                    Save
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -111,6 +111,9 @@ function ProductLists({ searchTerm, setSearchTerm }) {
 
             const { data } = await getProductList(params);
 
+            console.log("dataaaaaaaaa", data);
+
+
             setProducts(data.products);
             setTotalPages(data.totalPages);
         } catch (err) {

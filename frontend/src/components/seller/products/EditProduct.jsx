@@ -65,6 +65,44 @@ function EditProduct({ setSelectedSection }) {
         fetchCategories();
     }, []);
 
+    // useEffect(() => {
+
+    //     const newTotalQuantity = editedColors.reduce((total, color) => {
+    //         if (!color || !color.variants) {
+    //             return total
+    //         }
+    //         const colorTotal = Object.values(color.variants).reduce((sum, variant) => sum + parseInt(variant.stock) || 0, 0)
+    //         return total + colorTotal
+    //     }, 0)
+
+    //     setTotalQuantity(newTotalQuantity)
+
+    // }, [editedColors])
+
+    useEffect(() => {
+
+        const updatedColors = editedColors.map(color => {
+            if (!color || !color.variants) return color;
+
+            const colorTotalStock = Object.values(color.variants).reduce(
+                (sum, variant) => sum + (parseInt(variant.stock) || 0),
+                0
+            );
+            return { ...color, totalStock: colorTotalStock };
+        });
+
+        const newTotalQuantity = updatedColors.reduce(
+            (total, color) => total + (color?.totalStock || 0),
+            0
+        );
+
+        setEditedColors(updatedColors);
+        setTotalQuantity(newTotalQuantity);
+
+    }, [JSON.stringify(editedColors.map(color => color?.variants || {}))]);
+
+
+
 
     function onImageLoad(e) {
         const { width, height } = e.currentTarget;
@@ -225,13 +263,33 @@ function EditProduct({ setSelectedSection }) {
         });
     };
 
+    // const handleVariantChange = (colIndex, key, value) => {
+    //     setEditedColors((prevColors) => {
+    //         const newColors = [...prevColors];
+    //         newColors[colIndex].variants = {
+    //             ...newColors[colIndex].variants,
+    //             [key]: { ...newColors[colIndex].variants[key], stock: value },
+    //         };
+    //         console.log("newcolors", newColors);
+    //         return newColors;
+    //     });
+    // };
+
     const handleVariantChange = (colIndex, key, value) => {
+
         setEditedColors((prevColors) => {
             const newColors = [...prevColors];
             newColors[colIndex].variants = {
                 ...newColors[colIndex].variants,
                 [key]: { ...newColors[colIndex].variants[key], stock: value },
             };
+
+            const colorTotalStock = Object.values(newColors[colIndex].variants).reduce(
+                (sum, variant) => sum + (parseInt(variant.stock) || 0),
+                0
+            );
+
+            newColors[colIndex].totalStock = colorTotalStock;
             return newColors;
         });
     };
@@ -245,24 +303,6 @@ function EditProduct({ setSelectedSection }) {
         // Optionally, calculate discountPercentage here.
     };
 
-    const addNewColor = () => {
-        setEditedColors((prev) => [
-            ...prev,
-            {
-                color: "",
-                images: [null, null, null, null, null],
-                basePrice: "",
-                discountPrice: "",
-                discountPercentage: "",
-                variants: {
-                    S: { size: "S", stock: 0 },
-                    M: { size: "M", stock: 0 },
-                    L: { size: "L", stock: 0 },
-                    XL: { size: "XL", stock: 0 },
-                },
-            },
-        ]);
-    };
 
     // ------------- Submit Handler -------------
     const handleSubmit = async (e) => {
@@ -280,20 +320,25 @@ function EditProduct({ setSelectedSection }) {
         formData.append("careInstructions", JSON.stringify(careInstructions));
         formData.append("totalQuantity", totalQuantity);
 
-        // Merge editedColors with original product colors
+
         const mergedColors = originalProduct.colors.map((origColor, i) => {
             const updatedColor = { ...origColor, ...editedColors[i] };
             updatedColor.images = origColor.images.map((imgUrl, j) => {
                 if (editedColors[i] && editedColors[i].images[j] instanceof File) {
-                    return null; // indicate file upload for this index
+                    return null;
                 }
                 return imgUrl;
             });
+            updatedColor.totalStock = Object.values(updatedColor.variants).reduce(
+                (sum, variant) => sum + (parseInt(variant.stock) || 0),
+                0
+            );
             return updatedColor;
         });
+
         formData.append("colors", JSON.stringify(mergedColors));
 
-        // Append new image files with naming convention.
+
         editedColors.forEach((color, i) => {
             if (!color) return;
             color.images.forEach((img, j) => {
@@ -666,9 +711,9 @@ function EditProduct({ setSelectedSection }) {
                                             <input
                                                 type="number"
                                                 value={variant.stock}
-                                                onChange={(e) =>
+                                                onChange={(e) => {
                                                     handleVariantChange(colIndex, key, e.target.value)
-                                                }
+                                                }}
                                                 placeholder="Stock"
                                                 min="0"
                                                 className="w-full border border-gray-300 rounded px-2 py-1"
@@ -679,13 +724,7 @@ function EditProduct({ setSelectedSection }) {
                             </div>
                         </div>
                     ))}
-                    {/* <button
-                        type="button"
-                        onClick={addNewColor}
-                        className="bg-black text-white px-4 py-2 rounded"
-                    >
-                        Add Color
-                    </button> */}
+
                 </div>
 
                 {/* Submit Button */}

@@ -227,21 +227,17 @@ export const editProduct = async (req, res) => {
     }
 
     try {
-        // For each color variant, update only the images that are provided.
         for (let i = 0; i < colorsData.length; i++) {
             if (filesByColorAndIndex[i]) {
                 const imageUpdates = filesByColorAndIndex[i];
-                // Ensure images arrays exist; if not, initialize them.
                 if (!Array.isArray(colorsData[i].images)) {
                     colorsData[i].images = [];
                 }
                 if (!Array.isArray(colorsData[i].imagePublicIds)) {
                     colorsData[i].imagePublicIds = [];
                 }
-                // Process each image index provided for this color variant.
                 for (const imageIndex in imageUpdates) {
                     const file = imageUpdates[imageIndex];
-                    // If there is an old image at this index, delete it from Cloudinary.
                     if (
                         colorsData[i].imagePublicIds &&
                         colorsData[i].imagePublicIds[imageIndex]
@@ -271,7 +267,6 @@ export const editProduct = async (req, res) => {
             }
         }
 
-        // Update the product with the new data (only changed images are updated)
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
             {

@@ -108,15 +108,21 @@ const AddProduct = ({ setSelectedSection }) => {
     // Compute SKU on the fly whenever brand or productName changes.
     useEffect(() => {
         const generateSku = () => {
-            const brandPart = brand ? brand.replace(/\s+/g, "").toUpperCase() : "BRAND";
-            const productPart =
-                productName
-                    .split(" ")
-                    .map((w) => w[0])
-                    .join("")
-                    .toUpperCase() || "PROD";
-            const randomPart = Math.floor(1000 + Math.random() * 9000);
-            return `${brandPart}-${productPart}-${randomPart}`;
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const datePart = `${year}${month}${day}`;
+
+            // Generate a 4-character random alphanumeric string
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let randomPart = '';
+            const randomLength = 4;
+            for (let i = 0; i < randomLength; i++) {
+                randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+
+            return `PRD-${datePart}-${randomPart}`;
         };
         setSku(generateSku());
     }, [brand, productName]);
@@ -809,31 +815,6 @@ const AddProduct = ({ setSelectedSection }) => {
                                 </button>
                             )}
 
-                            {/* Color Selection */}
-                            {/* <div className="mb-4">
-                                <div className="w-full md:w-1/2">
-                                    <label className="block font-medium mb-1"></label>
-                                    <label className="block font-medium mb-1">
-                                        Color Name <span className="text-red-500">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={col.color}
-                                        onChange={(e) => {
-                                            handleColorChange(colIndex, "color", e.target.value);
-                                        }}
-                                        required
-                                        className={`w-full border ${errors[`color_${colIndex}_color`] ? 'border-red-500' : 'border-gray-300'} rounded px-3 py-2`}
-                                        placeholder="e.g., Red, Blue, Black"
-                                    />
-                                    {errors[`color_${colIndex}_color`] && (
-                                        <p className="text-red-500 text-sm mt-1 error-text">
-                                            {errors[`color_${colIndex}_color`]}
-                                        </p>
-                                    )}
-                                </div>
-                            </div> */}
-
                             <div className="mb-4">
                                 <div className="w-full md:w-1/2">
                                     <label className="block font-medium mb-1">
@@ -1008,7 +989,7 @@ const AddProduct = ({ setSelectedSection }) => {
                     <button
                         type="button"
                         onClick={addNewColor}
-                        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        className="bg-black text-white px-4 py-2 rounded hover:bg-gray-700"
                     >
                         Add Another Color
                     </button>
@@ -1026,7 +1007,7 @@ const AddProduct = ({ setSelectedSection }) => {
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className={`px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                        className={`px-6 py-2 bg-black text-white rounded hover:bg-gray-700 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                             }`}
                     >
                         {isSubmitting ? "Adding..." : "Add Product"}
@@ -1035,7 +1016,7 @@ const AddProduct = ({ setSelectedSection }) => {
             </form>
 
             {/* Image Cropping Modal */}
-            {cropMode && (
+            {/* {cropMode && (
 
 
                 <div className="fixed inset-0  bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1081,6 +1062,67 @@ const AddProduct = ({ setSelectedSection }) => {
                                 >
                                     Apply Crop
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )} */}
+
+
+
+            {cropMode && (
+                <div className="fixed inset-0 flex items-center justify-center z-50">
+                    {/* Semi-transparent backdrop */}
+                    <div className="absolute inset-0 bg-black opacity-50"></div>
+                    <div className="fixed inset-0 bg-opacity-50 flex items-center justify-center z-50 p-4">
+
+                        <div className="bg-white rounded-lg p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto border-4 border-black">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-bold">Crop Image</h3>
+                                <button
+                                    onClick={handleCancelCrop}
+                                    className="text-gray-500 hover:text-gray-700"
+                                >
+                                    <CloseIcon className="w-6 h-6" />
+                                </button>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <div className="mb-4 max-h-[60vh] w-full flex justify-center">
+                                    {imgSrc && (
+                                        <ReactCrop
+                                            crop={crop}
+                                            onChange={(c) => setCrop(c)}
+                                            onComplete={(c) => setCompletedCrop(c)}
+                                            aspect={4 / 5}
+                                            className="h-auto"
+                                        >
+                                            <img
+                                                src={imgSrc}
+                                                alt="Crop preview"
+                                                onLoad={onImageLoad}
+                                                style={{ maxHeight: "60vh", width: "auto", objectFit: "contain" }}
+                                            />
+                                        </ReactCrop>
+                                    )}
+                                </div>
+                                <p className="text-gray-500 text-sm mb-4">
+                                    Crop the image to a 4:5 aspect ratio for best results.
+                                </p>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleCancelCrop}
+                                        className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleSaveCrop}
+                                        className="px-4 py-2 bg-black text-white rounded hover:bg-gray-700"
+                                        disabled={!imgSrc || !completedCrop?.width || !completedCrop?.height}
+                                    >
+                                        Apply Crop
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

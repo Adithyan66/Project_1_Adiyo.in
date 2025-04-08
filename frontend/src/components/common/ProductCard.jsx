@@ -1,75 +1,78 @@
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
 
 
-
-
-// function ProductCard({ product }) {
-
-//   console.log("ProductCard", product);
-
-
-//   const navigate = useNavigate()
-
-
-//   const rating = 3.5;
-
-//   return (
-//     <div className="rounded-md p-4 flex flex-col bg-white shadow-sm hover:shadow-md transition-shadow"
-//       onClick={() => {
-//         navigate(`/product-detail/${product._id}`)
-//       }}
-//     >
-//       <img
-//         src={product?.colors[0].images[0]}
-//         //alt={title}
-//         className="w-full h-90 object-cover mb-2 mx-auto rounded-2xl"
-//       />
-//       <h3 className="text-base font-semibold text-gray-800 line-clamp-1">{product?.name}</h3>
-//       {/* Rating */}
-//       <div className="flex items-center mt-1">
-//         <div className="text-yellow-500 mr-2">
-//           {"★".repeat(rating)}
-//           {"☆".repeat(5 - rating)}
-//         </div>
-//         <span className="text-sm text-gray-500">{rating} / 5</span>
-//       </div>
-//       {/* Price Section */}
-//       <span className="bg-gray-400 w-1/4 text-center py-2 text-white text-xs ml-2 px-1 rounded">
-//         {Math.ceil(product?.colors[0].discountPercentage)}% off
-//       </span>
-//       <div className="mt-2 text-gray-800">
-//         <span className="font-bold text-3xl">₹{product?.minDiscountPrice}</span>
-//         {product?.colors[0].basePrice && (
-//           <>
-//             <span className="text-xl text-gray-500 ml-2 line-through">
-//               ₹{product?.colors[0].basePrice}
-//             </span>
-
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default ProductCard;
-
-
-
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import soldOut from "../../assets/images/soldout.png"
+import soldOut from "../../assets/images/soldout.png";
+import { getCategoryList } from "../../services/categoryService";
 
 function ProductCard({ product }) {
   const navigate = useNavigate();
   const rating = 3.5;
+  const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Check if product is out of stock
-  const isOutOfStock = product?.colors[0].totalStock === 0
+  const isOutOfStock = product?.colors[0].totalStock === 0;
 
-  console.log(isOutOfStock, "isOutOfStock");
+  useEffect(() => {
+    let isMounted = true;
 
+    const getCategory = async () => {
+      try {
+        setIsLoading(true);
+        const response = await getCategoryList();
+
+        if (isMounted) {
+          console.log("Categories fetched:", response.data.categories);
+          setCategories(response.data.categories);
+        }
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    getCategory();
+
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const getCategoryName = (categoryId, subCategoryId) => {
+    try {
+      if (!categories || categories.length === 0) return "Loading...";
+
+      const category = categories.find((cat) => cat._id === categoryId);
+      if (!category) return "Category not found";
+
+      if (!subCategoryId) return category.name;
+
+      const subCategoriesArray = category.subcategories || category.subCategories;
+      if (!subCategoriesArray || !Array.isArray(subCategoriesArray)) {
+        return category.name;
+      }
+
+      const subCategory = subCategoriesArray.find((sub) => sub._id === subCategoryId);
+      if (!subCategory) return category.name;
+
+      return `${category.name}, ${subCategory.name}`;
+    } catch (error) {
+      console.error("Error getting category name:", error);
+      return "Error displaying category";
+    }
+  };
+
+  if (isLoading) {
+    return <div className="rounded-lg p-4 flex flex-col bg-white shadow-sm">Loading...</div>;
+  }
+
+  if (!product) {
+    return null;
+  }
 
   return (
     <div
@@ -89,6 +92,9 @@ function ProductCard({ product }) {
       {/* Product details */}
       <div className="flex flex-col flex-grow">
         <h3 className="text-lg font-semibold text-gray-800 line-clamp-1">{product?.name}</h3>
+        <h6 className="text-sm font-semibold text-gray-400 line-clamp-1">
+          {getCategoryName(product.category, product.subCategory)}
+        </h6>
 
         {/* Rating */}
         <div className="flex items-center mt-1">
@@ -102,7 +108,7 @@ function ProductCard({ product }) {
           <span className="text-sm text-gray-500">{rating} / 5</span>
         </div>
 
-        {/* Price Section - Improved layout */}
+        {/* Price Section */}
         <div className="mt-3 flex items-center">
           <div className="flex-grow">
             <span className="font-bold text-2xl text-gray-900">₹{product?.minDiscountPrice}</span>
@@ -112,21 +118,21 @@ function ProductCard({ product }) {
               </span>
             )}
           </div>
-          {/* Out of stock overlay - positioned at bottom right */}
+          {/* Out of stock overlay */}
           {isOutOfStock && (
             <div className="absolute bottom-2 right-2">
-              <div className=" text-white px-3 py-1 rounded-full font-medium text-sm flex items-center">
+              <div className="text-white px-3 py-1 rounded-full font-medium text-sm flex items-center">
                 <img
                   src={soldOut}
-                  alt=""
-                  className="w-14 h-8 mb-15 "
+                  alt="Sold Out"
+                  className="w-20 h-12 mb-22"
                 />
               </div>
             </div>
           )}
 
           {product?.colors[0].discountPercentage > 0 && (
-            <span className=" text-green-800 text-xl py-1 px-2 rounded-full font-medium ">
+            <span className="text-green-800 text-xl py-1 px-2 rounded-full font-medium">
               {Math.ceil(product?.colors[0].discountPercentage)}% off
             </span>
           )}

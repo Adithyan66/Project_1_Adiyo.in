@@ -28,10 +28,10 @@ import CustomerRightSection from '../../forCustomers/CustomerRightSection';
 import DashBoard from '../../DashBorad';
 import { useParams } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// Nivo Orders Trend Chart Component
 const OrdersTrendChart = ({ ordersData }) => (
     <div style={{ height: 300 }}>
         <ResponsiveLine
@@ -102,7 +102,10 @@ const OrdersTrendChart = ({ ordersData }) => (
     </div>
 );
 
+
 const Dashboard = () => {
+
+
     const [dashboardData, setDashboardData] = useState({
         summary: {
             totalOrders: 0,
@@ -118,13 +121,14 @@ const Dashboard = () => {
             sellers: []
         },
         topProducts: [],
+        topCategorys: [],
         orderStatuses: [],
         geoDistribution: []
     });
 
     const [timeFilter, setTimeFilter] = useState('monthly');
     const [yearFilter, setYearFilter] = useState(new Date().getFullYear());
-    const [monthFilter, setMonthFilter] = useState(new Date().getMonth());
+    const [monthFilter, setMonthFilter] = useState(new Date().getMonth() + 1);
     const [customDateRange, setCustomDateRange] = useState({ start: '', end: '' });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -163,7 +167,9 @@ const Dashboard = () => {
             // For demonstration, we use mock data:
             //const response = { data: generateMockData(timeFilter, yearFilter, monthFilter) };
             console.log("Dashboard Data:", response.data);
-            setDashboardData(response.data);
+            console.log("mock data", generateMockData(timeFilter, yearFilter, monthFilter));
+
+            setDashboardData(response.data.data);
             setError(null);
         } catch (err) {
             console.error("Error fetching dashboard data:", err);
@@ -262,9 +268,88 @@ const Dashboard = () => {
 
     if (error && !dashboardData.charts.orders.length) {
         return (
-            <div className="p-6 bg-gray-50 w-full min-h-screen flex items-center justify-center text-red-500">
-                {error}
+
+            <div className="p-6 bg-gray-50 w-full min-h-screen">
+                {/* Header */}
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6">
+                    <h1 className="text-2xl font-bold mb-4 lg:mb-0">Admin Dashboard</h1>
+                    {/* Time filters */}
+                    <div className="flex flex-wrap gap-2">
+                        <select
+                            value={timeFilter}
+                            onChange={(e) => setTimeFilter(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                        >
+                            <option value="yearly">Yearly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                        {timeFilter === 'yearly' && (
+                            <select
+                                value={yearFilter}
+                                onChange={(e) => setYearFilter(e.target.value)}
+                                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                            >
+                                {years.map(year => (
+                                    <option key={year} value={year}>{year}</option>
+                                ))}
+                            </select>
+                        )}
+                        {timeFilter === 'monthly' && (
+                            <>
+                                <select
+                                    value={monthFilter}
+                                    onChange={(e) => setMonthFilter(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                                >
+                                    {months.map((month, index) => (
+                                        <option key={month} value={index + 1}>{month}</option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={yearFilter}
+                                    onChange={(e) => setYearFilter(e.target.value)}
+                                    className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                                >
+                                    {years.map(year => (
+                                        <option key={year} value={year}>{year}</option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+                        {timeFilter === 'custom' && (
+                            <div className="flex gap-2">
+                                <input
+                                    type="date"
+                                    name="start"
+                                    value={customDateRange.start}
+                                    onChange={handleDateRangeChange}
+                                    className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                                />
+                                <span className="self-center">to</span>
+                                <input
+                                    type="date"
+                                    name="end"
+                                    value={customDateRange.end}
+                                    onChange={handleDateRangeChange}
+                                    className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
+                                />
+                                <button
+                                    onClick={fetchDashboardData}
+                                    className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+                                >
+                                    Apply
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                <div className="p-6 bg-gray-50 w-full min-h-screen flex items-center justify-center text-red-500">
+                    {error}
+                </div>
             </div>
+
         );
     }
 
@@ -277,7 +362,7 @@ const Dashboard = () => {
                 y: item.value
             }))
         }
-    ];
+    ]
 
     // Define COLORS for Pie Chart cells
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
@@ -318,7 +403,7 @@ const Dashboard = () => {
                                 className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-black"
                             >
                                 {months.map((month, index) => (
-                                    <option key={month} value={index}>{month}</option>
+                                    <option key={month} value={index + 1}>{month}</option>
                                 ))}
                             </select>
                             <select
@@ -410,7 +495,8 @@ const Dashboard = () => {
                 </button>
                 <button
                     className={`py-3 px-6 ${activeSection === 'users' ? 'border-b-2 border-black font-medium' : 'text-gray-500'}`}
-                    onClick={() => setActiveSection('users')}
+                    onClick={() => toast.error("currently not working")}
+                // onClick={() => setActiveSection('users')}
                 >
                     Users & Sellers
                 </button>
@@ -419,6 +505,12 @@ const Dashboard = () => {
                     onClick={() => setActiveSection('products')}
                 >
                     Products
+                </button>
+                <button
+                    className={`py-3 px-6 ${activeSection === 'catagory' ? 'border-b-2 border-black font-medium' : 'text-gray-500'}`}
+                    onClick={() => setActiveSection('catagory')}
+                >
+                    catagories
                 </button>
             </div>
 
@@ -546,7 +638,7 @@ const Dashboard = () => {
                     <h2 className="text-lg font-semibold mb-6">Orders Analysis</h2>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                         {/* Orders Over Time */}
-                        <div>
+                        {/* <div>
                             <h3 className="text-md font-medium mb-4">Orders Over Time</h3>
                             <ResponsiveContainer width="100%" height={300}>
                                 <LineChart
@@ -561,7 +653,8 @@ const Dashboard = () => {
                                     <Line type="monotone" dataKey="value" stroke="#0088FE" name="Orders" activeDot={{ r: 8 }} />
                                 </LineChart>
                             </ResponsiveContainer>
-                        </div>
+                        </div> */}
+                        <OrdersTrendChart ordersData={ordersDataForNivo} />
 
                         {/* Order Status Distribution */}
                         <div>
@@ -751,10 +844,86 @@ const Dashboard = () => {
                 </div>
             )}
 
+            {activeSection === 'catagory' && dashboardData && (
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h2 className="text-lg font-semibold mb-6">Category Analysis</h2>
+                    {/* Top Products */}
+                    <div className="mb-6">
+                        <h3 className="text-md font-medium mb-4">Top Selling Categorys</h3>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            category Name
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Units Sold
+                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Revenue
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {dashboardData.topCategorys.map((product, index) => (
+                                        <tr key={index}>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                {product.name}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {product.sales.toLocaleString()}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {formatCurrency(product.revenue)}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {/* Product Sales Visualization */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div>
+                            <h3 className="text-md font-medium mb-4">Top 5 categories by Sales</h3>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart
+                                    data={dashboardData.topCategorys}
+                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="sales" name="Units Sold" fill="#0088FE" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div>
+                            <h3 className="text-md font-medium mb-4">Top 5 Categories by Revenue</h3>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart
+                                    data={dashboardData.topCategorys}
+                                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                                >
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="name" />
+                                    <YAxis />
+                                    <Tooltip formatter={(value) => formatCurrency(value)} />
+                                    <Legend />
+                                    <Bar dataKey="revenue" name="Revenue" fill="#82ca9d" />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Footer */}
             <div className="mt-6 text-center text-sm text-gray-500">
-                <div>© 2025 Admin Dashboard. All rights reserved.</div>
+
                 <div>Last updated: {new Date().toLocaleString()}</div>
             </div>
         </div>
