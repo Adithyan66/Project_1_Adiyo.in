@@ -18,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
+import { logout } from "../../../store/slices/userSlice.js"
+import { logout as logoutService } from "../../../services/authService.js"
 
 
 
@@ -55,7 +57,24 @@ const ProfileSideBar = () => {
         navigate(path);
     };
 
+    const handleLogout = async () => {
+        try {
+            const response = await logoutService()
+            // const response = await axios.post(
+            //   "http://localhost:3333/user/logout",
+            //   {},
+            //   { withCredentials: true })
 
+            console.log(response.data)
+
+            dispatch(logout())
+
+        } catch (error) {
+
+            console.log("logout fails");
+
+        }
+    }
 
     return (
         <aside className="w-82 bg-white shadow-lg rounded-lg overflow-hidden h-full sticky top-5">
@@ -204,7 +223,8 @@ const ProfileSideBar = () => {
 
                 {/* Log out */}
                 <div className="mt-6">
-                    <div className="flex items-center px-4 py-3 cursor-pointer rounded-lg hover:bg-gray-100 transition-all duration-200">
+                    <div className="flex items-center px-4 py-3 cursor-pointer rounded-lg hover:bg-gray-100 transition-all duration-200"
+                        onClick={() => handleLogout()}>
                         <span className="mr-3 bg-red- text-black bg-gray-100 p-2 rounded-lg">
                             <LogOut size={20} />
                         </span>

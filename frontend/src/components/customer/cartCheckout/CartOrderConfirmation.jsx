@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 import { CheckCircle, Package, Truck, Calendar, ArrowRight, Download, Printer, ListOrdered, ShoppingBag } from 'lucide-react';
 import { useSelector } from 'react-redux';
@@ -13,8 +14,6 @@ const CartOrderConfirmation = () => {
 
     const navigate = useNavigate()
     const orderDetails = useSelector((state) => state.cartCheckout.confirmationData);
-    console.log("orderdetails", orderDetails);
-
 
     if (!orderDetails) return null;
 
@@ -137,7 +136,7 @@ const CartOrderConfirmation = () => {
         }
 
         if (couponCode) {
-            doc.text(`Coupon Applied:`, 130, startY + 20);
+            doc.text(`Coupon Applied:`, 140, startY + 20);
             doc.text(`${couponCode}`, 170, startY + 20, { align: 'right' });
         }
 
@@ -164,9 +163,9 @@ const CartOrderConfirmation = () => {
     return (
         <div className="bg-white rounded-lg overflow-hidden">
             {/* Header Banner */}
-            <div className="bg-black text-white py-8 px-6 text-center">
-                <CheckCircle className="mx-auto mb-4 text-white" size={48} />
-                <h2 className="text-2xl font-bold mb-2">Order Confirmed</h2>
+            <div className="bg-gradient-to-r from-gray-300 via-black to-gray-300 text-white py-8 px-6 text-center">
+                <CheckCircle className="mx-auto mb-4 text-white animate-ping" size={48} />
+                <h2 className="text-2xl font-bold mb-2 animate-bounce">Order Confirmed</h2>
                 <p className="text-gray-300">Thank you for your purchase!</p>
                 <p className="mt-2 text-gray-300">Order #{orderNumber}</p>
             </div>
@@ -343,7 +342,7 @@ const CartOrderConfirmation = () => {
                         Print Receipt
                     </button>
                     <button
-                        // onClick={}
+                        onClick={() => navigate(`/user/orders-list`)}
                         className="flex items-center justify-center bg-gray-100 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-200 transition duration-300"
                     >
                         <ListOrdered className="mr-2" size={18} />

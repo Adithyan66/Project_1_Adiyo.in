@@ -1,6 +1,7 @@
 
 
 
+
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { PencilIcon, ShoppingBag, ChevronRight } from 'lucide-react';
@@ -96,7 +97,7 @@ function CartOrderSummary() {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg p-6">
             <div className="flex items-center mb-6">
                 <ShoppingBag className="text-black mr-2" size={24} />
                 <h2 className="text-xl font-semibold text-gray-800">Order Summary</h2>
@@ -145,7 +146,7 @@ function CartOrderSummary() {
                     const maxStock = variant?.stock ? parseInt(variant.stock, 10) : 0;
 
                     return (
-                        <div className="border rounded-lg p-4 mb-4" key={index}>
+                        <div className="shadow-2xl rounded-lg p-4 mb-4" key={index}>
                             <div className="flex">
                                 <div className="flex-shrink-0">
                                     <img
@@ -202,8 +203,6 @@ function CartOrderSummary() {
                     );
                 })}
             </div>
-
-
 
             {/* Continue to Payment Button */}
             <div className="flex justify-end mt-6">

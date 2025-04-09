@@ -12,14 +12,9 @@ import { getWalletDetails } from '../../../services/walletService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-// Predefined amount options
 const AMOUNT_OPTIONS = [500, 1000, 2000, 5000];
 
-// Payment method options
-const PAYMENT_METHODS = [
-    { id: 'razorpay', name: 'Razorpay', logo: '💸' },
-    { id: 'paypal', name: 'PayPal', logo: '🅿️' }
-];
+
 
 const Wallet = () => {
     const [activeTab, setActiveTab] = useState('all');

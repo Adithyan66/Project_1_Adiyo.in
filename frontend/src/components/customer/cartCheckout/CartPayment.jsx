@@ -1,4 +1,5 @@
 
+
 import { ArrowLeft, CreditCard, LockIcon, RefreshCw, Smartphone, Building, Truck, Wallet, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,13 +7,14 @@ import { setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import axios from 'axios';
 
+// Import images - make sure these paths match your project structure
+import walletLogo from "../../../assets/images/walletLogo.jpg";
+import paypalLogo from "../../../assets/images/paypalLogo.png";
+import cashOnDelivery from "../../../assets/images/cashOnDeliveryLogo.jpg";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
-
 function CartPayment({ onPlaceOrder }) {
-
-
-
     const dispatch = useDispatch();
     const { order } = useSelector((state) => state.checkout);
     const totalPrice = useSelector((state) => state.cartCheckout.totalPrice || 0);
@@ -35,12 +37,12 @@ function CartPayment({ onPlaceOrder }) {
     const [isLoadingWallet, setIsLoadingWallet] = useState(true);
     const [walletError, setWalletError] = useState(null);
     const [walletBalance, setWalletBalance] = useState(0);
-
-
+    const [showRechargeOptions, setShowRechargeOptions] = useState(false);
+    const [rechargeAmount, setRechargeAmount] = useState('');
 
     useEffect(() => {
         generateNewCaptcha();
-        fetchWalletBalance()
+        fetchWalletBalance();
     }, []);
 
     const handleWalletPayment = () => {
@@ -52,8 +54,6 @@ function CartPayment({ onPlaceOrder }) {
         onPlaceOrder('wallet', captchaInput)
             .finally(() => setIsProcessing(false));
     };
-
-
 
     const fetchWalletBalance = async () => {
         setIsLoadingWallet(true);
@@ -78,7 +78,6 @@ function CartPayment({ onPlaceOrder }) {
             setIsLoadingWallet(false);
         }
     };
-
 
     // Generate a random captcha string
     const generateNewCaptcha = () => {
@@ -197,22 +196,31 @@ function CartPayment({ onPlaceOrder }) {
         }));
     };
 
-    const PaymentOption = ({ id, title, description, icon: Icon }) => (
+    const PaymentOption = ({ id, title, description, icon, isDisabled }) => (
         <div
-            className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${paymentMethod === id ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}`}
-            onClick={() => setPaymentMethod(id)}
+            className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${paymentMethod === id ? 'border-black border-2 bg-gray-50' : 'border-gray-200'}`}
+            onClick={() => {
+                if (!isDisabled) {
+                    setPaymentMethod(id);
+                }
+            }}
         >
             <div className="flex items-center">
                 <input
                     type="radio"
                     id={id}
+                    disabled={isDisabled}
                     checked={paymentMethod === id}
                     onChange={() => setPaymentMethod(id)}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="mr-3 h-4 w-4 text-black focus:ring-black black-radio"
                 />
                 <div className="flex items-center flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${paymentMethod === id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
-                        <Icon size={20} />
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${paymentMethod === id ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}>
+                        {typeof icon === 'string' ? (
+                            <img src={icon} alt="" />
+                        ) : (
+                            React.createElement(icon, { size: 20 })
+                        )}
                     </div>
                     <div>
                         <div className="font-medium text-gray-900">{title}</div>
@@ -225,7 +233,7 @@ function CartPayment({ onPlaceOrder }) {
 
     const PayPalOption = () => (
         <div
-            className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${paymentMethod === 'paypal' ? 'border-blue-600 bg-blue-50' : 'border-gray-200'}`}
+            className={`border rounded-lg p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${paymentMethod === 'paypal' ? 'border-black border-2 bg-gray-50' : 'border-gray-200'}`}
             onClick={() => setPaymentMethod('paypal')}
         >
             <div className="flex items-center">
@@ -234,11 +242,11 @@ function CartPayment({ onPlaceOrder }) {
                     id="paypal"
                     checked={paymentMethod === 'paypal'}
                     onChange={() => setPaymentMethod('paypal')}
-                    className="mr-3 h-4 w-4 text-blue-600 focus:ring-blue-500"
+                    className="mr-3 h-4 w-4 text-black focus:ring-black black-radio"
                 />
                 <div className="flex items-center flex-1">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${paymentMethod === 'paypal' ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'}`}>
-                        <span className="text-blue-600 font-bold text-sm">PP</span>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mr-3 ${paymentMethod === 'paypal' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'}`}>
+                        <img src={paypalLogo} alt="" />
                     </div>
                     <div>
                         <div className="font-medium text-gray-900">PayPal</div>
@@ -250,10 +258,10 @@ function CartPayment({ onPlaceOrder }) {
     );
 
     return (
-        <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-100">
-            <div className="flex items-center mb-6 pb-3 border-b border-gray-100">
-                <CreditCard className="text-blue-600 mr-3" size={24} />
-                <h2 className="text-xl font-semibold text-gray-800">Payment Options</h2>
+        <div className="bg-white rounded-lg p-6">
+            <div className="flex items-center mb-6 pb-3 border-b border-gray-200">
+                <CreditCard className="text-black mr-3" size={24} />
+                <h2 className="text-xl font-semibold text-gray-900">Payment Options</h2>
             </div>
 
             <div className="space-y-4 mb-8">
@@ -261,47 +269,42 @@ function CartPayment({ onPlaceOrder }) {
                     id="wallet"
                     title="Wallet"
                     description={isLoadingWallet ? "Loading balance..." : `Available balance: ₹${walletBalance.toFixed(2)}`}
-                    icon={Wallet}
+                    icon={walletLogo}
                 />
 
                 <PayPalOption />
+
                 <PaymentOption
                     id="upi"
                     title="UPI"
                     description="Pay using UPI apps"
                     icon={Smartphone}
                 />
-                <PaymentOption
-                    id="netbanking"
-                    title="Net Banking"
-                    description="All major banks supported"
-                    icon={Building}
-                />
+
                 <PaymentOption
                     id="cod"
                     title="Cash on Delivery"
-                    description="Pay when you receive the product"
-                    icon={Truck}
+                    description={(totalPrice < 1000) ? "Not available for orders below 1000" : "Pay when you receive the product"}
+                    icon={cashOnDelivery}
+                    isDisabled={(totalPrice < 1000) ? true : false}
                 />
             </div>
 
-
-
             {/* Wallet payment */}
             {paymentMethod === 'wallet' && (
-                <div className="border rounded-lg p-5 mb-6 bg-gray-50">
+                <div className="rounded-lg p-5 mb-6 bg-gray-50">
                     <h3 className="font-medium text-gray-900 mb-4">Wallet Payment</h3>
 
                     {isLoadingWallet ? (
                         <div className="flex justify-center items-center p-4">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
                         </div>
                     ) : walletError ? (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                        <div className="bg-gray-100 text-gray-800 p-3 rounded-md mb-4">
                             {walletError}
                             <button
                                 onClick={fetchWalletBalance}
-                                className="ml-2 underline hover:text-red-800"
+                                className="ml-2 underline hover:text-black"
                             >
                                 Retry
                             </button>
@@ -323,7 +326,7 @@ function CartPayment({ onPlaceOrder }) {
                             </div>
 
                             {walletBalance < (totalPrice || 0) && (
-                                <div className="bg-yellow-50 border border-yellow-200 text-gray-700 p-3 rounded-md mb-4">
+                                <div className="bg-gray-100 border border-gray-200 text-gray-700 p-3 rounded-md mb-4">
                                     <div className="font-medium mb-1">Insufficient balance</div>
                                     <div className="text-sm">
                                         Your wallet balance is ₹{walletBalance.toFixed(2)} but your order total is ₹{(totalPrice || 0).toFixed(2)}.
@@ -331,39 +334,37 @@ function CartPayment({ onPlaceOrder }) {
                                 </div>
                             )}
 
-
-
                             {walletBalance >= (totalPrice || 0) && (
                                 <div className="mt-6 mb-2">
-                                    <div className="border rounded-lg p-5 bg-gray-50">
+                                    <div className="shadow-xl rounded-lg p-5 bg-gray-50">
                                         <h3 className="font-medium text-gray-900 mb-4 flex items-center">
-                                            <LockIcon size={16} className="mr-2 text-gray-700" />
+                                            <LockIcon size={16} className="mr-2 text-gray-800" />
                                             Security Verification
                                         </h3>
                                         <div className="flex items-center space-x-4">
-                                            <div className="bg-gradient-to-r from-gray-800 to-gray-700 text-white text-lg font-bold tracking-widest px-5 py-3 rounded-md select-none relative overflow-hidden">
+                                            <div className="bg-gradient-to-r from-black to-gray-800 text-white text-lg font-bold tracking-widest px-5 py-3 rounded-md select-none relative overflow-hidden">
                                                 <div className="absolute inset-0 opacity-20">
                                                     <div className="absolute top-0 left-0 w-full h-full" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)' }}></div>
                                                 </div>
                                                 <div className="relative">{captchaText}</div>
                                             </div>
                                             <button
-                                                className="text-gray-600 hover:text-gray-800 transition-colors p-2 hover:bg-gray-200 rounded-full"
+                                                className="text-gray-600 hover:text-black transition-colors p-2 hover:bg-gray-200 rounded-full"
                                                 onClick={generateNewCaptcha}
                                                 title="Generate new captcha"
                                             >
                                                 <RefreshCw size={18} />
                                             </button>
-                                        </div>
-                                        <div className="mt-4">
-                                            <label className="text-sm text-gray-700 block mb-1">Enter the code shown above</label>
-                                            <input
-                                                type="text"
-                                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent"
-                                                value={captchaInput}
-                                                onChange={(e) => setCaptchaInput(e.target.value)}
-                                                placeholder="Enter captcha"
-                                            />
+                                            <div className="mt-4 ml-30 mb-6">
+                                                <label className="text-sm text-gray-700 block mb-1">Enter the code here</label>
+                                                <input
+                                                    type="text"
+                                                    className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                                                    value={captchaInput}
+                                                    onChange={(e) => setCaptchaInput(e.target.value)}
+                                                    placeholder="Enter captcha"
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -373,7 +374,7 @@ function CartPayment({ onPlaceOrder }) {
                                 <button
                                     className={`w-full mt-4 px-4 py-2 rounded-md ${!captchaInput || captchaInput !== captchaText || isProcessing
                                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                        : 'bg-gray-800 text-white hover:bg-black'
+                                        : 'bg-black text-white hover:bg-gray-800'
                                         }`}
                                     disabled={!captchaInput || captchaInput !== captchaText || isProcessing}
                                     onClick={handleWalletPayment}
@@ -393,19 +394,18 @@ function CartPayment({ onPlaceOrder }) {
                 </div>
             )}
 
-
             {paymentMethod === 'paypal' && (
-                <div className="border rounded-lg p-5 mb-6 bg-gray-50">
+                <div className="shadow-2xl rounded-lg p-5 mb-6 bg-gray-50">
                     <h3 className="font-medium text-gray-900 mb-4">PayPal Checkout</h3>
 
                     {paypalError && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                        <div className="bg-gray-100 text-gray-800 p-3 rounded-md mb-4 border-l-4 border-black">
                             {paypalError}
                         </div>
                     )}
 
                     {paypalOrderID && (
-                        <div className="bg-green-50 text-green-600 p-3 rounded-md mb-4">
+                        <div className="bg-gray-100 text-gray-800 p-3 rounded-md mb-4 border-l-4 border-gray-800">
                             PayPal order created! Processing your order...
                         </div>
                     )}
@@ -413,7 +413,7 @@ function CartPayment({ onPlaceOrder }) {
                     <div className="paypal-button-container">
                         {isPending ? (
                             <div className="flex justify-center items-center p-4">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-800"></div>
                             </div>
                         ) : (
                             <PayPalButtons
@@ -423,7 +423,7 @@ function CartPayment({ onPlaceOrder }) {
                                 onCancel={() => console.log("PayPal transaction cancelled")}
                                 style={{
                                     layout: 'horizontal',
-                                    color: 'blue',
+                                    color: 'black',
                                     shape: 'rect',
                                     label: 'pay'
                                 }}
@@ -451,32 +451,32 @@ function CartPayment({ onPlaceOrder }) {
                                 type="text"
                                 value={upiId}
                                 onChange={(e) => setUpiId(e.target.value)}
-                                className="border rounded-md pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="border rounded-md pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
                                 placeholder="yourname@upi"
                             />
                         </div>
                         <div className="mt-4 flex justify-center space-x-6">
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
                                     <img src="/api/placeholder/30/30" alt="UPI app" />
                                 </div>
                                 <span className="text-xs text-gray-600">PhonePe</span>
                             </div>
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
                                     <img src="/api/placeholder/30/30" alt="UPI app" />
                                 </div>
                                 <span className="text-xs text-gray-600">GPay</span>
                             </div>
                             <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
                                     <img src="/api/placeholder/30/30" alt="UPI app" />
                                 </div>
                                 <span className="text-xs text-gray-600">Paytm</span>
                             </div>
                         </div>
                         <button
-                            className={`w-full mt-6 px-4 py-2 rounded-md ${!upiId || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                            className={`w-full mt-6 px-4 py-2 rounded-md ${!upiId || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
                             disabled={!upiId || isProcessing}
                             onClick={handleUpiPayment}
                         >
@@ -500,18 +500,18 @@ function CartPayment({ onPlaceOrder }) {
                         {['SBI', 'HDFC', 'ICICI', 'Axis'].map((bank) => (
                             <div
                                 key={bank}
-                                className={`border rounded-md p-3 text-center cursor-pointer hover:bg-white hover:shadow-md transition-all ${selectedBank === bank ? 'border-blue-600 bg-blue-50' : ''}`}
+                                className={`border rounded-md p-3 text-center cursor-pointer hover:bg-white hover:shadow-md transition-all ${selectedBank === bank ? 'border-black bg-gray-100' : ''}`}
                                 onClick={() => setSelectedBank(bank)}
                             >
                                 <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <Building size={18} className="text-gray-600" />
+                                    <Building size={18} className="text-gray-700" />
                                 </div>
                                 <div className="text-sm font-medium">{bank} Bank</div>
                             </div>
                         ))}
                     </div>
                     <button
-                        className={`w-full mt-6 px-4 py-2 rounded-md ${!selectedBank || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                        className={`w-full mt-6 px-4 py-2 rounded-md ${!selectedBank || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
                         disabled={!selectedBank || isProcessing}
                         onClick={handleNetBankingPayment}
                     >
@@ -529,41 +529,39 @@ function CartPayment({ onPlaceOrder }) {
 
             {paymentMethod === 'cod' && (
                 <div className="mt-6 mb-8">
-                    <div className="border rounded-lg p-5 bg-gray-50">
+                    <div className="shadow-xl rounded-lg p-5 bg-gray-50">
                         <h3 className="font-medium text-gray-900 mb-4 flex items-center">
-                            <LockIcon size={16} className="mr-2 text-blue-600" />
+                            <LockIcon size={16} className="mr-2 text-gray-800" />
                             Security Verification
                         </h3>
                         <div className="flex items-center space-x-4">
-                            <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white text-lg font-bold tracking-widest px-5 py-3 rounded-md select-none relative overflow-hidden">
+                            <div className="bg-gradient-to-r from-black to-gray-800 text-white text-lg font-bold tracking-widest px-5 py-3 rounded-md select-none relative overflow-hidden">
                                 <div className="absolute inset-0 opacity-20">
                                     <div className="absolute top-0 left-0 w-full h-full" style={{ background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px)' }}></div>
                                 </div>
                                 <div className="relative">{captchaText}</div>
                             </div>
                             <button
-                                className="text-blue-600 hover:text-blue-800 transition-colors p-2 hover:bg-blue-50 rounded-full"
+                                className="text-gray-600 hover:text-black transition-colors p-2 hover:bg-gray-200 rounded-full"
                                 onClick={generateNewCaptcha}
                                 title="Generate new captcha"
                             >
                                 <RefreshCw size={18} />
                             </button>
-                        </div>
-                        <div className="mt-4">
-                            <label className="text-sm text-gray-700 block mb-1">Enter the code shown above</label>
-                            <input
-                                type="text"
-                                className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                value={captchaInput}
-                                onChange={(e) => setCaptchaInput(e.target.value)}
-                                placeholder="Enter captcha"
-                            />
+                            <div className="mt-4 ml-30 mb-8">
+                                <label className="text-sm text-gray-700 block mb-1">Enter the code here</label>
+                                <input
+                                    type="text"
+                                    className="border rounded-md px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+                                    value={captchaInput}
+                                    onChange={(e) => setCaptchaInput(e.target.value)}
+                                    placeholder="Enter captcha"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
             )}
-
-
 
             <div className="flex items-center justify-between mt-6">
                 <button
@@ -580,7 +578,7 @@ function CartPayment({ onPlaceOrder }) {
                     <button
                         className={`px-6 py-3 rounded-lg transition-all duration-200 flex items-center font-medium ${(!captchaInput || captchaInput !== captchaText || isProcessing)
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg'
+                            : 'bg-black text-white hover:bg-gray-700 shadow-md hover:shadow-lg'
                             }`}
                         disabled={!captchaInput || captchaInput !== captchaText || isProcessing}
                         onClick={handlePlaceOrder}
@@ -593,7 +591,7 @@ function CartPayment({ onPlaceOrder }) {
                         ) : (
                             <>
                                 <LockIcon size={16} className="mr-2" />
-                                Place Order (₹{totalPrice})
+                                Place Order (₹{totalPrice || '0.00'})
                             </>
                         )}
                     </button>

@@ -10,7 +10,11 @@ import { addProducts, setCartCurrentStep, clearCart } from '../../../store/slice
 import { useNavigate } from 'react-router';
 import { toast } from 'react-toastify';
 import { deleteCartItem, getCartItems, updateQuantity as updateQuantityService } from '../../../services/cartService';
-
+import paypal from "../../../assets/images/paypal.png"
+import visa from "../../../assets/images/visa.png";
+import mastercard from "../../../assets/images/mastercard.png";
+import applepay from "../../../assets/images/applepay.png";
+import gpay from "../../../assets/images/gpay.png";
 
 
 const Cart = () => {
@@ -298,7 +302,7 @@ const Cart = () => {
 
                 {/* Order Summary */}
                 {cartItems.length > 0 && (
-                    <div className="w-full md:w-80 bg-gray-50 p-6 border mt-6 md:mt-0 rounded-md">
+                    <div className=" md:w-80 bg-gray-50 p-6  mt-6 md:mt-10 ml-6 rounded-md">
                         <h3 className="text-xl font-medium mb-6">Order Summary</h3>
 
                         <div className="space-y-3 mb-6">
@@ -325,19 +329,7 @@ const Cart = () => {
                             </div>
                         </div>
 
-                        {/* Coupon Code */}
-                        <div className="mb-6">
-                            <div className="flex space-x-2">
-                                <input
-                                    type="text"
-                                    placeholder="Promo code"
-                                    className="flex-grow border rounded-lg px-3 py-2 text-sm"
-                                />
-                                <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg text-sm">
-                                    Apply
-                                </button>
-                            </div>
-                        </div>
+
 
                         {/* Shipping Estimate */}
                         <div className="bg-white border rounded-lg p-4 mb-6">
@@ -375,7 +367,11 @@ const Cart = () => {
 
                         {/* Payment methods */}
                         <div className="flex justify-center mt-4">
-                            <img src="/payment-methods.png" alt="Accepted payment methods" className="h-6" />
+                            <img src={paypal} alt="Accepted payment methods" className="h-8" />
+                            <img src={visa} alt="Accepted payment methods" className="h-8" />
+                            <img src={mastercard} alt="Accepted payment methods" className="h-8" />
+                            <img src={applepay} alt="Accepted payment methods" className="h-8" />
+                            <img src={gpay} alt="Accepted payment methods" className="h-8" />
                         </div>
                     </div>
                 )}

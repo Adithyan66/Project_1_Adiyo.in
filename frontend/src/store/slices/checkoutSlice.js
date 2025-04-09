@@ -46,8 +46,6 @@ const checkoutSlice = createSlice({
         },
         setProduct: (state, action) => {
             const { product, productColor, productSize } = action.payload;
-
-            // Store the entire product object but with additional computed properties
             state.order.productDetails = product;
             state.order.productColor = productColor;
             state.order.productSize = productSize;

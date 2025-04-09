@@ -12,7 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import { loginSuccess, logout } from './store/slices/userSlice';
 
-import { AdminProtected, SellerProtected, UserOnlyProtected } from "./components/protectedRoutes/UserProtected"
+import { AdminProtected, SellerProtected, UserOnlyProtected, UserProtected } from "./components/protectedRoutes/UserProtected"
 
 
 import LandingPage from "./pages/customer/LandingPage";
@@ -67,11 +67,6 @@ function App() {
       } catch (error) {
 
         dispatch(logout());
-
-
-        //  toast.error(error.response?.data?.message || 'Session expired');
-
-        // Call the logout endpoint to clear the HTTP-only cookie if necessary
         try {
           await axios.post(
             "http://localhost:3333/user/logout",
@@ -92,32 +87,31 @@ function App() {
     <>
       <Routes>
 
-
         <Route path="/" element={<UserOnlyProtected>   <LandingPage /> </UserOnlyProtected>} />
 
-        <Route path="/products-list" element={<ProductsListPage />} />
+        <Route path="/products-list" element={<UserOnlyProtected><ProductsListPage /></UserOnlyProtected>} />
 
-        <Route path="/product-detail/:id" element={<ProductDetailsPage />} />
+        <Route path="/product-detail/:id" element={<UserOnlyProtected><ProductDetailsPage /></UserOnlyProtected>} />
 
-        <Route path="/user/profile" element={<UserProfilePage />} />
+        <Route path="/user/profile" element={<UserProtected><UserProfilePage /></UserProtected>} />
 
-        <Route path="/user/manage-address" element={<ManageAddressesPage />} />
+        <Route path="/user/manage-address" element={<UserProtected><ManageAddressesPage /></UserProtected>} />
 
-        <Route path="/user/view-cart" element={<CartPage />} />
+        <Route path="/user/view-cart" element={<UserProtected><CartPage /></UserProtected>} />
 
-        <Route path="/user/check-out" element={<CheckoutPage />} />
+        <Route path="/user/check-out" element={<UserProtected><CheckoutPage /></UserProtected>} />
 
-        <Route path="/user/cart-check-out" element={<CartCheckOutPage />} />
+        <Route path="/user/cart-check-out" element={<UserProtected><CartCheckOutPage /></UserProtected>} />
 
-        <Route path="/user/orders-list" element={<OrdersListPage />} />
+        <Route path="/user/orders-list" element={<UserProtected><OrdersListPage /></UserProtected>} />
 
-        <Route path="/user/orders/:orderId" element={<OrderDetailsPage />} />
+        <Route path="/user/orders/:orderId" element={<UserProtected><OrderDetailsPage /></UserProtected>} />
 
-        <Route path="/user/wishlist" element={<WishlistPage />} />
+        <Route path="/user/wishlist" element={<UserProtected><WishlistPage /></UserProtected>} />
 
-        <Route path="/user/wallet" element={<WalletPage />} />
+        <Route path="/user/wallet" element={<UserProtected><WalletPage /></UserProtected>} />
 
-        <Route path="/user/referrals" element={<ReferralsDetailsPage />} />
+        <Route path="/user/referrals" element={<UserProtected><ReferralsDetailsPage /></UserProtected>} />
 
 
 

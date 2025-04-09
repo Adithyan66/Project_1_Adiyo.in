@@ -18,6 +18,12 @@ export const SellerProtected = ({ children }) => {
     return role === "seller" ? children : <Navigate to="/" />;
 };
 
+export const UserProtected = ({ children }) => {
+
+    const { role } = useSelector((state) => state.user);
+
+    return role === "customer" ? children : <Navigate to="/" />
+}
 
 export const UserOnlyProtected = ({ children }) => {
 

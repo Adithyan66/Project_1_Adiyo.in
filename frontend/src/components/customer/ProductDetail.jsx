@@ -8,10 +8,11 @@ import { toast } from "react-toastify";
 import greenArrow from "../../assets/images/greenArrow.webp"
 
 import { setProduct } from "../../store/slices/checkoutSlice";
-import { useDispatch } from "react-redux";
 import { productOffers } from "../../services/productService";
 import { addToWishlist, checkProductInWishlist, removeFromWishlist } from "../../services/wishlistService";
 import { addToCart } from "../../services/cartService";
+import { useSelector, useDispatch } from "react-redux";
+import { setLoginPopup, setActiveForm } from "../../store/slices/authModalSlice.js"
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -20,6 +21,10 @@ function ProductDetail({ product }) {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+
+
+    const user = useSelector((state) => state.user.userInfo)
+
 
     const [selectedColorIndex, setSelectedColorIndex] = useState(0);
     const [selectedImage, setSelectedImage] = useState("");
@@ -93,6 +98,11 @@ function ProductDetail({ product }) {
 
 
     const toggleWishlist = async () => {
+
+        if (!user) {
+            toast.error("login first")
+            return
+        }
         setWishlistLoading(true);
         try {
             const data = {
@@ -117,6 +127,10 @@ function ProductDetail({ product }) {
     };
 
     const handleBuynow = () => {
+        if (!user) {
+            toast.error("login first")
+            return
+        }
 
         if (selectedSize === "") return toast.error("select a size");
 
@@ -210,6 +224,11 @@ function ProductDetail({ product }) {
 
 
     const handleAddtoCart = async () => {
+
+        if (!user) {
+            toast.error("login first")
+            return
+        }
 
         if (isInCart) {
             navigate("/user/view-cart");

@@ -3143,12 +3143,14 @@ export const checkOffer = async (req, res) => {
 export const referalDetails = async (req, res) => {
 
     try {
+        console.log("hiiiiiiiiiiiiiii");
+
         const userId = req.user.userId
         const { page, limit, search } = req.query
 
 
 
-        const referralData = await UserReferral.findOne({ user: userId }).populate({
+        let referralData = await UserReferral.findOne({ user: userId }).populate({
             path: "referrals",
             match: search ? {
                 $or: [
@@ -3165,11 +3167,28 @@ export const referalDetails = async (req, res) => {
         )
 
         if (!referralData) {
-            return res.status(HttpStatusCode.NOT_FOUND).json({
-                success: false,
-                message: "Referral data not found"
+
+            let referralCode = await generateUniqueReferralCode()
+
+            await UserReferral.create({
+                user: userId,
+                referralCode,
+                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referrals: []
+            });
+
+            referralData = await UserReferral.findOne({ user: userId })
+
+            return res.status(HttpStatusCode.CREATED).json({
+                success: true,
+                message: "Referral data Created",
+                referralDetails: {
+                    referralCode: referralData.referralCode,
+                    referralLink: referralData.referralLink,
+                },
             })
         }
+
         console.log(referralData);
 
         const formattedRefferals = referralData.referrals.map(ref =>

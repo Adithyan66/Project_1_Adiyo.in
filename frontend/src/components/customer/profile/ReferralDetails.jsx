@@ -98,7 +98,7 @@ const ReferralDetails = () => {
                 await navigator.share({
                     title: 'Join me on Adiyo',
                     text: 'Use my referral link to join Adiyo and get exclusive benefits!',
-                    url: referralData.referralLink
+                    url: referralData?.referralLink
                 });
                 toast.success('Thanks for sharing!');
             } catch (err) {
@@ -123,7 +123,7 @@ const ReferralDetails = () => {
                     </div>
                     <div className="flex items-center space-x-4">
                         <span className="bg-black text-white px-4 py-1 rounded-full text-sm font-medium">
-                            {referralData.totalReferrals} referrals
+                            {referralData?.totalReferrals} referrals
                         </span>
                     </div>
                 </div>
@@ -144,14 +144,14 @@ const ReferralDetails = () => {
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-end">
-                            <span className="text-3xl font-bold">₹{referralData.totalEarned.toFixed(2)}</span>
+                            <span className="text-3xl font-bold">₹{referralData?.totalEarned.toFixed(2)}</span>
                             <span className="text-sm text-gray-500 ml-2 mb-1">Earned</span>
                         </div>
 
-                        {referralData.pendingAmount > 0 && (
+                        {referralData?.pendingAmount > 0 && (
                             <div className="mt-4 flex items-center text-sm">
                                 <Gift size={16} className="text-gray-500 mr-2" />
-                                <span className="text-gray-600">₹{referralData.pendingAmount.toFixed(2)} pending from recent referrals</span>
+                                <span className="text-gray-600">₹{referralData?.pendingAmount.toFixed(2)} pending from recent referrals</span>
                             </div>
                         )}
 
@@ -194,14 +194,14 @@ const ReferralDetails = () => {
                                     <Users size={16} className="text-gray-600 mr-2" />
                                     <span className="text-sm text-gray-600">Total Referrals</span>
                                 </div>
-                                <p className="text-xl font-bold">{referralData.totalReferrals}</p>
+                                <p className="text-xl font-bold">{referralData?.totalReferrals}</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg">
                                 <div className="flex items-center mb-1">
                                     <Users size={16} className="text-gray-600 mr-2" />
                                     <span className="text-sm text-gray-600">Active Referrals</span>
                                 </div>
-                                <p className="text-xl font-bold">{referralData.activeReferrals}</p>
+                                <p className="text-xl font-bold">{referralData?.activeReferrals}</p>
                             </div>
                             <div className="bg-gray-50 p-4 rounded-lg col-span-2">
                                 <div className="flex items-center mb-1">
@@ -209,10 +209,10 @@ const ReferralDetails = () => {
                                     <span className="text-sm text-gray-600">Your Referral Code</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <p className="text-xl font-bold font-mono">{referralData.referralCode}</p>
+                                    <p className="text-xl font-bold font-mono">{referralData?.referralCode}</p>
                                     <button
                                         onClick={() => {
-                                            navigator.clipboard.writeText(referralData.referralCode);
+                                            navigator.clipboard.writeText(referralData?.referralCode);
                                             toast.success('Referral code copied!');
                                         }}
                                         className="text-sm text-gray-600 hover:text-black"
@@ -263,20 +263,20 @@ const ReferralDetails = () => {
                                             <Users size={20} className="text-gray-600" />
                                         </div>
                                         <div>
-                                            <p className="font-medium">{referral.name}</p>
-                                            <p className="text-sm text-gray-500">{referral.email}</p>
+                                            <p className="font-medium">{referral?.name}</p>
+                                            <p className="text-sm text-gray-500">{referral?.email}</p>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-6">
                                     <p className="text-xs px-2 py-1 rounded-full inline-block bg-gray-100 text-gray-700">
-                                        Joined: {referral.joinedDate}
+                                        Joined: {referral?.joinedDate}
                                     </p>
                                     <p className="text-xs px-2 py-1 rounded-full inline-block bg-green-100 text-green-800">
-                                        {referral.status === 'active' ? 'Active' : 'Inactive'}
+                                        {referral?.status === 'active' ? 'Active' : 'Inactive'}
                                     </p>
                                     <p className="font-semibold text-green-600">
-                                        +₹{referral.amount.toFixed(2)}
+                                        +₹{referral?.amount.toFixed(2)}
                                     </p>
                                 </div>
                             </div>
