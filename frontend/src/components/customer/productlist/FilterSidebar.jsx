@@ -155,7 +155,12 @@ function FilterSidebar({
             <div className="mb-4">
                 <h3 className="font-semibold mb-2">Category</h3>
                 {isLoadingCategories ? (
-                    <p>Loading categories...</p>
+
+                    [0, 0, 0, 0].map((box) => (<div
+                        className={`px-4 mb-5 w-full h-10 rounded  bg-gray-100`}
+                    >
+                    </div>))
+
                 ) : (
                     <div className="flex flex-wrap gap-2">
                         <button

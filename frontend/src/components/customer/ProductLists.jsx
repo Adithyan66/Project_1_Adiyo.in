@@ -210,7 +210,6 @@ function ProductLists({ searchTerm, setSearchTerm }) {
                     setSearchTerm={setSearchTerm}
                     handleApplyFilter={handleApplyFilter}
                     handleResetFilter={handleResetFilter}
-                    // Pass the fetched categories and loading state
                     dbCategories={dbCategories}
                     filterCategory={filterCategory}
                     setFilterCategory={setFilterCategory}
@@ -239,3 +238,5 @@ function ProductLists({ searchTerm, setSearchTerm }) {
 }
 
 export default ProductLists;
+
+

@@ -52,14 +52,19 @@ const Wallet = () => {
         totalPages: 1
     });
 
+    useEffect(() => {
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
+    }, []);
 
-    // Function to fetch wallet data
+
     const fetchWalletData = async () => {
         try {
             setLoading(true);
             setError(null);
 
-            // Prepare query parameters
             let queryParams = new URLSearchParams({
                 page: currentPage,
                 limit: 4
@@ -72,21 +77,14 @@ const Wallet = () => {
                 queryParams.append('type', activeTab);
             }
 
-            // Add search query if exists
             if (searchQuery) {
                 queryParams.append('search', searchQuery);
             }
 
-            // Make API request
-            // const response = await axios.get(
-            //     `${API_BASE_URL}/user/wallet?${queryParams.toString()}`,
-            //     { withCredentials: true }
-            // );
             const response = await getWalletDetails(queryParams.toString());
 
             const { wallet: walletData, summary: summaryData, transactions: txData, pagination: paginationData } = response.data;
 
-            // Update state with fetched data
             setWallet(walletData);
             setSummary(summaryData);
             setTransactions(txData);
@@ -134,12 +132,12 @@ const Wallet = () => {
         setSelectedPaymentMethod(null);
     };
 
-    // Handle amount selection
+
     const handleAmountSelection = (selectedAmount) => {
         setAmount(selectedAmount.toString());
     };
 
-    // Handle custom amount input
+
     const handleAmountChange = (e) => {
         const value = e.target.value;
         // Allow only numbers
@@ -148,78 +146,94 @@ const Wallet = () => {
         }
     };
 
-    // Proceed to payment method selection
     const proceedToPayment = () => {
         if (amount && parseInt(amount) > 0) {
             setAddMoneyStep('payment');
         }
     };
 
-    // Handle payment method selection
+
     const handlePaymentMethodSelection = (methodId) => {
         setSelectedPaymentMethod(methodId);
     };
 
-    // Process payment
-    const processPayment = async () => {
+
+    const processPayment = async (method) => {
+        console.log("startrd");
+
+        let paymentNow = method || selectedPaymentMethod
+
         try {
             setIsProcessing(true);
             setPaypalError(null);
+            console.log(selectedPaymentMethod, amount);
 
-            if (!selectedPaymentMethod || !amount || parseInt(amount) <= 0) {
+
+            if (!paymentNow || !amount || parseInt(amount) <= 0) {
                 throw new Error("Please select a payment method and enter a valid amount");
             }
 
-            // For Razorpay
-            if (selectedPaymentMethod === 'razorpay') {
-                // Make API call to create Razorpay order
+
+            if (paymentNow === 'razorpay') {
+
                 const response = await axios.post(
-                    `${API_BASE_URL}/user/wallet/add-money`,
+                    `${API_BASE_URL}/user/add-money-razopay`,
                     { amount: parseInt(amount), paymentMethod: 'razorpay' },
                     { withCredentials: true }
                 );
+                console.log("respoooooooooooooo.", response.data);
 
-                // Here we would normally handle Razorpay checkout
-                // For this example, we'll just simulate a successful payment
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                if (response.data.success && response.data.order) {
+                    const { order } = response.data;
 
+                    const options = {
+                        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'your_default_key_id',
+                        amount: order.amount,
+                        currency: order.currency,
+                        name: 'Adiyo.in',
+                        description: 'Wallet Recharge',
+                        order_id: order.id,
+                        handler: async function (paymentResponse) {
+                            const verifyResponse = await axios.post(
+                                `${API_BASE_URL}/user/wallet-recharge`,
+                                {
+                                    paymentMethod: paymentNow,
+                                    razorpay_order_id: paymentResponse.razorpay_order_id,
+                                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                                    razorpay_signature: paymentResponse.razorpay_signature,
+                                    amount: parseInt(amount)
+                                },
+                                { withCredentials: true }
+                            );
+                            if (verifyResponse.data.success) {
+                                closeAddMoneyModal();
+                                fetchWalletData();
+                            } else {
+                                alert('Payment verification failed, please try again.');
+                            }
+                        },
+                        prefill: {
+                            name: 'Adithyan Binu',
+                            email: 'youremail@example.com'
+                        },
+                        theme: {
+                            color: '#3399cc'
+                        }
+                    };
+
+                    const rzp = new window.Razorpay(options);
+                    rzp.open();
+                } else {
+                    throw new Error("Failed to create Razorpay order.");
+                }
             }
-            // For PayPal
-            else if (selectedPaymentMethod === 'paypal') {
-                // Make API call to create PayPal order
-                console.log("called");
 
-                const response = await axios.post(
-                    `${API_BASE_URL}/user/wallet/create-paypal-order`,
-                    { amount: parseInt(amount) },
-                    { withCredentials: true }
-                );
-
-                setPaypalOrderID(response.data.orderID);
-
-                // Here we would normally redirect to PayPal or handle the PayPal SDK
-                // For this example, we'll just simulate a successful payment
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                // Simulate order completion
-                await axios.post(
-                    `${API_BASE_URL}/user/wallet/capture-paypal-order`,
-                    { orderID: response.data.orderID },
-                    { withCredentials: true }
-                );
-            }
-
-            // After successful payment, close modal and refresh wallet data
             closeAddMoneyModal();
             fetchWalletData();
-
-            // Show success notification
-            alert(`Successfully added ₹${amount} to your wallet!`);
 
         } catch (err) {
             console.error('Payment processing error:', err);
             setPaypalError(err.message || 'Payment failed. Please try again.');
-            alert('Payment failed. Please try again.');
         } finally {
             setIsProcessing(false);
         }
@@ -227,7 +241,6 @@ const Wallet = () => {
 
 
 
-    // Create PayPal order
     const createPaypalOrder = (data, actions) => {
         const rechargeAmount = (parseFloat(amount) || 0).toFixed(2);
 
@@ -281,8 +294,6 @@ const Wallet = () => {
 
         console.log("handlePlaceOrder called with:", { paymentMethod, paypalOrderID });
 
-
-        // Additional validation for PayPal
         if (paymentMethod === 'paypal' && !paypalOrderID) {
             toast.error("PayPal payment not completed. Please try again.");
             return Promise.reject(new Error("PayPal order ID missing"));
@@ -648,6 +659,24 @@ const Wallet = () => {
                                             }}
                                         />
 
+                                        <div className="flex flex-col items-center">
+                                            <button
+                                                onClick={() => {
+                                                    handlePaymentMethodSelection('razorpay')
+                                                    processPayment("razorpay")
+                                                }}
+                                                className={`w-full mt-4 h-11 rounded-lg flex items-center justify-center font-medium transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg group ${selectedPaymentMethod === 'razorpay'
+                                                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md'
+                                                    : 'bg-gradient-to-r from-amber-100 to-amber-200 text-gray-700 hover:from-amber-200 hover:to-amber-300 border border-amber-300'
+                                                    } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:scale-[0.98]`}
+                                            >
+                                                <div className="flex items-center justify-center relative overflow-hidden">
+                                                    <span className="absolute inset-0 bg-white/10 rounded transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></span>
+                                                    <span className="font-semibold">Pay with <span className="text-2xl italic text-blue-600 animate-pulse">Razorpay</span></span>
+                                                </div>
+                                            </button>
+                                            <div className="text-gray-800  text-lg">Fast and secure payments</div>
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -668,26 +697,6 @@ const Wallet = () => {
                                     </button>
                                 ) : (
                                     <div className="space-y-3">
-                                        <button
-                                            onClick={processPayment}
-                                            disabled={!selectedPaymentMethod || isProcessing}
-                                            className={`w-full py-3 rounded-lg flex items-center justify-center font-medium ${!selectedPaymentMethod || isProcessing
-                                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                                : 'bg-black text-white hover:bg-gray-800'
-                                                }`}
-                                        >
-                                            {isProcessing ? (
-                                                <>
-                                                    <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-3"></div>
-                                                    Processing...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <CreditCard size={16} className="mr-2" />
-                                                    Pay ₹{amount}
-                                                </>
-                                            )}
-                                        </button>
 
                                         <button
                                             onClick={() => setAddMoneyStep('amount')}

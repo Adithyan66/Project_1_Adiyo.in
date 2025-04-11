@@ -67,7 +67,7 @@ function ProductCard({ product }) {
   };
 
   if (isLoading) {
-    return <div className="rounded-lg p-4 flex flex-col bg-white shadow-sm">Loading...</div>;
+    return <ProductCardShimmer />;
   }
 
   if (!product) {
@@ -143,3 +143,45 @@ function ProductCard({ product }) {
 }
 
 export default ProductCard;
+
+
+
+
+function ProductCardShimmer() {
+  return (
+    <div className="rounded-lg p-4 flex flex-col bg-white shadow-sm relative overflow-hidden">
+      {/* Shimmer overlay */}
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+      {/* Image placeholder */}
+      <div className="relative">
+        <div className="w-full h-95 bg-gray-200 rounded-lg mb-3 mx-auto" />
+      </div>
+
+      {/* Product details placeholders */}
+      <div className="flex flex-col flex-grow">
+        {/* Title placeholder */}
+        <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
+
+        {/* Category placeholder */}
+        <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+
+        {/* Rating placeholder */}
+        <div className="flex items-center mt-1">
+          <div className="h-4 bg-gray-200 rounded w-24 mr-2"></div>
+          <div className="h-4 bg-gray-200 rounded w-16"></div>
+        </div>
+
+        {/* Price Section placeholder */}
+        <div className="mt-3 flex items-center">
+          <div className="flex-grow">
+            <div className="h-7 bg-gray-200 rounded w-20"></div>
+          </div>
+
+          <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

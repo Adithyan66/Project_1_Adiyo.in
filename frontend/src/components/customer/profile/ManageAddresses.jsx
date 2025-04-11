@@ -2,29 +2,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { PencilIcon, PlusCircle, Trash2, MapPin, Home, Briefcase, CheckCircle, ChevronRight } from 'lucide-react';
-// import AddEditAddressModal from './AddEditAddressModal';
-import axios from 'axios';
 import AddEditAddressModal from './AddEditAddressModal';
 import { useDispatch } from 'react-redux';
 import { setCurrentStep, setSelectedAddress } from '../../../store/slices/checkoutSlice';
 import { setCartSelectedAddress, setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
 import { deleteAddress, getAddress, setDefaultAddress } from '../../../services/profileService';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
+import ManageAddressesShimmer from '../shimmerUI/ManageAddressesShimmer';
 
 
 const ManageAddresses = ({ checkOut, renderStepContent }) => {
 
     const dispatch = useDispatch()
-
-
     const [addresses, setAddresses] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [activeAddress, setActiveAddress] = useState(null);
-
-
-
+    const [isLoading, setIsLoading] = useState(false)
 
     const handleSelect = (id) => {
         setAddresses(addresses.map(address => ({
@@ -40,29 +32,28 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
     }
 
     const handleSetDefault = async (id) => {
+        setIsLoading(true)
         try {
-            // const response = await axios.put(`${API_BASE_URL}/user/set-default-address/${id}`, {}, {
-            //     withCredentials: true,
-            // });
             const response = await setDefaultAddress(id);
 
             if (response.data.success) {
                 setAddresses(addresses.map(address => ({
                     ...address,
                     isDefault: address._id === id,
-                    isSelected: address._id === id // Also select it when setting as default
+                    isSelected: address._id === id
                 })));
             }
         } catch (error) {
             console.error("Error setting default address:", error);
+        } finally {
+            setIsLoading(false)
+
         }
     };
 
     const handleDeleteAddress = async (id) => {
+        setIsLoading(true)
         try {
-            // const response = await axios.delete(`${API_BASE_URL}/user/delete-address/${id}`, {
-            //     withCredentials: true,
-            // });
             const response = await deleteAddress(id);
 
             if (response.data.success) {
@@ -70,6 +61,8 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
             }
         } catch (error) {
             console.error("Error deleting address:", error);
+        } finally {
+            setIsLoading(false)
         }
     };
 
@@ -89,39 +82,37 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
     }, []);
 
     const fetchAddresses = async () => {
+        setIsLoading(true)
         try {
-            // const response = await axios.get(`${API_BASE_URL}/user/address`, {
-            //     withCredentials: true,
-            // });
-
             const response = await getAddress();
 
-
             if (response.data.success) {
-                // Mark the default address as selected when fetching addresses
                 const addressesWithSelection = response.data.addresses.map(address => ({
                     ...address,
                     isSelected: address.isDefault
                 }));
 
-                // If no default address exists, select the first one
                 if (!addressesWithSelection.some(addr => addr.isSelected) && addressesWithSelection.length > 0) {
                     addressesWithSelection[0].isSelected = true;
                 }
-
                 setAddresses(addressesWithSelection);
             }
         } catch (error) {
             console.error("Error fetching addresses:", error);
+        } finally {
+            setIsLoading(false)
         }
     };
 
-    // Close modal and refresh addresses
     const handleModalClose = () => {
         setShowModal(false);
         setActiveAddress(null);
         fetchAddresses();
     };
+
+    if (isLoading) {
+        return <ManageAddressesShimmer />
+    }
 
     return (
         <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[800px]">

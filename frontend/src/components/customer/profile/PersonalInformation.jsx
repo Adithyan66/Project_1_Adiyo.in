@@ -2,12 +2,11 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { MapPin, Pencil, SmilePlus } from 'lucide-react';
-import axios from 'axios';
 import EmailChangeModal from './EmailChangeModal';
 import PasswordChangeModal from './PasswordChangeModal';
 import { updateProfile, userDetails } from '../../../services/profileService';
+import avthar from "../../../assets/images/avatar.webp"
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const PersonalInformation = () => {
     const [isEditing, setIsEditing] = useState(false);
@@ -21,14 +20,12 @@ const PersonalInformation = () => {
     const [passwordModal, setPasswordModal] = useState(false)
     const [saveAlert, setSaveAlert] = useState(false)
 
-    // Add ref for the modal
     const saveAlertRef = useRef(null);
 
     useEffect(() => {
         fetchProfileData();
     }, []);
 
-    // Add click outside listener
     useEffect(() => {
         function handleClickOutside(event) {
             if (saveAlert && saveAlertRef.current && !saveAlertRef.current.contains(event.target)) {
@@ -36,23 +33,18 @@ const PersonalInformation = () => {
             }
         }
 
-        // Add event listener
         document.addEventListener("mousedown", handleClickOutside);
 
-        // Clean up
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
+
     }, [saveAlert]);
 
+
     const fetchProfileData = async () => {
+
         try {
-            // const response = await axios.get(`${API_BASE_URL}/user/user-details`, {
-            //     withCredentials: true,
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     },
-            // });
             const response = await userDetails()
 
             setProfileData(response.data.user);
@@ -100,7 +92,6 @@ const PersonalInformation = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Check file size (limit to 5MB)
         if (file.size > 5 * 1024 * 1024) {
             setError("Image size exceeds 5MB limit. Please choose a smaller file.");
             return;
@@ -122,7 +113,6 @@ const PersonalInformation = () => {
             setIsSubmitting(true);
             setError(null);
 
-            // Create form data to handle both file and JSON data
             const formData = new FormData();
 
             if (profileData.username) {
@@ -153,12 +143,6 @@ const PersonalInformation = () => {
             }
 
             try {
-                // const response = await axios.post(`${API_BASE_URL}/user/update-profile`, formData, {
-                //     withCredentials: true,
-                //     headers: {
-                //         'Content-Type': 'multipart/form-data',
-                //     },
-                // });
 
                 const response = await updateProfile(formData);
 
@@ -183,7 +167,6 @@ const PersonalInformation = () => {
         }
     };
 
-    // View-only form field that matches the visual style of input fields
     const ReadOnlyField = ({ label, value }) => (
         <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
@@ -381,7 +364,7 @@ const PersonalInformation = () => {
                     <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
                         <div className="relative">
                             <img
-                                src={imageUrl}
+                                src={(imageUrl ? imageUrl : avthar)}
                                 alt="Profile"
                                 className={`rounded-full w-48 h-48 object-cover mx-auto ${isEditing ? 'border-4 border-black' : ''
                                     }`}

@@ -20,7 +20,9 @@ function Wishlist() {
     const navigate = useNavigate();
 
     useEffect(() => {
+
         fetchWishlist();
+
     }, []);
 
     const fetchWishlist = async () => {
@@ -137,11 +139,11 @@ function Wishlist() {
 
     if (isLoading) {
         return (
-            <div className="flex-1 p-6 bg-white m-6 rounded-md shadow-sm min-h-screen flex justify-center items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
-            </div>
+            <WishlistShimmer />
         );
     }
+
+
 
     return (
         <div className="flex-1 p-6 bg-white m-6 rounded-md shadow-sm min-h-screen">
@@ -255,7 +257,7 @@ function Wishlist() {
                                     )}
 
                                     <div className="flex space-x-2 mt-2">
-                                        <button
+                                        {/* <button
                                             onClick={() => addToCart(item)}
                                             disabled={actionLoading[cartLoadingKey]}
                                             className="flex-1 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors flex items-center justify-center"
@@ -268,7 +270,7 @@ function Wishlist() {
                                                     Move to Cart
                                                 </>
                                             )}
-                                        </button>
+                                        </button> */}
 
                                         <Link
                                             to={`/product-detail/${item.product._id}`}
@@ -305,3 +307,88 @@ function Wishlist() {
 }
 
 export default Wishlist;
+
+
+
+<div className="flex-1 p-6 bg-white m-6 rounded-md shadow-sm min-h-screen flex justify-center items-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+</div>
+
+
+
+
+function WishlistShimmer() {
+    return (
+        <div className="flex-1 p-6 bg-white m-6 rounded-md shadow-sm min-h-screen">
+            {/* Header Section Shimmer */}
+            <div className="bg-gray-50 p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                        <Heart className="mr-3 text-gray-200" size={24} />
+                        <div className="h-8 w-40 bg-gray-200 rounded animate-pulse"></div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                        <div className="h-6 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Search and Filters Shimmer */}
+            <div className="p-6 border-b border-gray-200 bg-gray-50">
+                <div className="flex flex-col md:flex-row md:items-center justify-between space-y-4 md:space-y-0">
+                    <div className="relative w-full md:w-72">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Info size={18} className="text-gray-200" />
+                        </div>
+                        <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Wishlist Items Shimmer */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
+                {Array(8).fill().map((_, index) => (
+                    <div
+                        key={index}
+                        className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden relative"
+                    >
+                        {/* Shimmer animation overlay */}
+                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+
+                        {/* Image placeholder */}
+                        <div className="h-64 w-full bg-gray-200 rounded-t-lg"></div>
+
+                        <div className="absolute top-2 right-2">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full"></div>
+                        </div>
+
+                        <div className="p-4">
+                            {/* Title placeholder */}
+                            <div className="h-6 w-3/4 bg-gray-200 rounded mb-4 animate-pulse"></div>
+
+                            {/* Color selection placeholder */}
+                            <div className="flex items-center mb-3">
+                                <div className="h-4 w-12 bg-gray-200 rounded mr-2 animate-pulse"></div>
+                                <div className="w-6 h-6 rounded-full bg-gray-200 animate-pulse"></div>
+                            </div>
+
+                            {/* Price placeholder */}
+                            <div className="flex items-center space-x-2 mb-4">
+                                <div className="h-5 w-16 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="h-4 w-14 bg-gray-200 rounded animate-pulse"></div>
+                                <div className="h-4 w-10 bg-gray-200 rounded animate-pulse"></div>
+                            </div>
+
+                            {/* Button placeholders */}
+                            <div className="flex space-x-2 mt-2">
+                                <div className="flex-1 h-10 bg-gray-200 rounded-md animate-pulse"></div>
+                                <div className="flex-1 h-10 bg-gray-200 rounded-md animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+

@@ -5,16 +5,35 @@ import jwt from "jsonwebtoken";
 
 import HttpStatusCode from "../utils/httpStatusCodes.js";
 
+const {
+    OK,
+    CREATED,
+    ACCEPTED,
+    NO_CONTENT,
+    BAD_REQUEST,
+    UNAUTHORIZED,
+    FORBIDDEN,
+    NOT_FOUND,
+    METHOD_NOT_ALLOWED,
+    CONFLICT,
+    UNPROCESSABLE_ENTITY,
+    INTERNAL_SERVER_ERROR,
+    BAD_GATEWAY,
+    SERVICE_UNAVAILABLE,
+    GATEWAY_TIMEOUT
+} = HttpStatusCode
+
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateResetToken } from '../services/tokenService.js';
 import { generateTransactionId } from "../services/generateTransactionId.js";
-
+import crypto from 'crypto';
+import { generateUniqueReferralCode } from "../services/generateUnique.js";
 
 import { verifyPayPalOrder, capturePayPalPayment } from "../services/paypal.js";
 
 
 import { OAuth2Client } from 'google-auth-library';
-import { generateUniqueUserId } from "../services/generateUniqueUserId.js";
+import { generateUniqueUserId } from "../services/generateUnique.js";
 const ObjectId = mongoose.Types.ObjectId;
 
 import cloudinary from "../config/cloudinary.js";
@@ -33,7 +52,7 @@ import ProductOffer from "../models/productOfferModel.js";
 import CategoryOffer from "../models/categoryOfferModel.js";
 import { UserReferral, Referral } from "../models/referralModel.js";
 import ReferralOffer from "../models/referalOfferModel.js";
-
+import { razorpay } from "../config/razopay.js";
 
 const salt = await bcrypt.genSalt(10);
 
@@ -49,7 +68,7 @@ export const signUp = async (req, res) => {
         const { username, email, password, role, referralCode } = req.body;
 
         if (!username || !email || !password) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Please provide all required fields",
             });
@@ -57,7 +76,7 @@ export const signUp = async (req, res) => {
 
         const userExists = await User.findOne({ email });
         if (userExists) {
-            return res.status(400).json({ success: false, message: "User already exists" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "User already exists" });
         }
 
         const userId = await generateUniqueUserId(role);
@@ -70,7 +89,7 @@ export const signUp = async (req, res) => {
             referralOffer = await ReferralOffer.findOne({ isActive: true, deletedAt: null });
 
             if (!referralOffer) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "No active referral program is available at the moment"
                 });
@@ -80,7 +99,7 @@ export const signUp = async (req, res) => {
             referrerUserReferral = await UserReferral.findOne({ referralCode })
 
             if (!referrerUserReferral) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Invalid referral code"
                 });
@@ -196,55 +215,9 @@ export const signUp = async (req, res) => {
 
     } catch (error) {
         console.error("Signup error:", error);
-        res.status(500).json({ success: false, message: "Internal server error" });
+        res.status(INTERNAL_SERVER_ERROR).json({ success: false, message: "Internal server error" });
     }
 };
-
-
-
-
-const generateUniqueReferralCode = async () => {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let referralCode;
-    let isUnique = false;
-
-    while (!isUnique) {
-        referralCode = '';
-        for (let i = 0; i < 10; i++) {
-            referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-
-        // Check if this code already exists
-        const existingCode = await UserReferral.findOne({ referralCode });
-        if (!existingCode) {
-            isUnique = true;
-        }
-    }
-
-    return referralCode;
-};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -257,24 +230,24 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-        return res.status(400).json({ message: "Please enter all fields" });
+        return res.status(BAD_REQUEST).json({ message: "Please enter all fields" });
     }
     try {
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(400).json({ success: false, message: "User not found" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "User not found" });
         }
 
         if (!user.isActive) {
-            return res.status(400).json({ success: false, message: "User is blocked" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "User is blocked" });
         }
 
 
         const isMatch = await bcrypt.compare(password, user.password);
         console.log("hiiii");
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Invalid credentials" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "Invalid credentials" });
         }
 
         const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
@@ -286,7 +259,7 @@ export const login = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: "User logged in successfully",
             token: token,
@@ -300,7 +273,7 @@ export const login = async (req, res) => {
 
     } catch (error) {
         console.error("Login error:", error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });
@@ -315,7 +288,7 @@ export const forgotPassword = async (req, res) => {
 
         const user = await User.findOne({ email });
 
-        if (!user) return res.status(404).json({
+        if (!user) return res.status(NOT_FOUND).json({
             status: false,
             message: 'User not found'
         });
@@ -337,7 +310,7 @@ export const forgotPassword = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: 'Server error'
         });
@@ -352,7 +325,7 @@ export const signupOTP = async (req, res) => {
 
         const user = await User.findOne({ email });
 
-        if (user) return res.status(404).json({
+        if (user) return res.status(NOT_FOUND).json({
             status: false,
             message: 'email already exixt'
         });
@@ -377,7 +350,7 @@ export const signupOTP = async (req, res) => {
     } catch (error) {
 
         console.error(error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: 'Server error'
         });
@@ -391,18 +364,18 @@ export const validateOTP = async (req, res) => {
 
         const otpRecord = await Otp.findOne({ email });
         if (!otpRecord) {
-            return res.status(404).json({ message: 'Email not found or OTP expired' });
+            return res.status(NOT_FOUND).json({ message: 'Email not found or OTP expired' });
         }
 
 
         if (otpRecord.otp !== otp) {
-            return res.status(400).json({ message: 'Invalid OTP' });
+            return res.status(BAD_REQUEST).json({ message: 'Invalid OTP' });
         }
 
 
         const expirationTime = 10 * 60 * 1000;
         if (Date.now() - otpRecord.createdAt.getTime() > expirationTime) {
-            return res.status(400).json({ message: 'OTP expired' });
+            return res.status(BAD_REQUEST).json({ message: 'OTP expired' });
         }
 
 
@@ -432,7 +405,7 @@ export const validateOTP = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
     }
 };
 
@@ -443,25 +416,22 @@ export const resetPassword = async (req, res) => {
     try {
         const user = await User.findOne({ email });
         if (!user)
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(NOT_FOUND).json({ message: 'User not found' });
 
-        // Validate the reset token
         if (user.resetPasswordToken !== resetToken) {
-            return res.status(400).json({ message: 'Invalid reset token' });
+            return res.status(NOT_FOUND).json({ message: 'Invalid reset token' });
         }
 
-        // Update the password (ensure hashing happens in a pre-save hook or here)
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         user.password = hashedPassword;
-        // Clear the temporary fields
         user.resetPasswordOTP = undefined;
         user.resetPasswordExpires = undefined;
         user.resetPasswordToken = undefined;
         await user.save();
 
-        res.json({
+        res.status(OK).json({
             status: true,
             message: 'Password has been reset successfully.'
         });
@@ -469,7 +439,7 @@ export const resetPassword = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
     }
 };
 
@@ -480,7 +450,7 @@ export const googleLogin = async (req, res) => {
     const idToken = req.body.token;
 
     if (!idToken) {
-        return res.status(400).json({
+        return res.status(BAD_REQUEST).json({
             success: false,
             message: "Token not provided"
         });
@@ -525,7 +495,7 @@ export const googleLogin = async (req, res) => {
 
         if (!user.isActive) {
 
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: 'User is Blocked'
             });
@@ -543,7 +513,7 @@ export const googleLogin = async (req, res) => {
             maxAge: 30 * 24 * 60 * 60 * 1000,
         });
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: 'Google login successful',
             token: sessionToken,
@@ -556,7 +526,7 @@ export const googleLogin = async (req, res) => {
         });
     } catch (error) {
         console.error('Error verifying token:', error);
-        res.status(400).json({
+        res.status(BAD_REQUEST).json({
             success: false,
             message: 'Invalid token'
         });
@@ -591,14 +561,14 @@ export const getNewArrivals = async (req, res) => {
             };
         });
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             products: transformedProducts,
             total: await Product.countDocuments({ deletedAt: null })
         });
     } catch (error) {
         console.error('Error fetching new arrivals:', error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to fetch new arrivals',
             error: error.message
@@ -636,7 +606,7 @@ export const getTopSellingProducts = async (req, res) => {
             };
         });
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             products: transformedProducts,
             total: await Product.countDocuments({ deletedAt: null })
@@ -645,7 +615,7 @@ export const getTopSellingProducts = async (req, res) => {
     } catch (error) {
 
         console.error('Error fetching top selling products:', error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to fetch top selling products',
             error: error.message
@@ -669,7 +639,7 @@ export const productList = async (req, res) => {
                 match.category = new ObjectId(req.query.category);
             } catch (error) {
                 console.log(error.message);
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     status: false,
                     message: "Invalid category ID format."
                 });
@@ -680,7 +650,7 @@ export const productList = async (req, res) => {
             try {
                 match.subCategory = new ObjectId(req.query.subCategory);
             } catch (error) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     status: false,
                     message: "Invalid subCategory ID format."
                 });
@@ -811,7 +781,7 @@ export const productList = async (req, res) => {
         const countResult = await Product.aggregate(countPipeline);
         const totalProducts = countResult[0] ? countResult[0].total : 0;
 
-        res.status(200).json({
+        res.status(OK).json({
             status: true,
             message: "Fetched successfully",
             page,
@@ -821,7 +791,7 @@ export const productList = async (req, res) => {
         });
     } catch (error) {
         console.error("Error fetching products:", error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "Server error",
         });
@@ -832,7 +802,7 @@ export const logout = async (req, res) => {
 
     //  res.cookie("session", "", { expires: new Date(0), httpOnly: true, path: "/" })
     res.clearCookie("session", { path: "/" });
-    res.status(200).json({
+    res.status(OK).json({
         status: true,
         message: "logout succesfully"
     })
@@ -846,13 +816,13 @@ export const profile = async (req, res) => {
 
         if (!user.isActive) {
 
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 status: false,
                 message: "invalid user"
             })
         }
 
-        return res.status(200).json({
+        return res.status(OK).json({
             status: true,
             message: "token verified",
             role: user.role,
@@ -865,7 +835,7 @@ export const profile = async (req, res) => {
         })
 
     } catch (error) {
-        return res.status(401).json({
+        return res.status(UNAUTHORIZED).json({
             status: false,
             message: "invalid token"
         })
@@ -881,13 +851,13 @@ export const productDetail = async (req, res) => {
         const product = await Product.findOne({ _id: id, deletedAt: null });
 
         if (!product) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 status: false,
                 message: "Product not found"
             });
         }
 
-        res.status(200).json({
+        res.status(OK).json({
             status: true,
             message: "product detail fetched succesfully",
             product
@@ -897,7 +867,7 @@ export const productDetail = async (req, res) => {
 
         console.error("Error fetching product:", error);
 
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "server error on fetching"
         });
@@ -918,7 +888,7 @@ export const addReview = async (req, res) => {
 
         if (existingReview) {
 
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 status: false,
                 message: "You have already reviewed this product."
             });
@@ -928,7 +898,7 @@ export const addReview = async (req, res) => {
 
         await review.save();
 
-        res.status(201).json({
+        res.status(CREATED).json({
             status: true,
             message: "Review added successfully"
             , review
@@ -938,7 +908,7 @@ export const addReview = async (req, res) => {
     } catch (error) {
         console.log(error);
 
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: error.message
         });
@@ -957,14 +927,14 @@ export const getReviews = async (req, res) => {
 
 
 
-        res.status(200).json({
+        res.status(OK).json({
             status: true,
             message: "review fetched succesfully",
             reviews
         });
 
     } catch (error) {
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "error on server"
         });
@@ -979,10 +949,10 @@ export const profileDetails = async (req, res) => {
         const user = await User.findById(req.user.userId).select('-password');
 
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+            return res.status(NOT_FOUND).json({ success: false, message: "User not found" });
         }
 
-        return res.status(200).json({
+        return res.status(OK).json({
             status: true,
             message: "fetched succesfully",
             user
@@ -990,7 +960,7 @@ export const profileDetails = async (req, res) => {
 
     } catch (error) {
         console.error("Error fetching profile:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });
@@ -1044,20 +1014,20 @@ export const updateProfile = async (req, res) => {
         ).select('-password');
 
         if (!updatedUser) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 status: false,
                 message: "User not found"
             });
         }
 
-        return res.status(200).json({
+        return res.status(OK).json({
             status: true,
             message: "Profile updated successfully",
             data: updatedUser
         });
     } catch (error) {
         console.error("Error updating profile:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "Failed to update profile",
             error: error.message
@@ -1076,18 +1046,18 @@ export const changeEmailOtp = async (req, res) => {
 
         const user = await User.findById(id);
         if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+            return res.status(NOT_FOUND).json({ success: false, message: "User not found" });
         }
         console.log("change email request body", user.password);
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(400).json({ success: false, message: "Invalid password" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "Invalid password" });
         }
 
         const existingUser = await User.findOne({ email: newEmail });
         if (existingUser) {
-            return res.status(400).json({ success: false, message: "Email already exists" });
+            return res.status(BAD_REQUEST).json({ success: false, message: "Email already exists" });
         }
 
         const otp = generateOTP();
@@ -1099,13 +1069,13 @@ export const changeEmailOtp = async (req, res) => {
 
         await sendOTPEmail(newEmail, otp);
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: "OTP sent successfully"
         });
     } catch (error) {
         console.error("error change email", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "servor error"
         });
@@ -1122,7 +1092,7 @@ export const changeEmail = async (req, res) => {
 
         const verify = await Otp.findOne({ email: newEmail });
         if (!verify || verify.otp !== otp) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "OTP does not match"
             });
@@ -1130,14 +1100,14 @@ export const changeEmail = async (req, res) => {
 
         const user = await User.findByIdAndUpdate(id, { email: newEmail }, { new: true });
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: "Email ID changed successfully",
             user
         });
     } catch (error) {
         console.error("error change email", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error.message || "Server Error"
         });
@@ -1158,7 +1128,7 @@ export const changePassword = async (req, res) => {
 
         if (!isMatch) {
 
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "invalid credentials"
             })
@@ -1168,7 +1138,7 @@ export const changePassword = async (req, res) => {
 
         const updatedUser = await User.findByIdAndUpdate(id, { password: hashedPassword }, { new: true })
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "password changed succesfully",
             updatedUser
@@ -1177,7 +1147,7 @@ export const changePassword = async (req, res) => {
 
     } catch (error) {
         console.log(error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "server error"
         })
@@ -1193,7 +1163,7 @@ export const saveAddress = async (req, res) => {
     try {
 
         if (!userId) {
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 success: false,
                 message: 'User not authenticated'
             });
@@ -1228,7 +1198,7 @@ export const saveAddress = async (req, res) => {
 
         const saveAddress = await newAddress.save()
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "Address saved succesfully",
             address: saveAddress
@@ -1237,7 +1207,7 @@ export const saveAddress = async (req, res) => {
     } catch (error) {
 
         console.log(error);
-        res.status(400).json({
+        res.status(BAD_REQUEST).json({
             success: false,
             message: error.message || 'Failed to save address'
 
@@ -1253,7 +1223,7 @@ export const getUserAddresses = async (req, res) => {
     try {
 
         if (!userId) {
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 success: false,
                 message: 'User not authenticated'
             });
@@ -1265,7 +1235,7 @@ export const getUserAddresses = async (req, res) => {
         }).sort({ isDefault: - 1, createdAt: - 1 })
 
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "address fetched succesfully",
             addresses
@@ -1273,7 +1243,7 @@ export const getUserAddresses = async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to fetch addresses',
         })
@@ -1290,7 +1260,7 @@ export const editAddress = async (req, res) => {
 
     try {
         if (!userId) {
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 success: false,
                 message: 'User not authenticated'
             });
@@ -1299,7 +1269,7 @@ export const editAddress = async (req, res) => {
         const existingAddress = await Address.findOne({ _id: addressId, userId });
 
         if (!existingAddress) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: 'Address not found'
             });
@@ -1331,7 +1301,7 @@ export const editAddress = async (req, res) => {
             { new: true }
         );
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: 'Address updated successfully',
             address: updatedAddress
@@ -1339,7 +1309,7 @@ export const editAddress = async (req, res) => {
 
     } catch (error) {
         console.error(error);
-        res.status(400).json({
+        res.status(BAD_REQUEST).json({
             success: false,
             message: error.message || 'Failed to update address'
         });
@@ -1357,7 +1327,7 @@ export const deleteAddress = async (req, res) => {
         const address = await Address.findOne({ _id: addressId, userId });
 
         if (!address) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: 'Address not found'
             });
@@ -1366,14 +1336,14 @@ export const deleteAddress = async (req, res) => {
 
         await Address.findByIdAndDelete(addressId);
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: 'Address deleted successfully'
         });
 
     } catch (error) {
         console.error(error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Failed to delete address'
         });
@@ -1447,7 +1417,7 @@ export const addCart = async (req, res) => {
     try {
 
         if (!productId || !selectedColor || !selectedSize || !quantity) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Missing required fields."
             });
@@ -1455,14 +1425,14 @@ export const addCart = async (req, res) => {
 
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "product not found"
             })
         }
 
         if (product.deletedAt) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "product not available"
             })
@@ -1472,7 +1442,7 @@ export const addCart = async (req, res) => {
             (col) => col.color.toLowerCase() === selectedColor.toLowerCase()
         )
         if (!colorVarient) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "selected color varient not found"
             })
@@ -1482,14 +1452,14 @@ export const addCart = async (req, res) => {
 
         if (!variant) {
 
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 status: false,
                 message: "selected size not available"
             })
         }
 
         if (variant.stock < quantity) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Insufficient stock for the selected variant."
             });
@@ -1528,13 +1498,13 @@ export const addCart = async (req, res) => {
             const newQuantity = cartItem.quantity + quantity
 
             if (newQuantity > maxAllowed) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Reached maximum allowed quantity for this product"
                 })
             }
             if (newQuantity > variant.stock) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Insufficient stock to add the requested quantity"
                 })
@@ -1555,7 +1525,7 @@ export const addCart = async (req, res) => {
 
         await cart.save()
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "product added to cart succesfully"
         })
@@ -1565,7 +1535,7 @@ export const addCart = async (req, res) => {
 
         console.log(error);
 
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "server error"
         })
@@ -1579,7 +1549,7 @@ export const cartItems = async (req, res) => {
 
     try {
         if (!userId) {
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 success: false,
                 message: "Unauthorized User not authenticated"
             })
@@ -1589,14 +1559,14 @@ export const cartItems = async (req, res) => {
 
 
         if (!cart) {
-            return res.status(200).json({
+            return res.status(OK).json({
                 success: true,
                 message: "cart is empty",
                 items: []
             })
         }
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "cart items fetched succesfully",
             items: cart.items
@@ -1605,7 +1575,7 @@ export const cartItems = async (req, res) => {
     } catch (error) {
 
         console.log(error)
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "server error"
         })
@@ -1622,7 +1592,7 @@ export const removeCartItem = async (req, res) => {
     try {
 
         if (!userId || !itemId) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "not authorised or no cart Id"
             })
@@ -1631,7 +1601,7 @@ export const removeCartItem = async (req, res) => {
         const cart = await Cart.findOne({ user: userId })
 
         if (!cart) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "cart not found"
             })
@@ -1640,7 +1610,7 @@ export const removeCartItem = async (req, res) => {
         const removedItem = cart.items.pull(itemId)
 
         if (!removedItem) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 status: false,
                 message: "cart item not found",
             })
@@ -1648,7 +1618,7 @@ export const removeCartItem = async (req, res) => {
 
         await cart.save()
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "cart item removed"
         })
@@ -1656,7 +1626,7 @@ export const removeCartItem = async (req, res) => {
     } catch (error) {
 
         console.log(error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "server error"
         })
@@ -1667,7 +1637,7 @@ export const removeCartItem = async (req, res) => {
 export const updateCartQuantity = async (req, res) => {
     try {
         if (!req.user || !req.user.userId) {
-            return res.status(401).json({
+            return res.status(UNAUTHORIZED).json({
                 success: false,
                 message: "Unauthorized: User not authenticated"
             });
@@ -1678,7 +1648,7 @@ export const updateCartQuantity = async (req, res) => {
         const { newQuantity } = req.body;
 
         if (!newQuantity || newQuantity < 1) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Invalid quantity. It must be at least 1"
             });
@@ -1687,7 +1657,7 @@ export const updateCartQuantity = async (req, res) => {
         const cart = await Cart.findOne({ user: userId });
 
         if (!cart) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Cart not found."
             });
@@ -1696,7 +1666,7 @@ export const updateCartQuantity = async (req, res) => {
         const cartItem = cart.items.id(itemId);
 
         if (!cartItem) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Cart item not found"
             });
@@ -1706,7 +1676,7 @@ export const updateCartQuantity = async (req, res) => {
         const product = await Product.findById(cartItem.product);
 
         if (!product) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Product not found"
             });
@@ -1716,7 +1686,7 @@ export const updateCartQuantity = async (req, res) => {
         const selectedColor = product.colors.find(color => color.color === cartItem.selectedColor);
 
         if (!selectedColor) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Selected color not found for this product"
             });
@@ -1727,7 +1697,7 @@ export const updateCartQuantity = async (req, res) => {
         const selectedVariant = selectedColor.variants[selectedSizeKey];
 
         if (!selectedVariant) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Selected size not found for this product color"
             });
@@ -1735,7 +1705,7 @@ export const updateCartQuantity = async (req, res) => {
 
         // Check if the requested quantity is available in stock
         if (newQuantity > selectedVariant.stock) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: `Only ${selectedVariant.stock} units available in stock`,
                 availableStock: selectedVariant.stock
@@ -1746,14 +1716,14 @@ export const updateCartQuantity = async (req, res) => {
         cartItem.quantity = newQuantity;
         await cart.save();
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: "Cart item quantity updated successfully."
         });
 
     } catch (error) {
         console.error("Error updating cart item quantity:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error while updating cart item quantity."
         });
@@ -1775,19 +1745,19 @@ export const checkCart = async (req, res) => {
             });
 
         if (!cart) {
-            return res.status(200).json({
+            return res.status(OK).json({
                 status: true,
                 cart: []
             });
         }
 
-        return res.status(200).json({
+        return res.status(OK).json({
             status: true,
             cart: cart.items
         });
     } catch (error) {
         console.error("Error fetching cart:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             status: false,
             message: "Server error"
         });
@@ -1828,17 +1798,20 @@ function generateReadableOrderId() {
 
 
 export const createOrder = async (req, res) => {
+
+
     try {
         const {
             addressId,
             productDetails,
             paymentMethod,
             couponCode,
-            paypalOrderID
+            paypalOrderID,
         } = req.body;
+        console.log("body", req.body);
 
         if (!addressId || !productDetails || !paymentMethod) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Missing required fields"
             });
@@ -1846,7 +1819,7 @@ export const createOrder = async (req, res) => {
 
         const user = await User.findById(req.user.userId);
 
-        if (!user) return res.status(401).json({
+        if (!user) return res.status(UNAUTHORIZED).json({
             success: false,
             message: "Not authorized"
         });
@@ -1856,7 +1829,7 @@ export const createOrder = async (req, res) => {
             userId: req.user.userId
         });
 
-        if (!selectedAddress) return res.status(400).json({
+        if (!selectedAddress) return res.status(BAD_REQUEST).json({
             success: false,
             message: "Address not found"
         });
@@ -1864,7 +1837,7 @@ export const createOrder = async (req, res) => {
         const items = Array.isArray(productDetails) ? productDetails : [productDetails];
 
         if (items.length === 0) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "No products provided for order"
             });
@@ -1880,14 +1853,14 @@ export const createOrder = async (req, res) => {
 
             const product = await Product.findOne({ _id: productId, deletedAt: null }).populate('category');
 
-            if (!product) return res.status(404).json({
+            if (!product) return res.status(NOT_FOUND).json({
                 success: false,
                 message: `Product not found`
             });
 
             const colorVariant = product.colors.find(c => c.color === productColor);
 
-            if (!colorVariant) return res.status(400).json({
+            if (!colorVariant) return res.status(BAD_REQUEST).json({
                 success: false,
                 message: `Color ${productColor} not available for product ${product.name}`
             });
@@ -1895,13 +1868,13 @@ export const createOrder = async (req, res) => {
             const sizeKey = getSizeKey(productSize);
             const sizeVariant = colorVariant.variants[sizeKey];
 
-            if (!sizeVariant) return res.status(400).json({
+            if (!sizeVariant) return res.status(BAD_REQUEST).json({
                 success: false,
                 message: `Size ${productSize} not available for product ${product.name}`
             });
 
             if (sizeVariant.stock < quantity) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: `Insufficient stock for ${product.name} in ${productColor} color, size ${productSize}`
                 });
@@ -1942,14 +1915,14 @@ export const createOrder = async (req, res) => {
             }).populate('applicableCategories');
 
             if (!appliedCoupon) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Invalid or expired coupon code"
                 });
             }
 
             if (appliedCoupon.minimumOrderValue && totalSubtotal < appliedCoupon.minimumOrderValue) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: `Minimum order value of ${appliedCoupon.minimumOrderValue} required for this coupon`
                 });
@@ -1975,7 +1948,7 @@ export const createOrder = async (req, res) => {
 
 
             if (!isCouponApplicable) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Coupon not applicable to any products in your cart"
                 });
@@ -2007,7 +1980,7 @@ export const createOrder = async (req, res) => {
             const wallet = await Wallet.findOne({ userId: req.user.userId });
 
             if (!wallet) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Wallet not found for this user"
                 });
@@ -2015,7 +1988,7 @@ export const createOrder = async (req, res) => {
 
             // Check if wallet has sufficient balance
             if (wallet.balance < finalTotalAmount) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Insufficient wallet balance",
                     walletBalance: wallet.balance,
@@ -2052,7 +2025,7 @@ export const createOrder = async (req, res) => {
             };
         } else if (paymentMethod === 'paypal') {
             if (!paypalOrderID) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "PayPal Order ID is required for PayPal payments"
                 });
@@ -2066,7 +2039,7 @@ export const createOrder = async (req, res) => {
                 const paypalAmount = parseFloat(paypalOrderDetails.purchase_units[0].amount.value);
 
                 if (Math.abs(paypalAmount - finalTotalAmount) > 0.01) {
-                    return res.status(400).json({
+                    return res.status(BAD_REQUEST).json({
                         success: false,
                         message: `Payment amount mismatch. Expected: ${finalTotalAmount}, Received: ${paypalAmount}`
                     });
@@ -2076,7 +2049,7 @@ export const createOrder = async (req, res) => {
                 paymentDetails = await capturePayPalPayment(paypalOrderID);
                 paymentVerified = true;
             } catch (error) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: error.message || "Failed to verify PayPal payment"
                 });
@@ -2155,7 +2128,56 @@ export const createOrder = async (req, res) => {
                     createTime: paymentDetails.createTime,
                     updateTime: paymentDetails.updateTime
                 };
-            } else if (paymentMethod === "wallet" && paymentVerified && paymentDetails) {
+            }
+            else if (paymentMethod === 'razorpay') {
+                const { razorpayOrderDetails } = req.body;
+
+                if (!razorpayOrderDetails ||
+                    !razorpayOrderDetails.razorpay_order_id ||
+                    !razorpayOrderDetails.razorpay_payment_id ||
+                    !razorpayOrderDetails.razorpay_signature) {
+                    return res.status(BAD_REQUEST).json({
+                        success: false,
+                        message: "Razorpay Order details are required for Razorpay payments"
+                    });
+                }
+
+                try {
+                    // Verify the signature
+                    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = razorpayOrderDetails;
+
+                    const generated_signature = crypto
+                        .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+                        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+                        .digest('hex');
+
+                    if (generated_signature !== razorpay_signature) {
+                        return res.status(BAD_REQUEST).json({
+                            success: false,
+                            message: "Invalid Razorpay signature"
+                        });
+                    }
+
+                    // If we get here, payment is verified
+                    paymentVerified = true;
+                    paymentDetails = {
+                        paymentProvider: 'razorpay',
+                        transactionId: razorpay_payment_id,
+                        orderId: razorpay_order_id,
+                        signature: razorpay_signature,
+                        amount: finalTotalAmount,
+                        status: 'completed',
+                        createTime: new Date(),
+                        updateTime: new Date()
+                    };
+                } catch (error) {
+                    return res.status(BAD_REQUEST).json({
+                        success: false,
+                        message: error.message || "Failed to verify Razorpay payment"
+                    });
+                }
+            }
+            else if (paymentMethod === "wallet" && paymentVerified && paymentDetails) {
                 newOrder.paymentDetails = {
                     paymentProvider: "wallet",
                     paymentDate: new Date(),
@@ -2252,13 +2274,13 @@ export const getOrderById = async (req, res) => {
             });
 
 
-        if (!order) return res.status(500).json({
+        if (!order) return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "order not found"
         });
 
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             order
         });
@@ -2266,7 +2288,7 @@ export const getOrderById = async (req, res) => {
     } catch (error) {
         console.log(error);
 
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error
         })
@@ -2285,7 +2307,7 @@ export const getUserOrders = async (req, res) => {
             })
             .sort({ createdAt: -1 });
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             count: orders.length,
             orders
@@ -2293,7 +2315,7 @@ export const getUserOrders = async (req, res) => {
 
     } catch (error) {
         console.log("errrrrrrrrrrorrrrrrrrr", error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: error
         })
@@ -2323,7 +2345,7 @@ export const cancelOrder = async (req, res) => {
         if (!order) {
             await session.abortTransaction();
             session.endSession();
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Order not found"
             });
@@ -2332,7 +2354,7 @@ export const cancelOrder = async (req, res) => {
         if (["delivered", "returned"].includes(order.orderStatus)) {
             await session.abortTransaction();
             session.endSession();
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Cannot cancel order in current status"
             });
@@ -2415,7 +2437,7 @@ export const cancelOrder = async (req, res) => {
         await session.commitTransaction();
         session.endSession();
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: refundProcessed
                 ? `Order cancelled successfully. ₹${refundAmount.toFixed(2)} has been credited to your wallet.`
@@ -2426,12 +2448,11 @@ export const cancelOrder = async (req, res) => {
         });
 
     } catch (error) {
-        // Abort transaction on error
         await session.abortTransaction();
         session.endSession();
 
         console.error("Error cancelling order:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error while cancelling order",
             error: error.message
@@ -2456,19 +2477,19 @@ export const deleteCart = async (req, res) => {
         );
 
         if (!result) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: 'Cart not found'
             });
         }
 
-        return res.status(200).json({
+        return res.status(OK).json({
             success: true,
             message: 'Cart cleared successfully'
         });
     } catch (error) {
         console.error('Error clearing cart:', error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Server error while clearing cart'
         });
@@ -2483,13 +2504,13 @@ export const returnRequest = async (req, res) => {
     const { items, reason, quantity } = req.body;
 
     if (!reason || !reason.trim()) {
-        return res.status(400).json({
+        return res.status(BAD_REQUEST).json({
             success: false,
             message: "Return reason is required."
         });
     }
     if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({
+        return res.status(BAD_REQUEST).json({
             success: false,
             message: "Please select at least one item to return."
         });
@@ -2500,21 +2521,21 @@ export const returnRequest = async (req, res) => {
         const order = await Order.findById(orderId);
 
         if (!order) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Order not found."
             });
         }
 
         if (order.user.toString() !== req.user.userId.toString()) {
-            return res.status(403).json({
+            return res.status(FORBIDDEN).json({
                 success: false,
                 message: "Unauthorized access."
             });
         }
 
         if (order.orderStatus !== "delivered") {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Return request can only be made for delivered orders."
             });
@@ -2526,7 +2547,7 @@ export const returnRequest = async (req, res) => {
 
         const returnWindow = 7 * 24 * 60 * 60 * 1000;
         if (now - new Date(deliveredDate) > returnWindow) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Return window has expired."
             });
@@ -2542,7 +2563,7 @@ export const returnRequest = async (req, res) => {
 
             if (!orderItemIds.includes(returnItem.productId.toString())) {
 
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Invalid item selected for return."
                 });
@@ -2552,7 +2573,7 @@ export const returnRequest = async (req, res) => {
             const orderItem = order.orderItems.find(item => item.product.toString() === returnItem.productId);
 
             if (returnItem.quantity > orderItem.quantity) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Return quantity cannot exceed purchased quantity."
                 });
@@ -2568,7 +2589,7 @@ export const returnRequest = async (req, res) => {
 
         await order.save();
 
-        return res.json({
+        return res.status(OK).json({
             success: true,
             message: "Return request submitted successfully."
         });
@@ -2576,7 +2597,7 @@ export const returnRequest = async (req, res) => {
 
     } catch (error) {
         console.error("Error processing return request:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error."
         });
@@ -2598,14 +2619,14 @@ export const getWishlist = async (req, res) => {
             wishlist = { items: [] };
         }
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             wishlist: wishlist.items
         });
 
     } catch (error) {
         console.error('Get wishlist error:', error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Server error'
         });
@@ -2632,7 +2653,7 @@ export const addWishlist = async (req, res) => {
         );
 
         if (existingItemIndex >= 0) {
-            return res.status(200).json({
+            return res.status(OK).json({
                 success: true,
                 message: 'Item already in wishlist'
             });
@@ -2645,7 +2666,7 @@ export const addWishlist = async (req, res) => {
 
         await wishlist.save();
 
-        res.status(201).json({
+        res.status(CREATED).json({
             success: true,
             message: 'Item added to wishlist',
             wishlist
@@ -2654,7 +2675,7 @@ export const addWishlist = async (req, res) => {
     } catch (error) {
 
         console.error('Add to wishlist error:', error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Server error'
         });
@@ -2669,7 +2690,7 @@ export const removeWishlistItem = async (req, res) => {
 
         const wishlist = await Wishlist.findOne({ user: req.user.userId });
         if (!wishlist) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: 'Wishlist not found'
             });
@@ -2681,14 +2702,14 @@ export const removeWishlistItem = async (req, res) => {
 
         await wishlist.save();
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: 'Item removed from wishlist',
             wishlist
         });
     } catch (error) {
         console.error('Remove from wishlist error:', error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: 'Server error'
         });
@@ -2704,52 +2725,81 @@ export const validateCoupon = async (req, res) => {
 
         const coupon = await Coupon.findOne({ code, deletedAt: null });
         if (!coupon) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Coupon not found"
             });
         }
+        console.log(coupon);
+
 
         const now = new Date();
 
         if (coupon.activeFrom > now) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Coupon is not active yet"
             });
         }
 
         if (coupon.expiresAt < now) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Coupon has expired"
             });
         }
 
         if (coupon.usedCount >= coupon.maxUsage) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Coupon usage limit reached"
             });
         }
 
         if (coupon.minimumOrderValue && orderTotal < coupon.minimumOrderValue) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: `Minimum order value for this coupon is ${coupon.minimumOrderValue}`
             });
         }
 
-        if (coupon.applicableCategories && coupon.applicableCategories.length > 0) {
-            if (!productCategories || !productCategories.some(cat => coupon.applicableCategories.includes(cat))) {
-                return res.status(400).json({
+        console.log("catt", coupon.applicableCategories, productCategories);
+
+
+        // if (!productCategories || productCategories !== coupon.applicableCategories) {
+        //     return res.status(BAD_REQUEST).json({
+        //         success: false,
+        //         message: "Coupon is not applicable for the selected product categories"
+        //     });
+        // }
+
+        if (coupon.applicableCategories) {
+            const prodCategoriesArray = Array.isArray(productCategories) ?
+                productCategories : [productCategories];
+
+            const couponCategoryId = coupon.applicableCategories.toString();
+            let categoryMatched = false;
+            console.log(productCategories);
+
+
+            for (const category of prodCategoriesArray) {
+                const categoryId = category._id ? category._id.toString() : category.toString();
+                if (categoryId === couponCategoryId) {
+                    categoryMatched = true;
+                    break;
+                }
+            }
+
+            if (!categoryMatched) {
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "Coupon is not applicable for the selected product categories"
                 });
             }
         }
 
-        res.status(200).json({
+
+        res.status(OK).json({
             success: true,
             coupon
         });
@@ -2757,7 +2807,7 @@ export const validateCoupon = async (req, res) => {
     } catch (error) {
 
         console.error("Error validating coupon: ", error);
-        res.status(500).json({ success: false, message: "Server error" });
+        res.status(INTERNAL_SERVER_ERROR).json({ success: false, message: "Server error" });
     }
 }
 
@@ -2769,7 +2819,7 @@ export const getWalletDetails = async (req, res) => {
 
         // Validate userId
         if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid user ID' });
+            return res.status(BAD_REQUEST).json({ message: 'Invalid user ID' });
         }
 
         // Find wallet by userId, or create a new one if not found
@@ -2793,17 +2843,14 @@ export const getWalletDetails = async (req, res) => {
 
 
 
-        // Apply status filter if provided
         if (req.query.status && ['pending', 'completed', 'failed', 'cancelled'].includes(req.query.status)) {
             filter.status = req.query.status;
         }
 
-        // Apply type filter if provided
         if (req.query.type && ['credit', 'debit'].includes(req.query.type)) {
             filter.type = req.query.type;
         }
 
-        // Search functionality
         if (req.query.search) {
             filter.$or = [
                 { description: { $regex: req.query.search, $options: 'i' } },
@@ -2811,7 +2858,6 @@ export const getWalletDetails = async (req, res) => {
             ];
         }
 
-        // Get transactions
         const transactions = await Transaction.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -2819,10 +2865,8 @@ export const getWalletDetails = async (req, res) => {
             .populate('reference.orderId', 'orderNumber')
             .lean();
 
-        // Get total count for pagination
         const totalTransactions = await Transaction.countDocuments(filter);
 
-        // Get summary statistics
         const currentYear = new Date().getFullYear();
         const currentMonth = new Date().getMonth() + 1;
 
@@ -2831,7 +2875,6 @@ export const getWalletDetails = async (req, res) => {
             Transaction.getMonthlyStats(userId, currentYear, currentMonth)
         ]);
 
-        // Process summary data
         const summary = {
             totalSpent: 0,
             totalRefunded: 0,
@@ -2839,7 +2882,6 @@ export const getWalletDetails = async (req, res) => {
             pendingAmount: wallet.pendingBalance
         };
 
-        // Process wallet summary
         walletSummary.forEach(item => {
             if (item._id === 'debit') {
                 summary.totalSpent = item.total;
@@ -2848,12 +2890,10 @@ export const getWalletDetails = async (req, res) => {
             }
         });
 
-        // Process monthly stats
         monthlyStats.forEach(item => {
             summary.thisMonth += item.total;
         });
 
-        // Format transactions for frontend
         const formattedTransactions = transactions.map(tx => {
             const orderIdValue = tx.reference && tx.reference.orderId ?
                 (tx.reference.orderId.orderNumber || tx.reference.orderId.toString()) :
@@ -2871,7 +2911,7 @@ export const getWalletDetails = async (req, res) => {
             };
         });
 
-        return res.status(200).json({
+        return res.status(OK).json({
             wallet: {
                 balance: wallet.balance,
                 pendingBalance: wallet.pendingBalance,
@@ -2890,7 +2930,7 @@ export const getWalletDetails = async (req, res) => {
 
     } catch (error) {
         console.error('Error getting wallet details:', error);
-        return res.status(500).json({ message: 'Server error', error: error.message });
+        return res.status(INTERNAL_SERVER_ERROR).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -2901,20 +2941,20 @@ export const getWalletBalance = async (req, res) => {
         const wallet = await Wallet.findOne({ userId });
 
         if (!wallet) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Wallet not found",
             });
         }
 
-        res.status(200).json({
+        res.status(OK).json({
             success: true,
             message: "Wallet balance fetched successfully",
             balance: wallet.balance,
         });
     } catch (error) {
         console.error("Error getting wallet balance:", error);
-        res.status(500).json({
+        res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Server error",
         });
@@ -2922,16 +2962,17 @@ export const getWalletBalance = async (req, res) => {
 };
 
 export const walletRecharge = async (req, res) => {
+    console.log("successssssssssssssssss", req.body);
 
 
     const { userId } = req.user;
-    const { paymentMethod, paypalOrderID } = req.body;
+    const { paymentMethod, paypalOrderID, razorpayOrderID } = req.body;
     let { amount } = req.body;
 
     amount = Number(amount)
 
     if (!amount || amount <= 0) {
-        return res.status(400).json({
+        return res.status(BAD_REQUEST).json({
             success: false,
             message: "Valid amount is required for wallet recharge"
         });
@@ -2947,14 +2988,14 @@ export const walletRecharge = async (req, res) => {
         const wallet = await Wallet.findOne({ userId });
 
         if (!wallet) {
-            return res.status(404).json({
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: "Wallet not found for this user"
             });
         }
 
         if (!wallet.isActive) {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Wallet is inactive"
             });
@@ -2962,7 +3003,7 @@ export const walletRecharge = async (req, res) => {
 
         if (paymentMethod === 'paypal') {
             if (!paypalOrderID) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: "PayPal Order ID is required for PayPal payments"
                 });
@@ -2977,7 +3018,7 @@ export const walletRecharge = async (req, res) => {
 
 
                 if (paypalAmount !== amount) {
-                    return res.status(400).json({
+                    return res.status(BAD_REQUEST).json({
                         success: false,
                         message: "Payment amount does not match the recharge amount"
                     });
@@ -2987,19 +3028,16 @@ export const walletRecharge = async (req, res) => {
                 paymentDetails = await capturePayPalPayment(paypalOrderID);
                 paymentVerified = true;
             } catch (error) {
-                return res.status(400).json({
+                return res.status(BAD_REQUEST).json({
                     success: false,
                     message: error.message || "Failed to verify PayPal payment"
                 });
             }
-        } else if (paymentMethod === 'razopay') {
+        } else if (paymentMethod === 'razorpay') {
+            paymentVerified = true;
 
-            return res.status(501).json({
-                success: false,
-                message: "razopay payment method not implemented yet"
-            });
         } else {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Invalid payment method"
             });
@@ -3022,7 +3060,7 @@ export const walletRecharge = async (req, res) => {
                     status: 'completed',
                     source: 'manual_credit',
                     reference: {
-                        paymentId: paymentMethod === 'paypal' ? paypalOrderID : null
+                        paymentId: paymentMethod === 'paypal' ? paypalOrderID : razorpayOrderID
                     },
                     metadata: paymentDetails ? new Map(Object.entries(paymentDetails)) : new Map()
                 });
@@ -3038,7 +3076,7 @@ export const walletRecharge = async (req, res) => {
                 await session.commitTransaction();
                 session.endSession();
 
-                return res.status(200).json({
+                return res.status(OK).json({
                     success: true,
                     message: "Wallet recharged successfully",
                     data: {
@@ -3063,14 +3101,14 @@ export const walletRecharge = async (req, res) => {
                 throw error;
             }
         } else {
-            return res.status(400).json({
+            return res.status(BAD_REQUEST).json({
                 success: false,
                 message: "Payment verification failed"
             });
         }
     } catch (error) {
         console.error("Wallet recharge error:", error);
-        return res.status(500).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "An error occurred during wallet recharge",
             error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -3234,3 +3272,48 @@ export const referalDetails = async (req, res) => {
         });
     }
 }
+
+
+export const addMoneyRazopay = async (req, res) => {
+
+    try {
+        const { amount, paymentMethod } = req.body;
+
+        if (paymentMethod !== 'razorpay') {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Invalid payment method for this endpoint.'
+            });
+        }
+
+        const options = {
+            amount: amount * 100,
+            currency: 'INR',
+            receipt: `receipt_order_${Date.now()}`,
+        };
+
+
+        const order = await razorpay.orders.create(options);
+
+        if (!order) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: 'Order creation failed.'
+            });
+        }
+        console.log("orderrrrrrrrrrrrrrrrrrr succccccccccccccc", order);
+
+
+        return res.status(OK).json({
+            success: true,
+            order
+        });
+
+    } catch (error) {
+        console.error('Error in addMoney:', error);
+        return res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

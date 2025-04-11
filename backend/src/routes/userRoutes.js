@@ -51,9 +51,11 @@ import {
     getWalletBalance,
     walletRecharge,
     checkOffer,
-    referalDetails
+    referalDetails,
+    addMoneyRazopay
 } from
     "../controllers/userController.js"
+import { verifyRazorpayPayment } from "../config/razopay.js"
 
 
 const upload = multer({ dest: "uploads/" });
@@ -78,8 +80,8 @@ router.post("/place-orders", authenticateUser, createOrder)
 router.post("/orders/:orderId/return", authenticateUser, returnRequest)
 router.post("/wishlist/add", authenticateUser, addWishlist)
 router.post("/coupons/validate", validateCoupon)
-router.post("/wallet-recharge", authenticateUser, walletRecharge)
-
+router.post("/wallet-recharge", authenticateUser, verifyRazorpayPayment, walletRecharge)
+router.post("/add-money-razopay", authenticateUser, addMoneyRazopay)
 
 
 

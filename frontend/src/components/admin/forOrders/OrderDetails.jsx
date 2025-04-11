@@ -387,7 +387,7 @@ const OrderDetails = () => {
 
             {/* Status Update Modal */}
             {statusModal.open && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-50">
                     <div className="bg-white rounded-lg p-6 w-96 shadow-2xl">
                         <h2 className="text-xl font-bold mb-4">Update Order Status</h2>
                         <div className="mb-4">
@@ -448,7 +448,7 @@ const OrderDetails = () => {
 
             {/* Return Verification Modal */}
             {returnModal.open && (
-                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                <div className="fixed inset-0 flex items-center justify-center z-50  bg-opacity-50">
                     <div className="bg-white rounded-lg p-6 w-96 shadow-2xl">
                         <h2 className="text-xl font-bold mb-4">Verify Return Request</h2>
                         <p className="mb-4">

@@ -134,13 +134,11 @@ function ProductDetail({ product }) {
 
         if (selectedSize === "") return toast.error("select a size");
 
-        // Find the selected color variant
         const selectedColorVariant = product.colors.find(c => c.color === color);
         if (!selectedColorVariant) {
             return toast.error("Color not available");
         }
 
-        // Convert size to appropriate key for the variants object
         const getSizeKey = (size) => {
             switch (size.toLowerCase()) {
                 case 'small': return 'small';
@@ -170,7 +168,6 @@ function ProductDetail({ product }) {
 
         console.log("selectedSize", selectedSize);
 
-        // Store the entire product object
         dispatch(setProduct({
             product: product,
             productColor: color,
@@ -245,22 +242,8 @@ function ProductDetail({ product }) {
         try {
             console.log(selectedSize.toLowerCase().replace(/\s+/g, ''));
 
-            // If product is in wishlist, remove it after adding to cart
             const moveFromWishlist = isWishlisted;
 
-            // const response = await axios.post(`${API_BASE_URL}/user/cart/add`, {
-            //     productId: product._id,
-            //     selectedColor: selectedColor.color,
-            //     // selectedSize: toCamelCase(selectedSize),
-            //     selectedSize: selectedSize.toLowerCase().replace(/\s+/g, ''),
-            //     quantity: 1,
-            //     removeFromWishlist: moveFromWishlist
-            // }, {
-            //     withCredentials: true,
-            //     headers: {
-            //         "Content-Type": "application/json"
-            //     }
-            // });
             const data = {
                 productId: product._id,
                 selectedColor: selectedColor.color,
@@ -311,7 +294,7 @@ function ProductDetail({ product }) {
     return (
         <div className="max-w-6xl mx-auto px-4 py-8 mt-[150px]">
             {/* Breadcrumbs */}
-            {/* <Breadcrumbs product={product} /> */}
+            <Breadcrumbs product={product} />
 
             {/* Main Content */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -505,31 +488,6 @@ function ProductDetail({ product }) {
                             <span className="text-sm">(3.5)</span>
                         </p>
                     </div>
-
-                    {/* <hr className="border-t border-gray-300 my-4" /> */}
-
-
-
-                    {/* Action Buttons */}
-                    {/* <div className="mt-6 flex space-x-4">
-                        <button
-                            className={`border border-black text-black px-8 py-3 text-lg rounded-md transition-colors hover:cursor-pointer ${isInCart ? "bg-gray-200" : "hover:bg-black hover:text-white"
-                                }`}
-                            onClick={() => {
-                                handleAddtoCart()
-                            }}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? "Processing..." : isInCart ? "View Cart" : "Add to Cart"}
-                        </button>
-                        <button className="bg-black text-white px-8 py-3 text-lg rounded-md hover:bg-gray-800 transition-colors hover:cursor-pointer"
-                            onClick={() => {
-                                handleBuynow()
-                            }}
-                        >
-                            Buy Now
-                        </button>
-                    </div> */}
                 </div>
             </div>
         </div>

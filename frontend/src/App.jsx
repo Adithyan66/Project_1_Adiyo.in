@@ -1,17 +1,12 @@
 
 import 'rc-slider/assets/index.css';
-
-import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import axios from 'axios';
-import { toast, ToastContainer } from 'react-toastify';
-
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-
 import { loginSuccess, logout } from './store/slices/userSlice';
-
 import { AdminProtected, SellerProtected, UserOnlyProtected, UserProtected } from "./components/protectedRoutes/UserProtected"
 
 

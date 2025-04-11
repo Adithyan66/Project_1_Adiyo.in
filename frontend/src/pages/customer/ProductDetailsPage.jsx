@@ -9,6 +9,7 @@ import Newsletter from '../../components/common/landingPage/NewsLetter'
 import Footer from '../../components/common/Footer'
 
 import { useNavigate } from "react-router-dom";
+import ProductDetailShimmer from "../../components/customer/shimmerUI/ProductDetailShimmer";
 
 function ProductDetailsPage() {
 
@@ -39,13 +40,17 @@ function ProductDetailsPage() {
         };
 
         fetchProduct();
-
     }, [id]);
 
 
 
     if (!product) {
-        return <div>Loading...</div>;
+        return (
+            <>
+                <Navbar />
+                <ProductDetailShimmer />
+                <Footer />
+            </>)
     }
 
 

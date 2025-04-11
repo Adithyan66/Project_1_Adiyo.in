@@ -79,9 +79,9 @@ const CheckOut = () => {
         }
     };
 
-    const handlePlaceOrder = async (paymentMethod, captchaValue, paypalOrderID) => {
+    const handlePlaceOrder = async (paymentMethod, captchaValue, orderId) => {
 
-        console.log("handlePlaceOrder called with:", { paymentMethod, captchaValue, paypalOrderID });
+        console.log("handlePlaceOrder called with:", { paymentMethod, captchaValue, orderId });
 
         if (paymentMethod === 'cod' && captchaValue === '') {
             toast.error("Please complete the captcha verification");
@@ -93,10 +93,14 @@ const CheckOut = () => {
             return Promise.reject(new Error("Shipping address required"));
         }
 
-        // Additional validation for PayPal
-        if (paymentMethod === 'paypal' && !paypalOrderID) {
+        if (paymentMethod === 'paypal' && !orderId) {
             toast.error("PayPal payment not completed. Please try again.");
             return Promise.reject(new Error("PayPal order ID missing"));
+        }
+
+        if (paymentMethod === "razorpay" && !orderId) {
+            toast.error("razorpay payment not completed. Please try again.");
+            return Promise.reject(new Error("razorpay order ID missing"));
         }
 
         setIsLoading(true);
@@ -112,19 +116,20 @@ const CheckOut = () => {
                 },
                 paymentMethod: paymentMethod,
                 ...(paymentMethod === 'paypal' && {
-                    paypalOrderID: paypalOrderID,
+                    paypalOrderID: orderId,
+                }),
+                ...(paymentMethod === 'razorpay' && {
+                    razorpayOrderDetails: {
+                        razorpay_order_id: orderId.razorpay_order_id,
+                        razorpay_payment_id: orderId.razorpay_payment_id,
+                        razorpay_signature: orderId.razorpay_signature
+                    }
                 }),
                 couponCode: coupon
 
             };
 
             console.log("Sending order data to API:", orderData);
-
-            // const response = await axios.post(
-            //     `${API_BASE_URL}/user/place-orders`,
-            //     orderData,
-            //     { withCredentials: true }
-            // );
 
             const response = await placeOrder(orderData);
 
@@ -146,6 +151,8 @@ const CheckOut = () => {
             setIsLoading(false);
         }
     };
+
+
 
 
     return (

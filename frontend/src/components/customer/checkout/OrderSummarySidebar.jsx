@@ -111,7 +111,7 @@ const OrderSummarySidebar = ({ orderDetails }) => {
             //     productCategories: [productCategory],
             // });
 
-            const response = await validateCoupon(couponCode, subtotal, [productCategory]);
+            const response = await validateCoupon(couponCode, subtotal, productCategory);
 
             if (response.data.success) {
                 setCouponMessage("Coupon applied successfully!");

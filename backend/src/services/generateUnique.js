@@ -32,3 +32,25 @@ export async function generateUniqueUserId(role) {
 
     return candidateId;
 }
+
+
+export const generateUniqueReferralCode = async () => {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let referralCode;
+    let isUnique = false;
+
+    while (!isUnique) {
+        referralCode = '';
+        for (let i = 0; i < 10; i++) {
+            referralCode += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+
+        // Check if this code already exists
+        const existingCode = await UserReferral.findOne({ referralCode });
+        if (!existingCode) {
+            isUnique = true;
+        }
+    }
+
+    return referralCode;
+};

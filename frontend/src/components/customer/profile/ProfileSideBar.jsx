@@ -20,15 +20,10 @@ import { useSelector, useDispatch } from 'react-redux';
 import { setActiveSelection } from '../../../store/slices/userSidebarSelectedSlice';
 import { logout } from "../../../store/slices/userSlice.js"
 import { logout as logoutService } from "../../../services/authService.js"
-
-
-
+import avthar from "../../../assets/images/avatar.webp"
 
 
 const ProfileSideBar = () => {
-
-
-
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -36,14 +31,12 @@ const ProfileSideBar = () => {
     const selectedSideBar = useSelector((state) => state.userSideSelected.activeSelection);
     const user = useSelector((state) => state.user.userInfo)
 
-
-    // State to manage expanded sections
     const [expandedSections, setExpandedSections] = useState({
         accountSettings: true,
         myStuffs: true
     });
 
-    // Toggle section expansion
+
     const toggleSection = (section) => {
         setExpandedSections({
             ...expandedSections,
@@ -60,10 +53,6 @@ const ProfileSideBar = () => {
     const handleLogout = async () => {
         try {
             const response = await logoutService()
-            // const response = await axios.post(
-            //   "http://localhost:3333/user/logout",
-            //   {},
-            //   { withCredentials: true })
 
             console.log(response.data)
 
@@ -83,7 +72,7 @@ const ProfileSideBar = () => {
                 <div className="flex items-center">
                     <div className="w-14 h-14 rounded-full overflow-hidden mr-4 border-2 border-gray-500">
                         <img
-                            src={user?.profileImg}
+                            src={(user?.profileImg ? user?.profileImg : avthar)}
                             alt="User avatar"
                             className="w-full h-full object-cover"
                         />
@@ -97,21 +86,6 @@ const ProfileSideBar = () => {
 
             {/* Menu Items */}
             <nav className="p-3">
-                {/* My orders */}
-                <div
-                    className="mb-2 rounded-lg hover:bg-gray-100 transition-all duration-200"
-                    onClick={() => handleNavigation("/user/wishlist", "wishlist")}
-                >
-                    <div className="flex items-center justify-between px-4 py-3 cursor-pointer">
-                        <div className="flex items-center">
-                            <span className="mr-3 text-black bg-gray-100 p-2 rounded-lg">
-                                <ScanHeart size={20} />
-                            </span>
-                            <span className="font-medium">My Wishlist</span>
-                        </div>
-                        <ChevronRight size={18} className="text-gray-500" />
-                    </div>
-                </div>
 
                 {/* Account Settings */}
                 <div className="mb-2 rounded-lg bg-gray-50">
@@ -176,42 +150,56 @@ const ProfileSideBar = () => {
                     {expandedSections.myStuffs && (
                         <div className="ml-4 pl-8 border-l-2 border-gray-200 my-2">
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                    ${selectedSideBar === 'coupons' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/coupons", "coupons")}
                             >
                                 <Gift size={16} className="mr-2 text-gray-500" />
                                 <span>My Coupons</span>
                             </div>
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                    ${selectedSideBar === 'orders' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/orders-list", "orders")}
                             >
                                 <ShoppingBag size={16} className="mr-2 text-gray-500" />
                                 <span>My Orders</span>
                             </div>
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                ${selectedSideBar === 'view-cart' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/view-cart", "view-cart")}
                             >
                                 <ShoppingCart size={16} className="mr-2 text-gray-500" />
                                 <span>My Cart</span>
                             </div>
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                ${selectedSideBar === 'wishlist' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
+                                onClick={() => handleNavigation("/user/wishlist", "wishlist")}
+                            >
+                                <ShoppingCart size={16} className="mr-2 text-gray-500" />
+                                <span>My Wishlist</span>
+                            </div>
+                            <div
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                ${selectedSideBar === 'reviews' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/reviews", "reviews")}
                             >
                                 <Star size={16} className="mr-2 text-gray-500" />
                                 <span>My Reviews & Ratings</span>
                             </div>
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                    ${selectedSideBar === 'referrals' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/referrals", "referrals")}
                             >
                                 <Star size={16} className="mr-2 text-gray-500" />
                                 <span>My Referrals</span>
                             </div>
                             <div
-                                className="py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer hover:bg-gray-100"
+                                className={`py-3 px-4 my-1 rounded-lg flex items-center cursor-pointer
+                                    ${selectedSideBar === 'wallet' ? 'bg-black text-white shadow-md' : 'hover:bg-gray-100'}`}
                                 onClick={() => handleNavigation("/user/wallet", "wallet")}
                             >
                                 <Wallet size={16} className="mr-2 text-gray-500" />

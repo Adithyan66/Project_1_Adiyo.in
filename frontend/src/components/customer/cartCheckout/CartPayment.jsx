@@ -1,16 +1,19 @@
 
 
-import { ArrowLeft, CreditCard, LockIcon, RefreshCw, Smartphone, Building, Truck, Wallet, Plus } from 'lucide-react';
+import { ArrowLeft, CreditCard, LockIcon, RefreshCw, Smartphone, Building, Truck, Wallet, Plus, Lock } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setCartCurrentStep } from '../../../store/slices/cartCheckoutSlice';
 import { PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import axios from 'axios';
+import razorpay from "../../../assets/images/razarpay.png";
+
 
 // Import images - make sure these paths match your project structure
 import walletLogo from "../../../assets/images/walletLogo.jpg";
 import paypalLogo from "../../../assets/images/paypalLogo.png";
 import cashOnDelivery from "../../../assets/images/cashOnDeliveryLogo.jpg";
+import { toast } from 'react-toastify';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -275,10 +278,10 @@ function CartPayment({ onPlaceOrder }) {
                 <PayPalOption />
 
                 <PaymentOption
-                    id="upi"
-                    title="UPI"
+                    id="razorpay"
+                    title="Razorpay"
                     description="Pay using UPI apps"
-                    icon={Smartphone}
+                    icon={razorpay}
                 />
 
                 <PaymentOption
@@ -438,92 +441,27 @@ function CartPayment({ onPlaceOrder }) {
                 </div>
             )}
 
-            {paymentMethod === 'upi' && (
-                <div className="border rounded-lg p-5 mb-6 bg-gray-50">
-                    <h3 className="font-medium text-gray-900 mb-4">UPI Details</h3>
-                    <div>
-                        <label className="text-sm text-gray-700 block mb-1">UPI ID</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Smartphone size={16} className="text-gray-400" />
-                            </div>
-                            <input
-                                type="text"
-                                value={upiId}
-                                onChange={(e) => setUpiId(e.target.value)}
-                                className="border rounded-md pl-10 pr-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                                placeholder="yourname@upi"
-                            />
-                        </div>
-                        <div className="mt-4 flex justify-center space-x-6">
-                            <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                                    <img src="/api/placeholder/30/30" alt="UPI app" />
-                                </div>
-                                <span className="text-xs text-gray-600">PhonePe</span>
-                            </div>
-                            <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                                    <img src="/api/placeholder/30/30" alt="UPI app" />
-                                </div>
-                                <span className="text-xs text-gray-600">GPay</span>
-                            </div>
-                            <div className="text-center">
-                                <div className="w-12 h-12 mx-auto mb-1 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
-                                    <img src="/api/placeholder/30/30" alt="UPI app" />
-                                </div>
-                                <span className="text-xs text-gray-600">Paytm</span>
-                            </div>
-                        </div>
+            {paymentMethod === 'razorpay' && (
+                <div className="shadow-lg rounded-lg p-5 mb-6 bg-gray-50">
+                    <h3 className="font-medium text-gray-900 mb-4">RazorPay Checkout</h3>
+                    <div className="flex flex-col items-center">
                         <button
-                            className={`w-full mt-6 px-4 py-2 rounded-md ${!upiId || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
-                            disabled={!upiId || isProcessing}
-                            onClick={handleUpiPayment}
+                            onClick={() => {
+                                toast.error("Razorpay not available at the moment")
+                                //processRazorpay()
+                            }}
+                            className={`w-full h-14 rounded-lg flex items-center justify-center font-medium transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg group
+                                          
+                                            bg-gradient-to-r from-amber-100 to-amber-200 text-gray-700 hover:from-amber-200 hover:to-amber-300  border-amber-300'
+                                           } focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:scale-[0.98]`}
                         >
-                            {isProcessing ? (
-                                <span className="flex items-center justify-center">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Processing...
-                                </span>
-                            ) : (
-                                <span>Pay Now</span>
-                            )}
-                        </button>
-                    </div>
-                </div>
-            )}
-
-            {paymentMethod === 'netbanking' && (
-                <div className="border rounded-lg p-5 mb-6 bg-gray-50">
-                    <h3 className="font-medium text-gray-900 mb-4">Select Bank</h3>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {['SBI', 'HDFC', 'ICICI', 'Axis'].map((bank) => (
-                            <div
-                                key={bank}
-                                className={`border rounded-md p-3 text-center cursor-pointer hover:bg-white hover:shadow-md transition-all ${selectedBank === bank ? 'border-black bg-gray-100' : ''}`}
-                                onClick={() => setSelectedBank(bank)}
-                            >
-                                <div className="w-10 h-10 mx-auto mb-2 bg-gray-100 rounded-full flex items-center justify-center">
-                                    <Building size={18} className="text-gray-700" />
-                                </div>
-                                <div className="text-sm font-medium">{bank} Bank</div>
+                            <div className="flex items-center justify-center relative overflow-hidden">
+                                <span className="absolute inset-0 bg-white/10 rounded transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-500"></span>
+                                <span className="font-semibold">Pay with <span className="text-2xl italic text-blue-600 animate-pulse">Razorpay</span></span>
                             </div>
-                        ))}
+                        </button>
+                        <div className="text-gray-500 mt-3 text-sm flex ">{<Lock size={14} className='mr-1' />}Your payment information is secured by Razorpay</div>
                     </div>
-                    <button
-                        className={`w-full mt-6 px-4 py-2 rounded-md ${!selectedBank || isProcessing ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
-                        disabled={!selectedBank || isProcessing}
-                        onClick={handleNetBankingPayment}
-                    >
-                        {isProcessing ? (
-                            <span className="flex items-center justify-center">
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Processing...
-                            </span>
-                        ) : (
-                            <span>Pay Now</span>
-                        )}
-                    </button>
                 </div>
             )}
 

@@ -15,6 +15,7 @@ import visa from "../../../assets/images/visa.png";
 import mastercard from "../../../assets/images/mastercard.png";
 import applepay from "../../../assets/images/applepay.png";
 import gpay from "../../../assets/images/gpay.png";
+import CartShimmer from '../shimmerUI/CartShimmer';
 
 
 const Cart = () => {
@@ -29,7 +30,6 @@ const Cart = () => {
 
     const calculateSubtotal = () => {
         return cartItems.reduce((sum, item) => {
-            // Find the correct color object in the product
             const colorObj = item.product.colors.find(c => c.color === item.selectedColor);
             return sum + (colorObj ? colorObj.discountPrice * item.quantity : 0);
         }, 0);
@@ -45,11 +45,7 @@ const Cart = () => {
             if (item.quantity >= 3 && change > 0) {
                 return toast.error("maximum quantity is 3 in cart")
             }
-            // await axios.patch(`${API_BASE_URL}/user/cart-items/${itemId}`, {
-            //     newQuantity
-            // }, {
-            //     withCredentials: true
-            // });
+
             await updateQuantityService(itemId, newQuantity);
 
             fetchCartItems()
@@ -62,9 +58,6 @@ const Cart = () => {
 
     const removeItem = async (itemId) => {
         try {
-            // await axios.delete(`${API_BASE_URL}/user/cart-items/${itemId}`, {
-            //     withCredentials: true
-            // });
 
             await deleteCartItem(itemId);
 
@@ -79,11 +72,7 @@ const Cart = () => {
     const fetchCartItems = async () => {
         setIsLoading(true);
         try {
-            // const response = await axios.get(`${API_BASE_URL}/user/cart-items`, {
-            //     withCredentials: true
-            // });
             const response = await getCartItems();
-
             setCartItems(response.data.items || []);
 
         } catch (error) {
@@ -133,14 +122,7 @@ const Cart = () => {
     const total = subtotal + shipping - discount;
 
     if (isLoading) {
-        return (
-            <div className="flex-1 p-6 bg-white m-6 rounded-md min-h-[800px] flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-black mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading your cart...</p>
-                </div>
-            </div>
-        );
+        return <CartShimmer />
     }
 
     if (error) {
