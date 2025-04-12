@@ -3,16 +3,11 @@ import cloudinary from '../config/cloudinary.js';
 import Product from '../models/productModel.js';
 import Category from '../models/categoryModel.js';
 import fs from "fs";
-
-
 import mongoose from 'mongoose';
 const ObjectId = mongoose.Types.ObjectId;
 
-
-
-
-
 export const addProduct = async (req, res) => {
+
     const {
         name,
         shortDescription,
@@ -26,8 +21,8 @@ export const addProduct = async (req, res) => {
         totalQuantity
     } = req.body;
 
-
     let parsedCareInstructions;
+
     try {
         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
     } catch (err) {
@@ -36,7 +31,6 @@ export const addProduct = async (req, res) => {
             message: 'Invalid careInstructions format',
         });
     }
-
 
     let colorsData;
     try {
@@ -48,7 +42,6 @@ export const addProduct = async (req, res) => {
         });
     }
 
-
     const filesByColor = {};
     if (!req.files || req.files.length === 0) {
         return res.status(400).json({
@@ -56,6 +49,7 @@ export const addProduct = async (req, res) => {
             message: 'Please upload image files for each color variant',
         });
     }
+
     req.files.forEach((file) => {
         const match = file.fieldname.match(/color(\d+)_image/);
         if (match) {
@@ -118,13 +112,12 @@ export const addProduct = async (req, res) => {
             message: 'Product added successfully',
             product,
         });
+
     } catch (error) {
-        // If there's an error, remove any uploaded files from Cloudinary
+
         if (req.files && req.files.length > 0) {
             req.files.forEach(async (file) => {
-                // This assumes you saved the cloudinary public_id in your local cloudinaryResults
-                // You might need to adjust this based on your implementation.
-                // Here we assume cloudinaryResults exist, so for each result, destroy the image.
+
             });
         }
         console.error(error);

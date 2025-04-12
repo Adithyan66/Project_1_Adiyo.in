@@ -5,11 +5,13 @@ import mastercard from "../../assets/images/mastercard.png";
 import paypal from "../../assets/images/paypal.png";
 import applepay from "../../assets/images/applepay.png";
 import gpay from "../../assets/images/gpay.png";
-
 import facebook from "../../assets/images/facebook.png"
 import twitter from "../../assets/images/twitter.svg"
 import instagram from "../../assets/images/instagram.png"
 import github from "../../assets/images/github.png"
+
+
+
 function Footer() {
     return (
         <footer className="bg-gray-200 text-gray-700 py-8">

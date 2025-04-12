@@ -16,7 +16,6 @@ export const verifyRazorpayPayment = async (req, res, next) => {
     try {
         console.log("middleware", req.body);
 
-        // Check if the payment method from the request is Razorpay.
         if (req.body.paymentMethod === "razorpay") {
             const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
 
@@ -26,7 +25,6 @@ export const verifyRazorpayPayment = async (req, res, next) => {
                 .digest('hex');
 
             if (generated_signature === razorpay_signature) {
-                // If verification is successful, attach necessary info to req.body
                 req.body = {
                     ...req.body,
                     paymentMethod: "razorpay",
@@ -41,7 +39,6 @@ export const verifyRazorpayPayment = async (req, res, next) => {
                 });
             }
         } else {
-            // If not a Razorpay payment, simply move to the next middleware.
             next();
         }
     } catch (err) {
@@ -51,5 +48,6 @@ export const verifyRazorpayPayment = async (req, res, next) => {
         });
     }
 };
+
 
 

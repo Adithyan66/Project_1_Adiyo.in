@@ -7,55 +7,109 @@ const router = express.Router()
 import { authenticateUser } from "../middlewares/authenticateUser.js"
 
 import {
-    signUp,
-    login,
-    forgotPassword,
-    resetPassword,
-    validateOTP,
-    googleLogin,
-    productList,
-    logout,
-    profile,
-    productDetail,
-    addReview,
-    getReviews,
-    signupOTP,
     profileDetails,
     updateProfile,
-    changeEmailOtp,
     changeEmail,
     changePassword,
-    saveAddress,
-    getUserAddresses,
-    editAddress,
-    deleteAddress,
-    makeDefaultAddress,
-    addCart,
-    cartItems,
-    removeCartItem,
-    updateCartQuantity,
-    checkCart,
-    createOrder,
-    getUserOrders,
-    getOrderById,
-    deleteCart,
-    cancelOrder,
-    returnRequest,
+}
+    from "../controllers/userController.js"
+
+import {
+
+    verifyRazorpayPayment
+}
+    from "../config/razopay.js"
+
+import {
     getNewArrivals,
     getTopSellingProducts,
-    getWishlist,
+    productDetail,
+    productList
+}
+    from "../controllers/userProductController.js"
+
+import {
+    forgotPassword,
+    googleLogin,
+    login,
+    logout,
+    profile,
+    resetPassword,
+    signUp
+}
+    from "../controllers/authController.js"
+
+import {
+    changeEmailOtp,
+    signupOTP,
+    validateOTP
+}
+    from "../controllers/otpController.js"
+
+import {
+    addReview,
+    getReviews
+}
+    from "../controllers/reviewController.js"
+
+import {
+    deleteAddress,
+    editAddress,
+    getUserAddresses,
+    makeDefaultAddress,
+    saveAddress
+}
+    from "../controllers/addressController.js"
+
+import {
+    addCart,
+    cartItems,
+    checkCart,
+    deleteCart,
+    removeCartItem,
+    updateCartQuantity
+}
+    from "../controllers/cartController.js"
+
+import {
+    cancelOrder,
+    createOrder,
+    getOrderById,
+    getUserOrders,
+    returnRequest
+}
+    from "../controllers/orderController.js"
+
+import {
     addWishlist,
-    removeWishlistItem,
-    validateCoupon,
-    getWalletDetails,
-    getWalletBalance,
-    walletRecharge,
-    checkOffer,
-    referalDetails,
-    addMoneyRazopay
+    getWishlist,
+    removeWishlistItem
 } from
-    "../controllers/userController.js"
-import { verifyRazorpayPayment } from "../config/razopay.js"
+    "../controllers/wishlistController.js"
+
+import {
+    validateCoupon
+}
+    from "../controllers/couponController.js"
+
+import {
+    getWalletBalance,
+    getWalletDetails,
+    walletRecharge
+}
+    from "../controllers/walletController.js"
+
+import {
+    checkOffer
+}
+    from "../controllers/offerController.js"
+
+import {
+    referalDetails
+}
+    from "../controllers/referalController.js"
+
+import { addMoneyRazopay } from "../controllers/payment.js"
 
 
 const upload = multer({ dest: "uploads/" });

@@ -1,3 +1,4 @@
+import { UserReferral } from "../models/referralModel.js";
 import User from "../models/userModel.js";
 
 
@@ -54,3 +55,20 @@ export const generateUniqueReferralCode = async () => {
 
     return referralCode;
 };
+
+
+export const generateReadableOrderId = () => {
+    // Generate a timestamp in the format YYYYMMDDHHMMSS
+    const now = new Date();
+    const pad = (num) => String(num).padStart(2, '0');
+    const datePart = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+    // Generate a 6-character random alphanumeric string
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randomPart = '';
+    for (let i = 0; i < 6; i++) {
+        randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return `${datePart}-${randomPart}`;
+}

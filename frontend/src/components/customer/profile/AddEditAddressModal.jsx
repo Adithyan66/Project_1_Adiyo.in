@@ -123,6 +123,9 @@ const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
                     try {
                         const { latitude, longitude } = position.coords;
 
+                        console.log(latitude, longitude);
+
+
                         const response = await axios.get(
                             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
                         );
