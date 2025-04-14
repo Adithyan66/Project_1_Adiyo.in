@@ -17,7 +17,7 @@ const {
     GATEWAY_TIMEOUT
 } = HttpStatusCode
 
-import { razorpay } from "../config/razopay.js";
+import { razorpay } from "../middlewares/razopay.js";
 
 
 export const addMoneyRazopay = async (req, res) => {

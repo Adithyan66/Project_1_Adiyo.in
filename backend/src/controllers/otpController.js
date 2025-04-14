@@ -92,11 +92,13 @@ export const validateOTP = async (req, res) => {
 
 
         const user = await User.findOne({ email });
+
         if (user) {
+
             const resetToken = generateResetToken();
             user.resetPasswordToken = resetToken;
-            await user.save();
 
+            await user.save();
 
             await otpRecord.deleteOne();
 
@@ -132,17 +134,21 @@ export const changeEmailOtp = async (req, res) => {
 
         const user = await User.findById(id);
         if (!user) {
+
             return res.status(NOT_FOUND).json({ success: false, message: "User not found" });
         }
-        console.log("change email request body", user.password);
 
         const isMatch = await bcrypt.compare(password, user.password);
+
         if (!isMatch) {
+
             return res.status(BAD_REQUEST).json({ success: false, message: "Invalid password" });
         }
 
         const existingUser = await User.findOne({ email: newEmail });
+
         if (existingUser) {
+
             return res.status(BAD_REQUEST).json({ success: false, message: "Email already exists" });
         }
 

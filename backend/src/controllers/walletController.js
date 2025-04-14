@@ -318,3 +318,36 @@ export const walletRecharge = async (req, res) => {
         });
     }
 };
+
+
+
+
+export const walletTransactions = async (req, res) => {
+
+    try {
+
+        const transactions = await Transaction.find({}).populate("userId").populate("walletId")
+
+        if (!transactions) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: "no transactions found"
+            })
+        }
+
+        res.status(OK).json({
+            success: true,
+            message: "transactions fetched successfully",
+            transactions
+        })
+
+    } catch (error) {
+        console.log("error in fetching transactions", error)
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "server error"
+        })
+    }
+}
+
+

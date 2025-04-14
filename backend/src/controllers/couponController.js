@@ -33,8 +33,6 @@ export const validateCoupon = async (req, res) => {
                 message: "Coupon not found"
             });
         }
-        console.log(coupon);
-
 
         const now = new Date();
 
@@ -65,8 +63,6 @@ export const validateCoupon = async (req, res) => {
                 message: `Minimum order value for this coupon is ${coupon.minimumOrderValue}`
             });
         }
-
-        console.log("catt", coupon.applicableCategories, productCategories);
 
         if (coupon.applicableCategories) {
             const prodCategoriesArray = Array.isArray(productCategories) ?
@@ -105,3 +101,103 @@ export const validateCoupon = async (req, res) => {
     }
 }
 
+
+export const addCoupon = async (req, res) => {
+
+    try {
+
+        const couponData = req.body;
+
+        const newCoupon = new Coupon(couponData);
+
+        await newCoupon.save()
+
+        res.status(OK).json({
+            status: true,
+            message: "coupon created succesfully"
+        })
+    } catch (error) {
+
+        console.error("Error creating coupon:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            status: false,
+            message: error.message
+        });
+    }
+}
+
+export const updateCoupon = async (req, res) => {
+
+    try {
+
+        const couponId = req.body.id
+        await Coupon.findByIdAndUpdate(couponId, req.body, { new: true })
+
+        res.status(OK).json({
+            success: true,
+            message: "coupon updated succesfully"
+        })
+
+    } catch (error) {
+
+        console.error("Error updating coupon:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+
+
+
+export const getCoupons = async (req, res) => {
+
+    try {
+
+        const coupons = await Coupon.find({ deletedAt: null }).populate("applicableCategories")
+
+        res.status(OK).json({
+            status: true,
+            message: "coupons fetched succesfully",
+            coupons
+        })
+
+    } catch (error) {
+        res.status(INTERNAL_SERVER_ERROR).json({
+            status: false,
+            message: "server error"
+        })
+
+    }
+}
+
+export const deleteCoupon = async (req, res) => {
+
+    try {
+
+        const couponId = req.params.id
+
+        const coupon = await Coupon.findByIdAndUpdate(couponId,
+            { deletedAt: new Date() },
+            { new: true }
+        );
+
+        if (!coupon) {
+            return res.status(NOT_FOUND).json({
+                status: false,
+                message: "coupon not found"
+            })
+        }
+
+        res.status(OK).json({
+            status: true,
+            message: "coupon deleted succesfully",
+            coupon
+        })
+
+    } catch (error) {
+
+        console.error('Error soft deleting product:', error);
+        res.status(INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+    }
+}

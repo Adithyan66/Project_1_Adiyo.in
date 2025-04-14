@@ -2,45 +2,16 @@ import express from "express";
 
 const router = express.Router()
 
-import {
-    customersList,
-    customerDetails,
-    blockUser,
-    deleteProduct,
-    getProducts,
-    productDetails,
-    addCoupon,
-    getCoupons,
-    deleteCoupon,
-    addCategory,
-    addSubCategories,
-    getCategories,
-    editSubcategoryName,
-    deleteCategories,
-    deleteSubCategories,
-    getOrders,
-    updateOrderStatus,
-    getOrderDetails,
-    verifyReturn,
-    productNames,
-    createProductOffer,
-    getAllProductOffers,
-    createCategoryOffer,
-    getAllCategoryOffers,
-    createReferalOffer,
-    editReferalOffer,
-    getReferalOffers,
-    salesReport,
-    updateCoupon,
-    toggleReferalStatus,
-    deleteReferealOffer,
-    editProductOffer,
-    deleteProductOffer,
-    editCategoryOffer,
-    deleteCategoryOffer,
-    walletTransactions,
-    getDashboardData
-} from "../controllers/adminController.js"
+import { blockUser, customerDetails, customersList } from "../controllers/customerController.js";
+import { deleteProduct, getProducts, productDetails, productNames } from "../controllers/adminProductController.js";
+import { addCoupon, deleteCoupon, getCoupons, updateCoupon } from "../controllers/couponController.js";
+import { addCategory, addSubCategories, deleteCategories, deleteSubCategories, editSubcategoryName, getCategories } from "../controllers/categoryController.js";
+import { getOrderDetails, getOrders, updateOrderStatus, verifyReturn } from "../controllers/adminOrderController.js";
+import { createProductOffer, deleteProductOffer, editProductOffer, getAllProductOffers } from "../controllers/productOfferController.js";
+import { createCategoryOffer, deleteCategoryOffer, editCategoryOffer, getAllCategoryOffers } from "../controllers/categoryOfferController.js";
+import { createReferalOffer, deleteReferealOffer, editReferalOffer, getReferalOffers, toggleReferalStatus } from "../controllers/referalOfferController.js";
+import { walletTransactions } from "../controllers/walletController.js";
+import { getDashboardData, salesReport } from "../controllers/adminDashboardController.js";
 
 
 

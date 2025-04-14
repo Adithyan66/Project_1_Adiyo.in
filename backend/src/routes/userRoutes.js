@@ -18,7 +18,7 @@ import {
 
     verifyRazorpayPayment
 }
-    from "../config/razopay.js"
+    from "../middlewares/razopay.js"
 
 import {
     getNewArrivals,
@@ -78,7 +78,7 @@ import {
     getUserOrders,
     returnRequest
 }
-    from "../controllers/orderController.js"
+    from "../controllers/userOrderController.js"
 
 import {
     addWishlist,
