@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router';
+import { adminGetWalletTransactions } from '../../../../services/wishlistService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -17,21 +18,16 @@ const WalletManagement = () => {
         fetchTransactions();
     }, []);
 
-    // function formatDate(date) {
-    //     const d = new Date(date);
-    //     const year = d.getFullYear();
-    //     const month = String(d.getMonth() + 1).padStart(2, '0');
-    //     const day = String(d.getDate()).padStart(2, '0');
-    //     return `${year}-${month}-${day}`;
-    // }
 
     const fetchTransactions = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/wallet-transactions`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/wallet-transactions`,
+            //     { withCredentials: true }
+            // );
+
+            const response = await adminGetWalletTransactions()
 
             if (response.data.success) {
                 setTransactions(response.data.transactions);

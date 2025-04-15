@@ -12,59 +12,60 @@ import { createCategoryOffer, deleteCategoryOffer, editCategoryOffer, getAllCate
 import { createReferalOffer, deleteReferealOffer, editReferalOffer, getReferalOffers, toggleReferalStatus } from "../controllers/referalOfferController.js";
 import { walletTransactions } from "../controllers/walletController.js";
 import { getDashboardData, salesReport } from "../controllers/adminDashboardController.js";
+import { authenticateAdmin } from "../middlewares/authentication.js"
 
 
 
-router.get("/customers-list", customersList)
-router.get("/:customerId/customer-details", customerDetails)
-router.get("/products", getProducts)
-router.get("/products/:id", productDetails)
-router.get("/coupons", getCoupons)
-router.get("/categories", getCategories)
-router.get("/orders", getOrders)
-router.get("/orders/:orderId", getOrderDetails)
-router.get("/product-names", productNames)
-router.get("/product-offers", getAllProductOffers)
-router.get("/category-offers", getAllCategoryOffers)
-router.get("/referral-offers", getReferalOffers)
-router.get("/sales-report", salesReport)
-router.get("/wallet-transactions", walletTransactions)
-router.get("/dashboard", getDashboardData)
-
-
-
-
-router.post("/add-coupon", addCoupon)
-router.post("/add-category", addCategory)
-router.post("/:categoryId/add-subcategories", addSubCategories)
-router.post("/orders/:orderId/return-verification", verifyReturn)
-router.post("/create-product-offer", createProductOffer)
-router.post("/create-category-offer", createCategoryOffer)
-router.post("/create-referral-offer", createReferalOffer)
+router.get("/customers-list", authenticateAdmin, customersList)
+router.get("/:customerId/customer-details", authenticateAdmin, customerDetails)
+router.get("/products", authenticateAdmin, getProducts)
+router.get("/products/:id", authenticateAdmin, productDetails)
+router.get("/coupons", authenticateAdmin, getCoupons)
+router.get("/categories", authenticateAdmin, getCategories)
+router.get("/orders", authenticateAdmin, getOrders)
+router.get("/orders/:orderId", authenticateAdmin, getOrderDetails)
+router.get("/product-names", authenticateAdmin, productNames)
+router.get("/product-offers", authenticateAdmin, getAllProductOffers)
+router.get("/category-offers", authenticateAdmin, getAllCategoryOffers)
+router.get("/referral-offers", authenticateAdmin, getReferalOffers)
+router.get("/sales-report", authenticateAdmin, salesReport)
+router.get("/wallet-transactions", authenticateAdmin, walletTransactions)
+router.get("/dashboard", authenticateAdmin, getDashboardData)
 
 
 
 
-router.put("/categories/:categoryId/subcategories/:subcategoryId", editSubcategoryName)
-router.put("/referral-offer/:id", editReferalOffer)
-router.put("/edit-product-offer/:id", editProductOffer)
-router.put("/category-offer/:id", editCategoryOffer)
-
-
-router.patch("/block-user/:id", blockUser)
-router.patch("/orders/:orderId/status", updateOrderStatus)
-router.patch("/edit-coupon", updateCoupon)
-router.patch("/referral-offer/toggle-status/:id", toggleReferalStatus)
+router.post("/add-coupon", authenticateAdmin, addCoupon)
+router.post("/add-category", authenticateAdmin, addCategory)
+router.post("/:categoryId/add-subcategories", authenticateAdmin, addSubCategories)
+router.post("/orders/:orderId/return-verification", authenticateAdmin, verifyReturn)
+router.post("/create-product-offer", authenticateAdmin, createProductOffer)
+router.post("/create-category-offer", authenticateAdmin, createCategoryOffer)
+router.post("/create-referral-offer", authenticateAdmin, createReferalOffer)
 
 
 
-router.delete("/delete-product/:id", deleteProduct)
-router.delete("/delete-coupon/:id", deleteCoupon)
-router.delete("/delete-categories/:categoryId", deleteCategories)
-router.delete("/categories/:categoryId/subcategories/:subcategoryId", deleteSubCategories)
-router.delete("/referral-offer/:id", deleteReferealOffer)
-router.delete("/product-offer/:id", deleteProductOffer)
-router.delete("/category-offer/:id", deleteCategoryOffer)
+
+router.put("/categories/:categoryId/subcategories/:subcategoryId", authenticateAdmin, editSubcategoryName)
+router.put("/referral-offer/:id", authenticateAdmin, editReferalOffer)
+router.put("/edit-product-offer/:id", authenticateAdmin, editProductOffer)
+router.put("/category-offer/:id", authenticateAdmin, editCategoryOffer)
+
+
+router.patch("/block-user/:id", authenticateAdmin, blockUser)
+router.patch("/orders/:orderId/status", authenticateAdmin, updateOrderStatus)
+router.patch("/edit-coupon", authenticateAdmin, updateCoupon)
+router.patch("/referral-offer/toggle-status/:id", authenticateAdmin, toggleReferalStatus)
+
+
+
+router.delete("/delete-product/:id", authenticateAdmin, deleteProduct)
+router.delete("/delete-coupon/:id", authenticateAdmin, deleteCoupon)
+router.delete("/delete-categories/:categoryId", authenticateAdmin, deleteCategories)
+router.delete("/categories/:categoryId/subcategories/:subcategoryId", authenticateAdmin, deleteSubCategories)
+router.delete("/referral-offer/:id", authenticateAdmin, deleteReferealOffer)
+router.delete("/product-offer/:id", authenticateAdmin, deleteProductOffer)
+router.delete("/category-offer/:id", authenticateAdmin, deleteCategoryOffer)
 
 
 

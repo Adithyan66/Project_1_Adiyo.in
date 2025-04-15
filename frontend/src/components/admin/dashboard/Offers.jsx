@@ -3,6 +3,9 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
+import { productName } from '../../../services/productService';
+import { getCategoryList } from '../../../services/categoryService';
+import { createCategoryOffer, createProductOffer, createReferalOffer, deleteOffer, editCategoryOffer, editProductOffer, editReferalOffer, getCategoryOffers, getProductOffers, getReferalOffers, toggleStatusOfOffers } from '../../../services/offerServices';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -109,10 +112,12 @@ const ManageOffers = () => {
     // Product-related functions
     const fetchProductNames = async () => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/product-names`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/product-names`,
+            //     { withCredentials: true }
+            // );
+
+            const response = await productName()
 
             if (response.data.success) {
                 setProducts(response.data.products);
@@ -124,10 +129,12 @@ const ManageOffers = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/categories`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/categories`,
+            //     { withCredentials: true }
+            // );
+
+            const response = await getCategoryList()
 
             if (response.data.success) {
                 setCategories(response.data.categories);
@@ -140,10 +147,11 @@ const ManageOffers = () => {
     // Fetch Product Offers
     const fetchProductOffers = async () => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/product-offers`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/product-offers`,
+            //     { withCredentials: true }
+            // );
+            const response = await getProductOffers()
 
             if (response.data.success) {
                 setProductOffers(response.data.offers);
@@ -156,10 +164,12 @@ const ManageOffers = () => {
     // Fetch Category Offers
     const fetchCategoryOffers = async () => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/category-offers`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/category-offers`,
+            //     { withCredentials: true }
+            // );
+
+            const response = await getCategoryOffers()
 
             if (response.data.success) {
                 setCategoryOffers(response.data.offers);
@@ -172,10 +182,12 @@ const ManageOffers = () => {
     // Fetch Referral Offers
     const fetchReferralOffers = async () => {
         try {
-            const response = await axios.get(
-                `${API_BASE_URL}/admin/referral-offers`,
-                { withCredentials: true }
-            );
+            // const response = await axios.get(
+            //     `${API_BASE_URL}/admin/referral-offers`,
+            //     { withCredentials: true }
+            // );
+
+            const response = await getReferalOffers()
 
             if (response.data.success) {
                 setReferralOffers(response.data.offers);
@@ -227,17 +239,19 @@ const ManageOffers = () => {
             let response;
 
             if (currentEditOffer) {
-                response = await axios.put(
-                    `${API_BASE_URL}/admin/edit-product-offer/${currentEditOffer._id}`,
-                    payload,
-                    { withCredentials: true }
-                );
+                // response = await axios.put(
+                //     `${API_BASE_URL}/admin/edit-product-offer/${currentEditOffer._id}`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
+                response = await editProductOffer(currentEditOffer._id, payload)
             } else {
-                response = await axios.post(
-                    `${API_BASE_URL}/admin/create-product-offer`,
-                    payload,
-                    { withCredentials: true }
-                );
+                // response = await axios.post(
+                //     `${API_BASE_URL}/admin/create-product-offer`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
+                response = await createProductOffer(payload)
             }
 
             if (response.data.success) {
@@ -287,17 +301,19 @@ const ManageOffers = () => {
             let response;
 
             if (currentEditOffer) {
-                response = await axios.put(
-                    `${API_BASE_URL}/admin/category-offer/${currentEditOffer._id}`,
-                    payload,
-                    { withCredentials: true }
-                );
+                response = await editCategoryOffer(currentEditOffer._id, payload)
+                // axios.put(
+                //     `${API_BASE_URL}/admin/category-offer/${currentEditOffer._id}`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
             } else {
-                response = await axios.post(
-                    `${API_BASE_URL}/admin/create-category-offer`,
-                    payload,
-                    { withCredentials: true }
-                );
+                response = await createCategoryOffer(payload)
+                // axios.post(
+                //     `${API_BASE_URL}/admin/create-category-offer`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
             }
 
             if (response.data.success) {
@@ -339,17 +355,19 @@ const ManageOffers = () => {
             let response;
 
             if (currentEditOffer) {
-                response = await axios.put(
-                    `${API_BASE_URL}/admin/referral-offer/${currentEditOffer._id}`,
-                    payload,
-                    { withCredentials: true }
-                );
+                response = await editReferalOffer(currentEditOffer._id, payload)
+                // axios.put(
+                //     `${API_BASE_URL}/admin/referral-offer/${currentEditOffer._id}`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
             } else {
-                response = await axios.post(
-                    `${API_BASE_URL}/admin/create-referral-offer`,
-                    payload,
-                    { withCredentials: true }
-                );
+                response = await createReferalOffer(payload)
+                //  axios.post(
+                //     `${API_BASE_URL}/admin/create-referral-offer`,
+                //     payload,
+                //     { withCredentials: true }
+                // );
             }
 
             if (response.data.success) {
@@ -382,20 +400,30 @@ const ManageOffers = () => {
     // Delete offer based on active tab
     const handleDeleteOffer = async (id) => {
         try {
-            let endpoint;
+            // let endpoint;
 
-            if (activeTab === 'productOffers') {
-                endpoint = `${API_BASE_URL}/admin/product-offer/${id}`;
+            // if (activeTab === 'productOffers') {
+            //     endpoint = `${API_BASE_URL}/admin/product-offer/${id}`;
+            // } else if (activeTab === 'categoryOffers') {
+            //     endpoint = `${API_BASE_URL}/admin/category-offer/${id}`;
+            // } else if (activeTab === 'referralOffers') {
+            //     endpoint = `${API_BASE_URL}/admin/referral-offer/${id}`;
+            // }
+
+            // const response = await axios.delete(
+            //     endpoint,
+            //     { withCredentials: true }
+            // );
+
+            let response
+
+            if (activeTab === "productOffers") {
+                response = await deleteOffer("product-offer", id)
             } else if (activeTab === 'categoryOffers') {
-                endpoint = `${API_BASE_URL}/admin/category-offer/${id}`;
-            } else if (activeTab === 'referralOffers') {
-                endpoint = `${API_BASE_URL}/admin/referral-offer/${id}`;
+                response = await deleteOffer("category-offer", id)
+            } else if (activeTab === "referralOffers") {
+                response = await deleteOffer("referral-offer", id)
             }
-
-            const response = await axios.delete(
-                endpoint,
-                { withCredentials: true }
-            );
 
             if (response.data.success) {
                 // Refresh the offer list based on the active tab
@@ -420,25 +448,41 @@ const ManageOffers = () => {
             let endpoint;
             let currentStatus;
 
-            if (activeTab === 'productOffers') {
-                const offer = productOffers.find(offer => offer._id === id);
-                currentStatus = offer.status;
-                endpoint = `${API_BASE_URL}/admin/product-offer/toggle-status/${id}`;
+            // if (activeTab === 'productOffers') {
+            //     const offer = productOffers.find(offer => offer._id === id);
+            //     currentStatus = offer.status;
+            //     endpoint = `${API_BASE_URL}/admin/product-offer/toggle-status/${id}`;
+            // } else if (activeTab === 'categoryOffers') {
+            //     const offer = categoryOffers.find(offer => offer._id === id);
+            //     currentStatus = offer.status;
+            //     endpoint = `${API_BASE_URL}/admin/category-offer/toggle-status/${id}`;
+            // } else if (activeTab === 'referralOffers') {
+            //     const offer = referralOffers.find(offer => offer._id === id);
+            //     currentStatus = offer.isActive;
+            //     endpoint = `${API_BASE_URL}/admin/referral-offer/toggle-status/${id}`;
+            // }
+
+            // const response = await axios.patch(
+            //     endpoint,
+            //     { status: currentStatus === true ? false : true },
+            //     { withCredentials: true }
+            // );
+
+            let response
+
+            if (activeTab === "productOffers") {
+                const offer = productOffers.find(offer => offer._id === id)
+                currentStatus = offer.status
+                response = await toggleStatusOfOffers("product-offer", id, currentStatus)
             } else if (activeTab === 'categoryOffers') {
                 const offer = categoryOffers.find(offer => offer._id === id);
                 currentStatus = offer.status;
-                endpoint = `${API_BASE_URL}/admin/category-offer/toggle-status/${id}`;
+                response = await toggleStatusOfOffers("category-offer", id, currentStatus)
             } else if (activeTab === 'referralOffers') {
                 const offer = referralOffers.find(offer => offer._id === id);
                 currentStatus = offer.isActive;
-                endpoint = `${API_BASE_URL}/admin/referral-offer/toggle-status/${id}`;
+                response = await toggleStatusOfOffers("referral-offer", id, currentStatus)
             }
-
-            const response = await axios.patch(
-                endpoint,
-                { status: currentStatus === true ? false : true },
-                { withCredentials: true }
-            );
 
             if (response.data.success) {
                 // Refresh the offer list based on the active tab

@@ -28,3 +28,14 @@ export const addToWishlist = async (data) => {
         throw error;
     }
 }
+
+export const adminGetWalletTransactions = async () => {
+
+    try {
+        const response = await httpClient.get(`/admin/wallet-transactions`);
+        return response;
+    } catch (error) {
+        console.error("Error getting transactions:", error);
+        throw error;
+    }
+}

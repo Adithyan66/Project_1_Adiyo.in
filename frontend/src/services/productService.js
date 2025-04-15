@@ -91,4 +91,10 @@ export const deleteProduct = async (id) => {
         console.error("Error deleting product:", error);
         throw error;
     }
-}   
+}
+
+
+export const productName = async () => {
+    const response = await httpClient.get(`admin/product-names`)
+    return response
+}

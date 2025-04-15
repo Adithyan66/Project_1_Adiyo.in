@@ -1,3 +1,4 @@
+import HttpStatusCode from "../utils/httpStatusCodes.js";
 
 
 const {
@@ -18,16 +19,15 @@ const {
     GATEWAY_TIMEOUT
 } = HttpStatusCode
 
+import User from "../models/userModel.js";
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import HttpStatusCode from "../utils/httpStatusCodes.js";
 import { generateOTP, sendOTPEmail } from "../services/otpService.js";
 import { generateTransactionId } from "../services/generateTransactionId.js";
 import { generateUniqueReferralCode } from "../services/generateUnique.js";
 import { OAuth2Client } from 'google-auth-library';
 import { generateUniqueUserId } from "../services/generateUnique.js";
-import User from "../models/userModel.js";
 import Otp from "../models/otpModel.js";
 import { Wallet, Transaction } from "../models/walletModel.js";
 import { UserReferral, Referral } from "../models/referralModel.js";
@@ -194,10 +194,70 @@ export const signUp = async (req, res) => {
 
 
 
+// export const login = async (req, res) => {
+
+//     console.log("Login request body:", req.body);
+
+//     const { email, password } = req.body;
+
+//     if (!email || !password) {
+//         return res.status(BAD_REQUEST).json({ message: "Please enter all fields" });
+//     }
+
+//     try {
+
+//         const user = await User.findOne({ email });
+
+//         if (!user) {
+//             return res.status(BAD_REQUEST).json({ success: false, message: "User not found" });
+//         }
+
+//         if (!user.isActive) {
+//             return res.status(BAD_REQUEST).json({ success: false, message: "User is blocked" });
+//         }
+
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         console.log("hiiii");
+//         if (!isMatch) {
+//             return res.status(BAD_REQUEST).json({ success: false, message: "Invalid credentials" });
+//         }
+
+//         const token = jwt.sign({
+//             userId: user._id,
+//             role: user.role
+//         }, "secret", { expiresIn: "30d" });
+
+//         res.cookie("session", token, {
+//             httpOnly: true,
+//             secure: false,
+//             sameSite: "Lax",
+//             maxAge: 30 * 24 * 60 * 60 * 1000,
+//         });
+
+//         return res.status(OK).json({
+//             success: true,
+//             message: "User logged in successfully",
+//             token: token,
+//             role: user.role,
+//             user: {
+//                 _id: user._id,
+//                 email: user.email,
+//                 username: user.username,
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error("Login error:", error);
+//         res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: "Internal server error"
+//         });
+//     }
+// };
+
+
 export const login = async (req, res) => {
-
     console.log("Login request body:", req.body);
-
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -205,9 +265,7 @@ export const login = async (req, res) => {
     }
 
     try {
-
         const user = await User.findOne({ email });
-
         if (!user) {
             return res.status(BAD_REQUEST).json({ success: false, message: "User not found" });
         }
@@ -217,18 +275,22 @@ export const login = async (req, res) => {
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        console.log("hiiii");
         if (!isMatch) {
             return res.status(BAD_REQUEST).json({ success: false, message: "Invalid credentials" });
         }
 
-        const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
+        const token = jwt.sign(
+            { userId: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "30d" }
+        );
 
         res.cookie("session", token, {
             httpOnly: true,
-            secure: false,
-            sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,
+            secure: false, // Set to false for local development
+            sameSite: "lax", // Use lowercase "lax" instead of "Lax"
+            path: "/", // Make sure cookie is available for all paths
+            maxAge: 30 * 24 * 60 * 60 * 1000
         });
 
         return res.status(OK).json({
@@ -242,10 +304,9 @@ export const login = async (req, res) => {
                 username: user.username,
             }
         });
-
     } catch (error) {
         console.error("Login error:", error);
-        res.status(INTERNAL_SERVER_ERROR).json({
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
             message: "Internal server error"
         });
@@ -436,23 +497,81 @@ export const logout = async (req, res) => {
 }
 
 
+// export const profile = async (req, res) => {
+
+//     try {
+
+//         console.log("dongt workkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
+
+
+//         const user = await User.findById(req.user.userId)
+
+//         if (!user.isActive) {
+
+//             return res.status(UNAUTHORIZED).json({
+//                 status: false,
+//                 message: "invalid user"
+//             })
+//         }
+
+//         return res.status(OK).json({
+//             status: true,
+//             message: "token verified",
+//             role: user.role,
+//             user: {
+//                 _id: user._id,
+//                 email: user.email,
+//                 username: user.username,
+//                 profileImg: user.profileImg
+//             }
+//         })
+
+//     } catch (error) {
+
+//         return res.status(UNAUTHORIZED).json({
+//             status: false,
+//             message: "invalid token"
+//         })
+//     }
+// }
+
+
+
 export const profile = async (req, res) => {
-
     try {
+        // Get token directly (since we're not sure if middleware set req.user)
+        const token = req.cookies.session;
 
-        const user = await User.findById(req.user.userId)
-
-        if (!user.isActive) {
-
+        if (!token) {
             return res.status(UNAUTHORIZED).json({
                 status: false,
-                message: "invalid user"
-            })
+                message: "No token provided"
+            });
+        }
+
+        // Verify token and extract userId
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        // Find user with the decoded userId
+        const user = await User.findById(decoded.userId);
+
+        if (!user) {
+            return res.status(UNAUTHORIZED).json({
+                status: false,
+                message: "User not found"
+            });
+        }
+
+        if (!user.isActive) {
+            return res.status(UNAUTHORIZED).json({
+                status: false,
+                message: "User account is inactive"
+            });
         }
 
         return res.status(OK).json({
             status: true,
-            message: "token verified",
+            message: "Token verified",
             role: user.role,
             user: {
                 _id: user._id,
@@ -460,12 +579,13 @@ export const profile = async (req, res) => {
                 username: user.username,
                 profileImg: user.profileImg
             }
-        })
+        });
 
     } catch (error) {
+        console.error("Profile verification error:", error);
         return res.status(UNAUTHORIZED).json({
             status: false,
-            message: "invalid token"
-        })
+            message: "Invalid token"
+        });
     }
 }

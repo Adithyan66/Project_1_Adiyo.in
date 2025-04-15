@@ -8,6 +8,7 @@ import debounce from 'lodash.debounce';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { getSalesReport } from '../../../services/adminDashboardServices';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -70,8 +71,12 @@ const SalesReport = () => {
                     sortBy,
                     sortOrder
                 };
-                const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params });
+                // const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params });
+
+                const response = await getSalesReport(params)
+
                 setReportData(response.data);
+
             } catch (err) {
                 console.error('Error fetching sales report:', err);
                 setError('Failed to load sales report.');
@@ -106,7 +111,9 @@ const SalesReport = () => {
         try {
             // Fetch full dataset without pagination
             const fullParams = { ...params, page: 1, pageSize: 10000 };
-            const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params: fullParams });
+            // const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params: fullParams });
+
+            const response = await getSalesReport(fullParams)
 
             const salesData = response.data.data.map(sale => ({
                 'Order ID': sale.orderId,
@@ -147,7 +154,9 @@ const SalesReport = () => {
         try {
             // Fetch full dataset without pagination
             const fullParams = { ...params, page: 1, pageSize: 10000 };
-            const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params: fullParams });
+            //const response = await axios.get(`${API_BASE_URL}/admin/sales-report`, { params: fullParams });
+            const response = await getSalesReport(fullParams)
+
 
             const doc = new jsPDF('landscape');
 

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
 import filterIcon from "../../../assets/images/filterIcon.png";
+import { getCustomersList } from "../../../services/adminCustomerServiced";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const Customers = () => {
@@ -45,12 +46,15 @@ const Customers = () => {
                 ...(statusFilter !== "all" && { status: statusFilter === "active" })
             });
 
-            const response = await axios.get(`${API_BASE_URL}/admin/customers-list?${params}`);
+            // const response = await axios.get(`${API_BASE_URL}/admin/customers-list?${params}`);
+            const response = await getCustomersList(params)
 
             setCustomers(response.data.customers);
             setTotalCustomers(response.data.totalCustomers || response.data.customers.length);
             setError(null);
+
         } catch (error) {
+
             console.error("Error fetching customer data:", error);
             setError("Failed to fetch customers. Please try again later.");
         } finally {

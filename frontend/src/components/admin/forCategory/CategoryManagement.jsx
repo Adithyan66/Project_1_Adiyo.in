@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Trash, Edit, Plus, X } from 'lucide-react';
 import axios from 'axios';
+import { addCategoryfunction, addSubcategoryfunction, deleteCategoryfunction, deleteSubcategoryfunction, updateCategoryfunction, updateSubcategoryfunction } from '../../../services/categoryService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -30,7 +31,7 @@ const CategoryManagement = () => {
     const fetchCategories = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+            const response = await axios.get(`${API_BASE_URL}/admin/categories`, { withCredentials: true });
             console.log(response.data);
 
             // Assuming the response data has a structure like { categories: [...], message, success }
@@ -62,7 +63,9 @@ const CategoryManagement = () => {
     const addCategory = async () => {
         if (!newCategory.name) return;
         try {
-            const response = await axios.post(`${API_BASE_URL}/admin/add-category`, newCategory);
+            // const response = await axios.post(`${API_BASE_URL}/admin/add-category`, newCategory);
+            const response = await addCategoryfunction(newCategory)
+
             const addedCategory = response.data;
             setCategories([...categories, addedCategory]);
             setIsAddingCategory(false);
@@ -78,7 +81,8 @@ const CategoryManagement = () => {
     const addSubcategory = async () => {
         if (!newSubcategory.name || !selectedCategoryId) return;
         try {
-            const response = await axios.post(`${API_BASE_URL}/admin/${selectedCategoryId}/add-subcategories`, newSubcategory);
+            // const response = await axios.post(`${API_BASE_URL}/admin/${selectedCategoryId}/add-subcategories`, newSubcategory);
+            const response = await addSubcategoryfunction(selectedCategoryId, newSubcategory)
             const addedSubcategory = response.data;
             const updatedCategories = categories.map(category => {
                 if (category._id === selectedCategoryId) {
@@ -102,7 +106,10 @@ const CategoryManagement = () => {
     // Delete category
     const deleteCategory = async (categoryId) => {
         try {
-            await axios.delete(`${API_BASE_URL}/admin/delete-categories/${categoryId}`);
+            //await axios.delete(`${API_BASE_URL}/admin/delete-categories/${categoryId}`);
+
+            await deleteCategoryfunction(categoryId)
+
             const updatedCategories = categories.filter(category => category._id !== categoryId);
             setCategories(updatedCategories);
             if (selectedCategoryId === categoryId) {
@@ -119,7 +126,10 @@ const CategoryManagement = () => {
     const deleteSubcategory = async (subcategoryId) => {
         if (!selectedCategoryId) return;
         try {
-            await axios.delete(`${API_BASE_URL}/admin/categories/${selectedCategoryId}/subcategories/${subcategoryId}`);
+            // await axios.delete(`${API_BASE_URL}/admin/categories/${selectedCategoryId}/subcategories/${subcategoryId}`);
+
+            await deleteSubcategoryfunction(selectedCategoryId, subcategoryId)
+
             const updatedCategories = categories.map(category => {
                 if (category._id === selectedCategoryId) {
                     return {
@@ -153,7 +163,10 @@ const CategoryManagement = () => {
         if (!selectedCategoryId) return;
         try {
             const updatedCategory = { ...selectedCategory, [field]: value };
-            await axios.put(`${API_BASE_URL}/admin/categories/${selectedCategoryId}`, updatedCategory);
+            // await axios.put(`${API_BASE_URL}/admin/categories/${selectedCategoryId}`, updatedCategory);
+
+            await updateCategoryfunction(selectedCategoryId, updatedCategory)
+
             setCategories(categories.map(category => {
                 if (category._id === selectedCategoryId) {
                     return { ...category, [field]: value };
@@ -173,7 +186,9 @@ const CategoryManagement = () => {
             const subcategory = selectedCategory.subcategories?.find(sc => sc._id === subcategoryId);
             if (!subcategory) return;
             const updatedSubcategory = { ...subcategory, [field]: value };
-            await axios.put(`${API_BASE_URL}/admin/categories/${selectedCategoryId}/subcategories/${subcategoryId}`, updatedSubcategory);
+            // await axios.put(`${API_BASE_URL}/admin/categories/${selectedCategoryId}/subcategories/${subcategoryId}`, updatedSubcategory);
+            await updateSubcategoryfunction(selectedCategoryId, subcategoryId, updatedSubcategory)
+
             setCategories(categories.map(category => {
                 if (category._id === selectedCategoryId) {
                     return {

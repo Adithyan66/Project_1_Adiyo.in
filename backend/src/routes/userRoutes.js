@@ -4,7 +4,9 @@ import multer from "multer"
 
 const router = express.Router()
 
-import { authenticateUser } from "../middlewares/authenticateUser.js"
+// import { authenticateUser } from "../middlewares/authenticateUser.js"
+import { authenticateUser, authenticateAdmin } from "../middlewares/authentication.js"
+
 
 import {
     profileDetails,
@@ -140,7 +142,7 @@ router.post("/add-money-razopay", authenticateUser, addMoneyRazopay)
 
 
 
-router.get("/profile", authenticateUser, profile)
+router.get("/profile", profile)
 router.get("/product-list", productList)
 router.get("/product/:id", productDetail)
 router.get("/:productId/reviews", getReviews)

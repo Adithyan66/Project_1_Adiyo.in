@@ -21,7 +21,7 @@ import {
     Cell
 } from 'recharts';
 
-
+import httpClient from '../../../../services/httpClient';
 import NavbarTwo from '../../../common/NavbarTwo';
 import Footer from '../../../common/Footer';
 import CustomerRightSection from '../../forCustomers/CustomerRightSection';
@@ -29,6 +29,7 @@ import DashBoard from '../../DashBorad';
 import { useParams } from 'react-router-dom';
 import { Line } from 'react-chartjs-2';
 import { toast } from 'react-toastify';
+import { getDashboartData } from '../../../../services/adminDashboardServices';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -160,89 +161,22 @@ const Dashboard = () => {
             });
             console.log("Fetching dashboard data with params:", params.toString());
 
-
-            // Uncomment and use the following line in a real API scenario:
-            const response = await axios.get(`${API_BASE_URL}/admin/dashboard?${params}`);
-
-            // For demonstration, we use mock data:
-            //const response = { data: generateMockData(timeFilter, yearFilter, monthFilter) };
+            // const response = await httpClient.get(`admin/dashboard?${params}`)
+            // const response = await axios.get(`${API_BASE_URL}/admin/dashboard?${params}`, { withCredentials: true });
+            const response = await getDashboartData(params)
             console.log("Dashboard Data:", response.data);
-            console.log("mock data", generateMockData(timeFilter, yearFilter, monthFilter));
 
             setDashboardData(response.data.data);
             setError(null);
+
         } catch (err) {
+
             console.error("Error fetching dashboard data:", err);
             setError("Failed to fetch dashboard data. Please try again later.");
         } finally {
+
             setLoading(false);
         }
-    };
-
-    // Generate mock data based on filter selection
-    const generateMockData = (timeFilter, year, month) => {
-        let orders = [];
-        let revenue = [];
-        let users = [];
-        let sellers = [];
-        let labels = [];
-
-        if (timeFilter === 'yearly') {
-            labels = years;
-            orders = labels.map(y => ({ name: y.toString(), value: Math.floor(Math.random() * 5000) + 1000 }));
-            revenue = labels.map(y => ({ name: y.toString(), value: Math.floor(Math.random() * 5000000) + 1000000 }));
-            users = labels.map(y => ({ name: y.toString(), value: Math.floor(Math.random() * 2000) + 500 }));
-            sellers = labels.map(y => ({ name: y.toString(), value: Math.floor(Math.random() * 200) + 50 }));
-        } else if (timeFilter === 'monthly') {
-            labels = months;
-            orders = labels.map(m => ({ name: m, value: Math.floor(Math.random() * 500) + 100 }));
-            revenue = labels.map(m => ({ name: m, value: Math.floor(Math.random() * 500000) + 100000 }));
-            users = labels.map(m => ({ name: m, value: Math.floor(Math.random() * 200) + 50 }));
-            sellers = labels.map(m => ({ name: m, value: Math.floor(Math.random() * 20) + 5 }));
-        } else if (timeFilter === 'weekly') {
-            labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
-            orders = labels.map(w => ({ name: w, value: Math.floor(Math.random() * 100) + 20 }));
-            revenue = labels.map(w => ({ name: w, value: Math.floor(Math.random() * 100000) + 20000 }));
-            users = labels.map(w => ({ name: w, value: Math.floor(Math.random() * 50) + 10 }));
-            sellers = labels.map(w => ({ name: w, value: Math.floor(Math.random() * 5) + 1 }));
-        }
-
-        const totalOrders = orders.reduce((sum, item) => sum + item.value, 0);
-        const totalRevenue = revenue.reduce((sum, item) => sum + item.value, 0);
-        const totalUsers = users.reduce((sum, item) => sum + item.value, 0);
-        const totalSellers = sellers.reduce((sum, item) => sum + item.value, 0);
-
-        const orderStatuses = [
-            { name: 'Pending', value: Math.floor(Math.random() * 100) + 20 },
-            { name: 'Shipped', value: Math.floor(Math.random() * 100) + 30 },
-            { name: 'Delivered', value: Math.floor(Math.random() * 100) + 50 },
-            { name: 'Cancelled', value: Math.floor(Math.random() * 20) + 5 },
-            { name: 'Returned', value: Math.floor(Math.random() * 10) + 5 }
-        ];
-
-        const topProducts = [
-            { name: 'Product A', sales: Math.floor(Math.random() * 1000) + 500, revenue: Math.floor(Math.random() * 100000) + 50000 },
-            { name: 'Product B', sales: Math.floor(Math.random() * 800) + 400, revenue: Math.floor(Math.random() * 80000) + 40000 },
-            { name: 'Product C', sales: Math.floor(Math.random() * 600) + 300, revenue: Math.floor(Math.random() * 60000) + 30000 },
-            { name: 'Product D', sales: Math.floor(Math.random() * 400) + 200, revenue: Math.floor(Math.random() * 40000) + 20000 },
-            { name: 'Product E', sales: Math.floor(Math.random() * 200) + 100, revenue: Math.floor(Math.random() * 20000) + 10000 }
-        ];
-
-        const geoDistribution = [
-            { name: 'North', value: Math.floor(Math.random() * 1000) + 500 },
-            { name: 'South', value: Math.floor(Math.random() * 800) + 400 },
-            { name: 'East', value: Math.floor(Math.random() * 600) + 300 },
-            { name: 'West', value: Math.floor(Math.random() * 700) + 350 },
-            { name: 'Central', value: Math.floor(Math.random() * 500) + 250 }
-        ];
-
-        return {
-            summary: { totalOrders, totalRevenue, totalUsers, totalSellers, pendingOrders: orderStatuses[0].value },
-            charts: { orders, revenue, users, sellers },
-            topProducts,
-            orderStatuses,
-            geoDistribution
-        };
     };
 
     const formatCurrency = (amount) => {
@@ -257,14 +191,6 @@ const Dashboard = () => {
         const { name, value } = e.target;
         setCustomDateRange(prev => ({ ...prev, [name]: value }));
     };
-
-    // if (loading && !dashboardData.charts.orders.length) {
-    //     return (
-    //         <div className="p-6 bg-gray-50 w-full min-h-screen flex items-center justify-center">
-    //             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-black"></div>
-    //         </div>
-    //     );
-    // }
 
     if (error && !dashboardData.charts.orders.length) {
         return (
@@ -353,7 +279,6 @@ const Dashboard = () => {
         );
     }
 
-    // Transform orders data for Nivo
     const ordersDataForNivo = [
         {
             id: 'Orders',
