@@ -10,7 +10,7 @@ import greenArrow from "../../assets/images/greenArrow.webp"
 import { setProduct } from "../../store/slices/checkoutSlice";
 import { productOffers } from "../../services/productService";
 import { addToWishlist, checkProductInWishlist, removeFromWishlist } from "../../services/wishlistService";
-import { addToCart } from "../../services/cartService";
+import { addToCart, checkUserCart } from "../../services/cartService";
 import { useSelector, useDispatch } from "react-redux";
 import { setLoginPopup, setActiveForm } from "../../store/slices/authModalSlice.js"
 
@@ -179,9 +179,11 @@ function ProductDetail({ product }) {
 
     const checkIfProductInCart = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/check-cart`, {
-                withCredentials: true
-            });
+            // const response = await axios.get(`${API_BASE_URL}/user/check-cart`, {
+            //     withCredentials: true
+            // });
+
+            const response = await checkUserCart()
 
             const cart = response.data.cart || [];
 

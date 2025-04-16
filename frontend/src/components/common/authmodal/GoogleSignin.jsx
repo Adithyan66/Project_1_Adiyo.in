@@ -6,6 +6,8 @@ import { toast } from 'react-toastify';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginSuccess } from '../../../store/slices/userSlice';
 import { setLoginPopup } from '../../../store/slices/authModalSlice.js';
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
 
 function GoogleSignIn() {
     const dispatch = useDispatch();
@@ -13,7 +15,8 @@ function GoogleSignIn() {
 
     useEffect(() => {
         google.accounts.id.initialize({
-            client_id: '126702860628-8fng3hfq2itrvbrf73l53ralg11f814q.apps.googleusercontent.com',
+            // client_id: '126702860628-8fng3hfq2itrvbrf73l53ralg11f814q.apps.googleusercontent.com',
+            client_id: GOOGLE_CLIENT_ID,
             callback: handleCredentialResponse,
         });
         google.accounts.id.renderButton(

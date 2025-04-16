@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Coupen } from "../../../icons/icons";
 import axios from "axios";
 import { getCategoryList } from "../../../services/categoryService";
+import { editCoupon } from "../../../services/couponService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -74,9 +75,10 @@ const EditCouponModal = ({ coupon, handleOpenEditModal, handleCloseEditModal, fe
             };
 
             try {
-                const response = await axios.patch(`${API_BASE_URL}/admin/edit-coupon`,
-                    newCoupon
-                )
+                const response = await editCoupon(newCoupon)
+                // axios.patch(`${API_BASE_URL}/admin/edit-coupon`,
+                //     newCoupon
+                // )
                 handleCloseEditModal(false)
                 console.log(response.data);
                 fetchCoupons()

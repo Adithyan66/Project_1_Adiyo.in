@@ -8,7 +8,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { loginSuccess, logout } from './store/slices/userSlice';
 import { AdminProtected, SellerProtected, UserOnlyProtected, UserProtected } from "./components/protectedRoutes/UserProtected"
-
+import { logout as logoutUser } from './services/authService';
 
 import LandingPage from "./pages/customer/LandingPage";
 import ProductDetailsPage from "./pages/customer/ProductDetailsPage";
@@ -39,6 +39,7 @@ import SalesReportPage from './pages/admin/SalesReportPage';
 import SalesDetailsPage from './pages/admin/SalesDetailsPage';
 import ReferralsDetailsPage from './pages/customer/ReferralsDetailsPage';
 import WalletManagementPage from './pages/admin/WalletManagementPage';
+import httpClient from './services/httpClient';
 
 
 function App() {
@@ -49,25 +50,29 @@ function App() {
   useEffect(() => {
     const persistLogin = async () => {
       try {
-        const response = await axios.get("http://localhost:3333/user/profile", {
-          withCredentials: true,
-        });
+        // const response = await axios.get("http://localhost:3333/user/profile", {
+        //  withCredentials: true,
+        // });
+
+        const response = await httpClient.get('/user/refresh-token');
         dispatch(
           loginSuccess({
             user: response.data.user,
-            token: "cookie",
+            token: localStorage.getItem("accessToken") || "cookie",
             role: response.data.role,
           })
         );
       } catch (error) {
 
         dispatch(logout());
+
         try {
-          await axios.post(
-            "http://localhost:3333/user/logout",
-            {},
-            { withCredentials: true }
-          );
+          // await axios.post(
+          //   "http://localhost:3333/user/logout",
+          //   {},
+          //   { withCredentials: true }
+          // );
+          await logoutUser()
         } catch (logoutError) {
           console.error("Error during logout:", logoutError);
         }

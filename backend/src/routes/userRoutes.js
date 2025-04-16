@@ -37,7 +37,8 @@ import {
     logout,
     profile,
     resetPassword,
-    signUp
+    signUp,
+    tokenRefresh
 }
     from "../controllers/authController.js"
 
@@ -141,7 +142,7 @@ router.post("/add-money-razopay", authenticateUser, addMoneyRazopay)
 
 
 
-
+router.get("/refresh-token", tokenRefresh)
 router.get("/profile", profile)
 router.get("/product-list", productList)
 router.get("/product/:id", productDetail)

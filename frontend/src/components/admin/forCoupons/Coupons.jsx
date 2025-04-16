@@ -15,6 +15,7 @@ import { useDispatch } from "react-redux";
 
 import AddCouponModal from "./AddCouponModal";
 import EditCouponModal from "./EditCouponModal";
+import { deleteCoupon, getCouponList } from "../../../services/couponService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -96,7 +97,8 @@ const Coupons = () => {
         console.log("started");
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/coupons`);
+            const response = await getCouponList()
+            // axios.get(`${API_BASE_URL}/admin/coupons`);
             console.log(response.data);
             setInitialCouponData(response.data.coupons);
         } catch (error) {
@@ -120,7 +122,8 @@ const Coupons = () => {
 
     const confirmDelete = async (id) => {
         try {
-            const response = await axios.delete(`${API_BASE_URL}/admin/delete-coupon/${id}`);
+            const response = await deleteCoupon(id)
+            // axios.delete(`${API_BASE_URL}/admin/delete-coupon/${id}`);
             console.log(response.data);
             fetchCoupons();
         } catch (error) {

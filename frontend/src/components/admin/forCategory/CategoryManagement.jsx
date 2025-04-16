@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Trash, Edit, Plus, X } from 'lucide-react';
 import axios from 'axios';
-import { addCategoryfunction, addSubcategoryfunction, deleteCategoryfunction, deleteSubcategoryfunction, updateCategoryfunction, updateSubcategoryfunction } from '../../../services/categoryService';
+import { addCategoryfunction, addSubcategoryfunction, deleteCategoryfunction, deleteSubcategoryfunction, getCategoryList, updateCategoryfunction, updateSubcategoryfunction } from '../../../services/categoryService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -31,7 +31,8 @@ const CategoryManagement = () => {
     const fetchCategories = async () => {
         setIsLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/categories`, { withCredentials: true });
+            // const response = await axios.get(`${API_BASE_URL}/admin/categories`, { withCredentials: true });
+            const response = await getCategoryList()
             console.log(response.data);
 
             // Assuming the response data has a structure like { categories: [...], message, success }

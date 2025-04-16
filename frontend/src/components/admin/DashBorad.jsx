@@ -16,6 +16,7 @@ import {
     ManageCatogeryIcon,
     OrdersIcon
 } from '../../icons/icons';
+import { logout as logoutUser } from "../../services/authService"
 
 const DashBoard = () => {
     const dispatch = useDispatch();
@@ -24,11 +25,13 @@ const DashBoard = () => {
 
     const handleLogout = async () => {
         try {
-            const response = await axios.post(
-                "http://localhost:3333/user/logout",
-                {},
-                { withCredentials: true }
-            );
+            // const response = await axios.post(
+            //     "http://localhost:3333/user/logout",
+            //     {},
+            //     { withCredentials: true }
+            // );
+
+            const response = await logoutUser()
 
             console.log(response.data);
             dispatch(logout());

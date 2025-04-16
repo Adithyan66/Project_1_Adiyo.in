@@ -39,3 +39,13 @@ export const adminGetWalletTransactions = async () => {
         throw error;
     }
 }
+
+export const getUserWishlist = async () => {
+    try {
+        const response = await httpClient.get(`/user/wishlist`);
+        return response;
+    } catch (error) {
+        console.error("Error fetching user wishlist:", error);
+        throw error;
+    }
+};

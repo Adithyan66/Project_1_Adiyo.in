@@ -72,6 +72,12 @@ function LoginForm() {
 
             const response = await login({ email, password })
 
+            if (response.data && response.data.token) {
+                localStorage.setItem('accessToken', response.data.token);
+                // Optionally set user data in context or state
+                console.log("Logged in successfully!");
+            }
+
             if (response.data.success) {
 
                 dispatch(setLoginPopup(false));

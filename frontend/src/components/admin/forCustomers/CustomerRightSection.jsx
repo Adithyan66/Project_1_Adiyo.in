@@ -11,6 +11,7 @@ import address from "../../../assets/images/address.png";
 import phone from "../../../assets/images/phone.png";
 import lastonline from "../../../assets/images/lastonline.png";
 import LastTransaction from "../../../assets/images/Last Transaction.png";
+import { toggleUserBlockStatus } from "../../../services/adminCustomerServiced";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -86,9 +87,10 @@ export default function CustomerRightSection({ customer }) {
         setBlockLoading(true);
 
         try {
-            const response = await axios.patch(
-                `${API_BASE_URL}/admin/block-user/${id}?isActive=${!currentStatus}`
-            );
+            const response = await toggleUserBlockStatus(id, currentStatus)
+            //  axios.patch(
+            //     `${API_BASE_URL}/admin/block-user/${id}?isActive=${!currentStatus}`
+            // );
             // Optionally, if your API returns the updated status:
             if (response.data && typeof response.data.isActive === "boolean") {
                 setIsActive(response.data.isActive);
@@ -451,3 +453,5 @@ export default function CustomerRightSection({ customer }) {
         </div>
     );
 }
+
+

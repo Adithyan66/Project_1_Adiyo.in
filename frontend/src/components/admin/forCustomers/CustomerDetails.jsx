@@ -13,6 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL;
 import CustomerRightSection from "./CustomerRightSection"
 import { setActiveSelection } from "../../../store/slices/adminSideSelectedSlice"
 import { Coupen, CustomersListIcon, Dashboard, DeliveryTruck, ProductsIcon, ShopIcon } from '../../../icons/icons';
+import { getCustomerDetails } from '../../../services/adminCustomerServiced';
 
 
 function CustomerDetails() {
@@ -31,8 +32,17 @@ function CustomerDetails() {
 
         const fetchDetails = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/admin/${id}/customer-details`);
-                setCustomer(response.data.customer);
+                const response = await getCustomerDetails(id)
+                // const response = axios.get(`${API_BASE_URL}/admin/${id}/customer-details`, { withCredentials: true });
+                // const response = await fetch(`${API_BASE_URL}/admin/${id}/customer-details`, {
+                //     method: 'GET',
+                //     credentials: 'include', // this is like withCredentials: true in Axios
+                // });
+
+                const data = await response.json();
+                setCustomer(data.customer);
+
+                // setCustomer(response.data.customer);
                 setError(null);
             } catch (err) {
                 console.error("Error fetching customer details:", err);

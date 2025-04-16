@@ -11,6 +11,7 @@ import paypalLogo from "../../../assets/images/paypalLogo.png";
 import cashOnDelivery from "../../../assets/images/cashOnDeliveryLogo.jpg";
 import razarpay from "../../../assets/images/razarpay.png";
 import { toast } from 'react-toastify';
+import { getWalletBalance, initiateRazorpayPayment } from '../../../services/walletService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -45,9 +46,10 @@ function Payment({ onPlaceOrder }) {
         setWalletError(null);
 
         try {
-            const response = await axios.get(`${API_BASE_URL}/user/get-wallet-balance`, {
-                withCredentials: true,
-            });
+            const response = await getWalletBalance()
+            // axios.get(`${API_BASE_URL}/user/get-wallet-balance`, {
+            //     withCredentials: true,
+            // });
 
             if (response.data.success) {
                 setWalletBalance(response.data.balance);
@@ -101,11 +103,12 @@ function Payment({ onPlaceOrder }) {
             if (paymentMethod === 'razorpay') {
                 const orderTotal = (parseFloat(total) || 0).toFixed(2);
 
-                const response = await axios.post(
-                    `${API_BASE_URL}/user/add-money-razopay`,
-                    { amount: parseInt(orderTotal), paymentMethod: 'razorpay' },
-                    { withCredentials: true }
-                );
+                const response = await initiateRazorpayPayment(orderTotal)
+                // axios.post(
+                //     `${API_BASE_URL}/user/add-money-razopay`,
+                //     { amount: parseInt(orderTotal), paymentMethod: 'razorpay' },
+                //     { withCredentials: true }
+                // );
                 console.log("Razorpay response:", response.data);
 
                 if (response.data.success && response.data.order) {

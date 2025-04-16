@@ -116,7 +116,8 @@ export const validateOtp = async (data) => {
 
 export const logout = async () => {
     try {
-        const response = await httpClient.post("/user/logout")
+        const response = await httpClient.post("/user/logout",)
+        localStorage.removeItem("accessToken");
         return response
     } catch (error) {
         console.error("Error during logout:", error)

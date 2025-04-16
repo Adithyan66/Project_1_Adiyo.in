@@ -6,7 +6,7 @@ import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { WalletIcon, Heart, ShoppingCart, Info } from 'lucide-react';
-import { removeFromWishlist as removeFromWishlistService } from '../../../services/wishlistService';
+import { getUserWishlist, removeFromWishlist as removeFromWishlistService } from '../../../services/wishlistService';
 import { addToCart as addToCartService } from '../../../services/cartService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -28,9 +28,10 @@ function Wishlist() {
     const fetchWishlist = async () => {
         try {
             setIsLoading(true);
-            const response = await axios.get(`${API_BASE_URL}/user/wishlist`, {
-                withCredentials: true
-            });
+            const response = await getUserWishlist()
+            // axios.get(`${API_BASE_URL}/user/wishlist`, {
+            //     withCredentials: true
+            // });
 
             if (response.data.success) {
                 setWishlistItems(response.data.wishlist || []);

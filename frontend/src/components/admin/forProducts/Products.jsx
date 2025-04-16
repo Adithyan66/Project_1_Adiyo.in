@@ -11,6 +11,8 @@ import filterIcon from "../../../assets/images/filterIcon.png";
 import editIcon from "../../../assets/images/edit.png";
 import deleteIcon from "../../../assets/images/delete.png";
 import { setEditProductID } from '../../../store/slices/sellerSideSelectedSlice';
+import { getCategoryList } from "../../../services/categoryService";
+import { adminDeleteProduct, getProducts } from "../../../services/productService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -44,7 +46,8 @@ const Products = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+            const response = await getCategoryList()
+            //axios.get(`${API_BASE_URL}/admin/categories`);
             setCategories(response.data.categories || []);
 
 
@@ -69,7 +72,9 @@ const Products = () => {
                 ...(categoryFilter !== "all" && { category: categoryFilter })
             });
 
-            const response = await axios.get(`${API_BASE_URL}/admin/products?${params}`);
+            // const response = await axios.get(`${API_BASE_URL}/admin/products?${params}`);
+
+            const response = await getProducts(params)
 
             setProducts(response.data.products);
             setTotalProducts(response.data.totalProducts || response.data.products.length);
@@ -126,7 +131,9 @@ const Products = () => {
 
     const confirmDelete = async (id) => {
         try {
-            await axios.delete(`${API_BASE_URL}/admin/delete-product/${id}`);
+            // await axios.delete(`${API_BASE_URL}/admin/delete-product/${id}`);
+            await adminDeleteProduct(id)
+
             fetchProducts();
         } catch (error) {
             console.error("Error deleting product:", error);

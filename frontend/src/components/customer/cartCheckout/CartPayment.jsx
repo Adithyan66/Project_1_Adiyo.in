@@ -14,6 +14,7 @@ import walletLogo from "../../../assets/images/walletLogo.jpg";
 import paypalLogo from "../../../assets/images/paypalLogo.png";
 import cashOnDelivery from "../../../assets/images/cashOnDeliveryLogo.jpg";
 import { toast } from 'react-toastify';
+import { getWalletBalance } from '../../../services/walletService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -65,9 +66,10 @@ function CartPayment({ onPlaceOrder }) {
         try {
             console.log("callledd fetch");
 
-            const response = await axios.get(`${API_BASE_URL}/user/get-wallet-balance`, {
-                withCredentials: true,
-            });
+            const response = await getWalletBalance()
+            // axios.get(`${API_BASE_URL}/user/get-wallet-balance`, {
+            //     withCredentials: true,
+            // });
 
             if (response.data.success) {
                 setWalletBalance(response.data.balance);

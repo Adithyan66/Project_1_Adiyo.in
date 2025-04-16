@@ -67,7 +67,6 @@ export const deleteSubcategoryfunction = async (selectedCategoryId, subcategoryI
 }
 
 export const updateCategoryfunction = async (selectedCategoryId, updatedCategory) => {
-    console.log("hiiiiiiiiiiiiiiiiiii");
 
     try {
         const response = await httpClient.put(`/admin/categories/${selectedCategoryId}`, updatedCategory);

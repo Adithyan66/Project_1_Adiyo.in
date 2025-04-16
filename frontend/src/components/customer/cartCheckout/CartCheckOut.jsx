@@ -14,6 +14,8 @@ import CartPayment from './CartPayment';
 import CartOrderConfirmation from './CartOrderConfirmation';
 
 import { setCartCurrentStep, setCartConfirmationData, clearCart } from '../../../store/slices/cartCheckoutSlice';
+import { clearUserCart, getCartItems } from '../../../services/cartService';
+import { placeOrder } from '../../../services/checkoutService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -110,9 +112,10 @@ const CartCheckOut = () => {
         setIsLoading(true);
 
         try {
-            const cartItems = await axios.get(`${API_BASE_URL}/user/cart-items`, {
-                withCredentials: true
-            });
+            const cartItems = await getCartItems()
+            // axios.get(`${API_BASE_URL}/user/cart-items`, {
+            //     withCredentials: true
+            // });
 
             const productDetailsArray = cartItems.data.items.map(item => ({
                 productId: item.product._id,
@@ -133,11 +136,12 @@ const CartCheckOut = () => {
 
             console.log("Sending order data to API:", orderData);
 
-            const response = await axios.post(
-                `${API_BASE_URL}/user/place-orders`,
-                orderData,
-                { withCredentials: true }
-            );
+            const response = await placeOrder(orderData)
+            //  axios.post(
+            //     `${API_BASE_URL}/user/place-orders`,
+            //     orderData,
+            //     { withCredentials: true }
+            // );
 
             console.log("API response:", response.data);
 
@@ -145,10 +149,12 @@ const CartCheckOut = () => {
                 setOrderResponse(response.data.order);
                 dispatch(setCartConfirmationData(response.data.order));
 
-                await axios.delete(
-                    `${API_BASE_URL}/user/cart`,
-                    { withCredentials: true }
-                );
+                // await axios.delete(
+                //     `${API_BASE_URL}/user/cart`,
+                //     { withCredentials: true }
+                // );
+
+                await clearUserCart()
 
                 toast.success("Order placed successfully!");
                 dispatch(clearCart());

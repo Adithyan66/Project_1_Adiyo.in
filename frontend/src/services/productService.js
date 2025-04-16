@@ -98,3 +98,38 @@ export const productName = async () => {
     const response = await httpClient.get(`admin/product-names`)
     return response
 }
+
+export const getProductDetails = async (productId) => {
+    try {
+        const response = await httpClient.get(`/admin/products/${productId}`);
+        return response;
+    } catch (error) {
+        console.error("Error fetching product details:", error);
+        throw error;
+    }
+}
+
+
+export const getProducts = async (params) => {
+    try {
+        const response = await httpClient.get(`/admin/products?${params}`);
+        return response;
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        throw error;
+    }
+}
+
+
+export const adminDeleteProduct = async (id) => {
+    try {
+        const response = await httpClient.delete(`/admin/delete-product/${id}`);
+        return response;
+    } catch (error) {
+        console.error("Error deleting product:", error);
+        throw error;
+    }
+}
+
+
+

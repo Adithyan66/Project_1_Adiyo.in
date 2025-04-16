@@ -10,3 +10,4 @@ export const placeOrder = async (orderData) => {
         throw error;
     }
 }
+

@@ -39,3 +39,25 @@ export const getCartItems = async () => {
         throw error;
     }
 }
+
+
+export const checkUserCart = async () => {
+    try {
+        const response = await httpClient.get(`/user/check-cart`);
+        return response;
+    } catch (error) {
+        console.error("Error checking user cart:", error);
+        throw error;
+    }
+};
+
+
+export const clearUserCart = async () => {
+    try {
+        const response = await httpClient.delete(`/user/cart`);
+        return response;
+    } catch (error) {
+        console.error("Error clearing user cart:", error);
+        throw error;
+    }
+};

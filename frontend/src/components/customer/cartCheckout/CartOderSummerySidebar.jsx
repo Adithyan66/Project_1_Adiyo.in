@@ -9,6 +9,7 @@ import { Clock, Truck, Shield, CreditCard, CheckCircle, XCircle } from 'lucide-r
 import { useDispatch } from 'react-redux';
 import { setTotalPrice, setCoupon } from '../../../store/slices/cartCheckoutSlice';
 import axios from 'axios';
+import { validateCoupon } from '../../../services/couponService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -110,11 +111,12 @@ const CartOrderSummarySidebar = ({ orderDetails }) => {
         setIsValidating(true);
 
         try {
-            const response = await axios.post(`${API_BASE_URL}/user/coupons/validate`, {
-                code: couponCode,
-                orderTotal: totalSubtotal,
-                productCategories: productCategories,
-            });
+            const response = await validateCoupon(couponCode, totalSubtotal, productCategories)
+            // axios.post(`${API_BASE_URL}/user/coupons/validate`, {
+            //     code: couponCode,
+            //     orderTotal: totalSubtotal,
+            //     productCategories: productCategories,
+            // });
 
             if (response.data.success) {
                 setCouponMessage("Coupon applied successfully!");

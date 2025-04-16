@@ -32,6 +32,8 @@ import Otp from "../models/otpModel.js";
 import { Wallet, Transaction } from "../models/walletModel.js";
 import { UserReferral, Referral } from "../models/referralModel.js";
 import ReferralOffer from "../models/referalOfferModel.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokenUtils.js";
+import logger from "../utils/logger.js";
 
 
 export const signUp = async (req, res) => {
@@ -163,19 +165,33 @@ export const signUp = async (req, res) => {
             });
         }
 
-        const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
+        // const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
 
-        res.cookie("session", token, {
+        // res.cookie("session", token, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     sameSite: "Lax",
+        //     maxAge: 30 * 24 * 60 * 60 * 1000,
+        // });
+
+        const payload = { userId: user._id, role: user.role };
+
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,
+            secure: false, // Use secure cookies in production
+            sameSite: "strict",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
+
 
         res.status(201).json({
             success: true,
             message: "User created successfully",
-            token,
+            token: accessToken,
             role: user.role,
             user: {
                 _id: user._id,
@@ -191,69 +207,6 @@ export const signUp = async (req, res) => {
     }
 };
 
-
-
-
-// export const login = async (req, res) => {
-
-//     console.log("Login request body:", req.body);
-
-//     const { email, password } = req.body;
-
-//     if (!email || !password) {
-//         return res.status(BAD_REQUEST).json({ message: "Please enter all fields" });
-//     }
-
-//     try {
-
-//         const user = await User.findOne({ email });
-
-//         if (!user) {
-//             return res.status(BAD_REQUEST).json({ success: false, message: "User not found" });
-//         }
-
-//         if (!user.isActive) {
-//             return res.status(BAD_REQUEST).json({ success: false, message: "User is blocked" });
-//         }
-
-//         const isMatch = await bcrypt.compare(password, user.password);
-//         console.log("hiiii");
-//         if (!isMatch) {
-//             return res.status(BAD_REQUEST).json({ success: false, message: "Invalid credentials" });
-//         }
-
-//         const token = jwt.sign({
-//             userId: user._id,
-//             role: user.role
-//         }, "secret", { expiresIn: "30d" });
-
-//         res.cookie("session", token, {
-//             httpOnly: true,
-//             secure: false,
-//             sameSite: "Lax",
-//             maxAge: 30 * 24 * 60 * 60 * 1000,
-//         });
-
-//         return res.status(OK).json({
-//             success: true,
-//             message: "User logged in successfully",
-//             token: token,
-//             role: user.role,
-//             user: {
-//                 _id: user._id,
-//                 email: user.email,
-//                 username: user.username,
-//             }
-//         });
-
-//     } catch (error) {
-//         console.error("Login error:", error);
-//         res.status(INTERNAL_SERVER_ERROR).json({
-//             success: false,
-//             message: "Internal server error"
-//         });
-//     }
-// };
 
 
 export const login = async (req, res) => {
@@ -279,24 +232,37 @@ export const login = async (req, res) => {
             return res.status(BAD_REQUEST).json({ success: false, message: "Invalid credentials" });
         }
 
-        const token = jwt.sign(
-            { userId: user._id, role: user.role },
-            process.env.JWT_SECRET,
-            { expiresIn: "30d" }
-        );
+        const payload = { userId: user._id, role: user.role };
 
-        res.cookie("session", token, {
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        // const token = jwt.sign(
+        //     { userId: user._id, role: user.role },
+        //     process.env.JWT_SECRET,
+        //     { expiresIn: "30d" }
+        // );
+
+        // res.cookie("session", token, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     sameSite: "lax",
+        //     path: "/",
+        //     maxAge: 30 * 24 * 60 * 60 * 1000
+        // });
+
+        res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false, // Set to false for local development
-            sameSite: "lax", // Use lowercase "lax" instead of "Lax"
-            path: "/", // Make sure cookie is available for all paths
-            maxAge: 30 * 24 * 60 * 60 * 1000
+            secure: false, // Use secure cookies in production
+            sameSite: "strict",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         return res.status(OK).json({
             success: true,
             message: "User logged in successfully",
-            token: token,
+            token: accessToken,
             role: user.role,
             user: {
                 _id: user._id,
@@ -454,19 +420,34 @@ export const googleLogin = async (req, res) => {
             });
         }
 
-        const sessionToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "30d" });
+        // const sessionToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "30d" });
 
-        res.cookie("session", sessionToken, {
+        // res.cookie("session", sessionToken, {
+        //     httpOnly: true,
+        //     secure: false,
+        //     sameSite: "Lax",
+        //     maxAge: 30 * 24 * 60 * 60 * 1000,
+        // });
+
+        const userInfo = { userId: user._id, role: user.role };
+
+        const accessToken = generateAccessToken(userInfo);
+        const refreshToken = generateRefreshToken(userInfo);
+
+        res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "Lax",
-            maxAge: 30 * 24 * 60 * 60 * 1000,
+            sameSite: "strict",
+            path: "/",
+            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
         });
+
+        logger.info(`${user.username} logged `);
 
         res.status(OK).json({
             success: true,
             message: 'Google login successful',
-            token: sessionToken,
+            token: accessToken,
             role: user.role,
             user: {
                 _id: user._id,
@@ -486,16 +467,40 @@ export const googleLogin = async (req, res) => {
 };
 
 
-export const logout = async (req, res) => {
+// export const logout = async (req, res) => {
 
-    res.clearCookie("session", { path: "/" });
-    res.status(OK).json({
-        status: true,
-        message: "logout succesfully"
-    })
+//     res.clearCookie("session", { path: "/" });
+//     res.status(OK).json({
+//         status: true,
+//         message: "logout succesfully"
+//     })
 
-}
+// }
 
+export const logout = (req, res) => {
+    try {
+
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "strict",
+            path: "/",
+        });
+
+
+        return res.status(OK).json({
+            success: true,
+            message: "User logged out successfully",
+        });
+    } catch (error) {
+
+        console.error("Logout error:", error);
+        return res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+};
 
 // export const profile = async (req, res) => {
 
@@ -589,3 +594,49 @@ export const profile = async (req, res) => {
         });
     }
 }
+
+
+
+
+export const tokenRefresh = async (req, res) => {
+
+    const token = req.cookies.refreshToken;
+    if (!token) {
+        return res.status(400).json({ message: "No refresh token provided" });
+    }
+
+    try {
+        // Verify the refresh token using the refresh secret
+        const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+
+        // Generate a new short-lived access token
+        const newAccessToken = jwt.sign(
+            { userId: payload.userId, role: payload.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' } // Adjust the expiration as needed
+        );
+
+        // Fetch user details from the database using the userId from the token payload
+        const user = await User.findById(payload.userId).select('-password'); // omit sensitive info
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Respond with the new access token, user details, and role
+        return res.status(200).json({
+            success: true,
+            message: "Token verified",
+            role: user.role,
+            accessToken: newAccessToken,
+            user: {
+                _id: user._id,
+                email: user.email,
+                username: user.username,
+                profileImg: user.profileImg
+            },
+        });
+    } catch (error) {
+        console.error("Refresh token error:", error);
+        return res.status(401).json({ success: false, message: "Invalid or expired refresh token" });
+    }
+};

@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { Coupen } from "../../../icons/icons";
 import axios from "axios";
+import { getCategoryList } from "../../../services/categoryService";
+import { addCoupon } from "../../../services/couponService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -31,7 +33,8 @@ const AddCouponModal = ({ isOpen, onClose, fetchCoupons }) => {
     const fetchCategories = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+            // const response = await axios.get(`${API_BASE_URL}/admin/categories`);
+            const response = await getCategoryList()
             if (response.data.success && response.data.categories) {
                 setCategories(response.data.categories);
             }
@@ -72,10 +75,11 @@ const AddCouponModal = ({ isOpen, onClose, fetchCoupons }) => {
             };
 
             try {
-                const response = await axios.post(
-                    `${API_BASE_URL}/admin/add-coupon`,
-                    newCoupon
-                );
+                const response = await addCoupon(newCoupon)
+                // axios.post(
+                //     `${API_BASE_URL}/admin/add-coupon`,
+                //     newCoupon
+                // );
                 console.log(response.data);
                 fetchCoupons();
             } catch (error) {

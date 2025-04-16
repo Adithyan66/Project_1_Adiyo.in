@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../wallet/WalletCards'
 import axios from 'axios';
 import { PayPalButtons } from '@paypal/react-paypal-js';
 import { toast } from 'react-toastify';
-import { getWalletDetails } from '../../../services/walletService';
+import { addMoneyRazorpay, getWalletDetails, verifyWalletRecharge, walletRecharge } from '../../../services/walletService';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -176,14 +176,18 @@ const Wallet = () => {
 
             if (paymentNow === 'razorpay') {
 
-                const response = await axios.post(
-                    `${API_BASE_URL}/user/add-money-razopay`,
-                    { amount: parseInt(amount), paymentMethod: 'razorpay' },
-                    { withCredentials: true }
-                );
+                // const response = await axios.post(
+                //     `${API_BASE_URL}/user/add-money-razopay`,
+                //     { amount: parseInt(amount), paymentMethod: 'razorpay' },
+                //     { withCredentials: true }
+                // );
+
+                const response = await addMoneyRazorpay(amount)
+
                 console.log("respoooooooooooooo.", response.data);
 
                 if (response.data.success && response.data.order) {
+
                     const { order } = response.data;
 
                     const options = {
@@ -194,17 +198,20 @@ const Wallet = () => {
                         description: 'Wallet Recharge',
                         order_id: order.id,
                         handler: async function (paymentResponse) {
-                            const verifyResponse = await axios.post(
-                                `${API_BASE_URL}/user/wallet-recharge`,
-                                {
-                                    paymentMethod: paymentNow,
-                                    razorpay_order_id: paymentResponse.razorpay_order_id,
-                                    razorpay_payment_id: paymentResponse.razorpay_payment_id,
-                                    razorpay_signature: paymentResponse.razorpay_signature,
-                                    amount: parseInt(amount)
-                                },
-                                { withCredentials: true }
-                            );
+                            // const verifyResponse = await axios.post(
+                            //     `${API_BASE_URL}/user/wallet-recharge`,
+                            //     {
+                            //         paymentMethod: paymentNow,
+                            //         razorpay_order_id: paymentResponse.razorpay_order_id,
+                            //         razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                            //         razorpay_signature: paymentResponse.razorpay_signature,
+                            //         amount: parseInt(amount)
+                            //     },
+                            //     { withCredentials: true }
+                            // );
+
+                            const verifyResponse = await verifyWalletRecharge(paymentNow, paymentResponse, amount)
+
                             if (verifyResponse.data.success) {
                                 closeAddMoneyModal();
                                 fetchWalletData();
@@ -314,11 +321,13 @@ const Wallet = () => {
 
             console.log("Sending order data to API:", orderData);
 
-            const response = await axios.post(
-                `${API_BASE_URL}/user/wallet-recharge`,
-                orderData,
-                { withCredentials: true }
-            );
+            const response = await walletRecharge(orderData)
+
+            // axios.post(
+            //     `${API_BASE_URL}/user/wallet-recharge`,
+            //     orderData,
+            //     { withCredentials: true }
+            // );
 
             console.log("API response:", response.data);
 

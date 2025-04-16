@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getOrderDetails, updateOrderStatus, verifyReturnRequest } from '../../../services/orderService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -39,7 +40,8 @@ const OrderDetails = () => {
     const fetchOrderDetails = async () => {
         setLoading(true);
         try {
-            const response = await axios.get(`${API_BASE_URL}/admin/orders/${orderId}`);
+            const response = await getOrderDetails(orderId)
+            //axios.get(`${API_BASE_URL}/admin/orders/${orderId}`);
             console.log(response.data);
 
             setOrder(response.data);
@@ -79,10 +81,11 @@ const OrderDetails = () => {
         }
 
         try {
-            await axios.patch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
-                status: statusModal.newStatus,
-                note: statusModal.note
-            });
+            await updateOrderStatus(orderId, statusModal)
+            // await axios.patch(`${API_BASE_URL}/admin/orders/${orderId}/status`, {
+            //     status: statusModal.newStatus,
+            //     note: statusModal.note
+            // });
 
             handleStatusModalClose();
             fetchOrderDetails();
@@ -115,11 +118,12 @@ const OrderDetails = () => {
 
     const handleReturnVerification = async (approved) => {
         try {
-            await axios.post(`${API_BASE_URL}/admin/orders/${orderId}/return-verification`, {
-                productId: order._id,
-                userId: order.user._id,
-                approved
-            });
+            // await axios.post(`${API_BASE_URL}/admin/orders/${orderId}/return-verification`, {
+            //     productId: order._id,
+            //     userId: order.user._id,
+            //     approved
+            // });
+            await verifyReturnRequest(orderId, order, approved)
 
             setOrder({
                 ...order,

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router';
+import { getFilteredOrders, updateOrderStatusById, verifyOrderReturn } from '../../../services/orderService';
 
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -61,7 +62,8 @@ const Orders = () => {
             });
 
 
-            const response = await axios.get(`${API_BASE_URL}/admin/orders?${params}`);
+            // const response = await axios.get(`${API_BASE_URL}/admin/orders?${params}`);
+            const response = await getFilteredOrders(params)
             setOrders(response.data.orders);
             setTotalOrders(response.data.totalOrders);
             setError(null);
@@ -128,9 +130,11 @@ const Orders = () => {
         }
 
         try {
-            await axios.patch(`${API_BASE_URL}/admin/orders/${statusModal.orderId}/status`, {
-                status: statusModal.newStatus
-            });
+            // await axios.patch(`${API_BASE_URL}/admin/orders/${statusModal.orderId}/status`, {
+            //     status: statusModal.newStatus
+            // });
+
+            await updateOrderStatusById(statusModal)
 
             // Update local state to avoid refetching
             // setOrders(orders.map(order =>
@@ -170,12 +174,14 @@ const Orders = () => {
 
     const handleReturnVerification = async (approved) => {
         try {
-            await axios.post(`${API_BASE_URL}/admin/orders/${returnModal.orderId}/return-verification`, {
-                productId: returnModal.productId,
-                userId: returnModal.userId,
-                amount: returnModal.amount,
-                approved
-            });
+            // await axios.post(`${API_BASE_URL}/admin/orders/${returnModal.orderId}/return-verification`, {
+            //     productId: returnModal.productId,
+            //     userId: returnModal.userId,
+            //     amount: returnModal.amount,
+            //     approved
+            // });
+
+            await verifyOrderReturn(returnModal, approved)
 
             // If approved, update status locally
             if (approved) {

@@ -5,6 +5,7 @@ import CustomerRightSection from '../../components/admin/forCustomers/CustomerRi
 import DashBoard from '../../components/admin/DashBorad'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import { getCustomerDetails } from '../../services/adminCustomerServiced'
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 
@@ -20,7 +21,8 @@ function CustomerMoreDetailPage() {
 
         const fetchDetails = async () => {
             try {
-                const response = await axios.get(`${API_BASE_URL}/admin/${id}/customer-details`);
+                // const response = await axios.get(`${API_BASE_URL}/admin/${id}/customer-details`);
+                const response = await getCustomerDetails(id)
                 setCustomer(response.data.customer);
             } catch (err) {
                 console.error("Error fetching customer details:", err);

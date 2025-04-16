@@ -776,6 +776,8 @@ import { toast } from "react-toastify";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import { CloseIcon } from "../../../icons/icons";
+import { getCategoryList } from "../../../services/categoryService";
+import { editProduct, getProductDetails } from "../../../services/productService";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -814,7 +816,8 @@ function EditProduct({ setSelectedSection }) {
     useEffect(() => {
         async function fetchCategories() {
             try {
-                const response = await axios.get(`${API_BASE_URL}/seller/categories`);
+                // const response = await axios.get(`${API_BASE_URL}/seller/categories`);
+                const response = await getCategoryList()
                 // Assuming the response returns an array of categories
                 setCategories(response.data.categories);
             } catch (error) {
@@ -956,9 +959,12 @@ function EditProduct({ setSelectedSection }) {
     useEffect(() => {
         async function fetchProductDetails() {
             try {
-                const response = await axios.get(
-                    `${API_BASE_URL}/admin/products/${productId}`
-                );
+                // const response = await axios.get(
+                //     `${API_BASE_URL}/admin/products/${productId}`
+                // );
+
+                const response = await getProductDetails(productId)
+
                 const product = response.data.product;
                 setOriginalProduct(product);
                 setSku(product.sku || "");
@@ -1186,11 +1192,14 @@ function EditProduct({ setSelectedSection }) {
 
         try {
             setLoading(true);
-            const response = await axios.put(
-                `${API_BASE_URL}/seller/edit-product/${productId}`,
-                formData,
-                { headers: { "Content-Type": "multipart/form-data" } }
-            );
+            // const response = await axios.put(
+            //     `${API_BASE_URL}/seller/edit-product/${productId}`,
+            //     formData,
+            //     { headers: { "Content-Type": "multipart/form-data" } }
+            // );
+
+            const response = await editProduct(productId, formData)
+
             console.log("Updated product:", response.data.product);
             navigate("/admin/manage-products");
             toast.success("Product updated successfully");

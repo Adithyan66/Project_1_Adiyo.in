@@ -3,6 +3,7 @@ import { Link, Share2, Copy, Check, Users, Gift, ChevronLeft, ChevronRight, Sear
 import { Card, CardContent, CardHeader, CardTitle } from '../wallet/WalletCards';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { getUserReferrals } from '../../../services/referalService';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -49,10 +50,12 @@ const ReferralDetails = () => {
             console.log(`Fetching referral data with query: ${queryParams}`);
 
 
-            const response = await axios.get(
-                `${API_BASE_URL}/user/referrals?${queryParams.toString()}`,
-                { withCredentials: true }
-            );
+            const response = await getUserReferrals(queryParams)
+
+            // axios.get(
+            //     `${API_BASE_URL}/user/referrals?${queryParams.toString()}`,
+            //     { withCredentials: true }
+            // );
 
             setReferralData(response.data.referralDetails);
             setReferrals(response.data.referrals);

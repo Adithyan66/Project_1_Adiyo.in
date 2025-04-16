@@ -143,6 +143,13 @@ export const getProducts = async (req, res) => {
 
     } catch (error) {
 
+        console.log("error fetching in products", error);
+        res.status(500).json({
+            success: false,
+            message: "server error"
+        })
+
+
     }
 }
 
