@@ -85,16 +85,41 @@ export const verifyReturnRequest = async (orderId, order, approved) => {
 }
 
 
-export const getFilteredOrders = async (params) => {
+// export const getFilteredOrders = async (params) => {
+//     try {
+//         const response = await httpClient.get(`/admin/orders?${params}`);
+//         return response;
+//     } catch (error) {
+//         console.error("Error fetching filtered orders:", error);
+//         throw error;
+//     }
+// }
+
+
+
+// services/orderService.js
+export const getFilteredOrders = async (filters) => {
     try {
-        const response = await httpClient.get(`/admin/orders?${params}`);
+        const { page, limit, sortBy, sortOrder, search, status } = filters;
+
+        const response = await httpClient.get('/admin/orders', {
+            params: {
+                page,
+                limit,
+                sortBy,
+                sortOrder,
+                // only include these if they have values
+                ...(search && { search }),
+                ...(status && status !== 'all' && { status }),
+            },
+        });
+
         return response;
     } catch (error) {
-        console.error("Error fetching filtered orders:", error);
+        console.error('Error fetching filtered orders:', error);
         throw error;
     }
-}
-
+};
 
 
 export const updateOrderStatusById = async (statusModal) => {

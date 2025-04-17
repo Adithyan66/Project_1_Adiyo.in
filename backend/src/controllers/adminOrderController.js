@@ -22,6 +22,7 @@ const {
 import Order from "../models/orderModel.js"
 import { Wallet, Transaction, ReturnRefund } from '../models/walletModel.js';
 import mongoose from "mongoose";
+import { generateTransactionId } from "../services/generateTransactionId.js";
 
 
 
@@ -36,17 +37,18 @@ export const getOrders = async (req, res) => {
         const search = req.query.search;
         const status = req.query.status;
 
+        console.log(req.query);
+
 
         const filter = {};
 
         if (search) {
             filter.$or = [
-                { _id: { $regex: search, $options: 'i' } },
-                { 'customer.name': { $regex: search, $options: 'i' } }
+                { orderId: { $regex: search, $options: 'i' } },
             ];
         }
         if (status && status !== 'all') {
-            filter.status = status;
+            filter.orderStatus = status;
         }
 
         const ordersPromise = Order.find(filter).populate("user")
@@ -287,6 +289,7 @@ export const verifyReturn = async (req, res) => {
             await wallet.save({ session });
 
             const transaction = new Transaction({
+                transactionId: generateTransactionId(),
                 walletId: wallet._id,
                 userId,
                 type: 'return_refund',

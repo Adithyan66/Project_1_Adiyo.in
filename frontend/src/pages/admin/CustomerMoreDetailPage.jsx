@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from '../../components/common/Footer'
-import CustomerRightSection from '../../components/admin/forCustomers/CustomerRightSection'
-import DashBoard from '../../components/admin/DashBorad'
+import CustomerRightSection from '../../components/admin/forCustomers/CustomerDetails.jsx'
 import { useParams } from 'react-router-dom'
-import axios from 'axios'
 import { getCustomerDetails } from '../../services/adminCustomerServiced'
-const API_BASE_URL = import.meta.env.VITE_API_URL;
+import Sidebar from '../../components/admin/sidebar.jsx'
 
 
 function CustomerMoreDetailPage() {
@@ -21,7 +19,6 @@ function CustomerMoreDetailPage() {
 
         const fetchDetails = async () => {
             try {
-                // const response = await axios.get(`${API_BASE_URL}/admin/${id}/customer-details`);
                 const response = await getCustomerDetails(id)
                 setCustomer(response.data.customer);
             } catch (err) {
@@ -37,7 +34,7 @@ function CustomerMoreDetailPage() {
         <div>
             <NavbarTwo />
             <div className="px-[10%] py-6 flex">
-                <DashBoard />
+                <Sidebar />
                 {customer && <CustomerRightSection customer={customer} />}
             </div>
             <Footer />

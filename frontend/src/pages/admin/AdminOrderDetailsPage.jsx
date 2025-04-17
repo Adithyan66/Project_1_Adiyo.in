@@ -1,15 +1,14 @@
 import React from 'react'
-import NavbarTwo from '../../components/common/NavbarTwo'
-import DashBoard from '../../components/admin/DashBorad'
 import Footer from '../../components/common/Footer'
 import OrderDetails from '../../components/admin/forOrders/OrderDetails'
+import Sidebar from '../../components/admin/sidebar'
 
 function OrderDetailsPage() {
     return (
         <div>
-            <NavbarTwo />
+            <Sidebar />
             <div className="px-[10%] py-6 flex">
-                <DashBoard />
+                <Sidebar />
                 <OrderDetails />
             </div>
             <Footer />

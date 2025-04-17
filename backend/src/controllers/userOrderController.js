@@ -29,6 +29,7 @@ import Order from "../models/orderModel.js";
 import Coupon from "../models/couponModel.js";
 import { Wallet, Transaction } from "../models/walletModel.js";
 import { getSizeKey } from "../services/getSizeKey.js";
+import { log } from "console";
 
 
 export const createOrder = async (req, res) => {
@@ -370,6 +371,8 @@ export const createOrder = async (req, res) => {
                 }
 
                 try {
+                    console.log("razoorrrrrrrrrrrpay order detailsssssssssssssssssssssssssssssssssssssss/n", razorpayOrderDetails);
+
                     const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = razorpayOrderDetails;
 
                     const generated_signature = crypto
@@ -385,15 +388,20 @@ export const createOrder = async (req, res) => {
                     }
 
                     paymentVerified = true;
-                    paymentDetails = {
-                        paymentProvider: 'razorpay',
-                        transactionId: razorpay_payment_id,
-                        orderId: razorpay_order_id,
-                        signature: razorpay_signature,
-                        amount: finalTotalAmount,
-                        status: 'completed',
-                        createTime: new Date(),
-                        updateTime: new Date()
+                    // paymentDetails = {
+                    //     paymentProvider: 'razorpay',
+                    //     transactionId: razorpay_payment_id,
+                    //     orderId: razorpay_order_id,
+                    //     signature: razorpay_signature,
+                    //     amount: finalTotalAmount,
+                    //     status: 'completed',
+                    //     createTime: new Date(),
+                    //     updateTime: new Date()
+                    // };
+                    newOrder.paymentDetails = {
+                        paymentProvider: "razorpay",
+                        paymentDate: new Date(),
+                        transactionId: razorpay_order_id,
                     };
                 } catch (error) {
 

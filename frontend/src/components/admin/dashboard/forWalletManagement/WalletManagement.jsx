@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
 import { Link } from 'react-router';
 import { adminGetWalletTransactions } from '../../../../services/wishlistService';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const WalletManagement = () => {
     const [transactions, setTransactions] = useState([]);
@@ -13,7 +10,6 @@ const WalletManagement = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState('all');
 
-    // Fetch transactions on component mount
     useEffect(() => {
         fetchTransactions();
     }, []);
@@ -22,10 +18,6 @@ const WalletManagement = () => {
     const fetchTransactions = async () => {
         setIsLoading(true);
         try {
-            // const response = await axios.get(
-            //     `${API_BASE_URL}/admin/wallet-transactions`,
-            //     { withCredentials: true }
-            // );
 
             const response = await adminGetWalletTransactions()
 
@@ -49,11 +41,6 @@ const WalletManagement = () => {
         setIsDetailModalOpen(true);
     };
 
-    const navigateToOrder = (orderId) => {
-        // Implementation to navigate to order details page
-        console.log(`Navigating to order ${orderId}`);
-        // window.location.href = `/admin/orders/${orderId}`;
-    };
 
     const formatDate = (dateString) => {
         const date = new Date(dateString);

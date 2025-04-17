@@ -122,7 +122,6 @@ function Payment({ onPlaceOrder }) {
                         description: 'Order Checkout',
                         order_id: order.id,
                         handler: async function (paymentResponse) {
-                            // Create order details object
                             const orderDetails = {
                                 razorpay_order_id: paymentResponse.razorpay_order_id,
                                 razorpay_payment_id: paymentResponse.razorpay_payment_id,
@@ -130,8 +129,6 @@ function Payment({ onPlaceOrder }) {
                             };
 
                             try {
-                                // Call handlePlaceOrder with the correct parameters
-                                // The second parameter is for captchaValue which isn't needed for Razorpay
                                 const verifyResponse = await onPlaceOrder("razorpay", '', orderDetails);
                                 console.log("veryfyrespooo", verifyResponse);
 

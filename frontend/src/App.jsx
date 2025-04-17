@@ -3,7 +3,6 @@ import 'rc-slider/assets/index.css';
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import axios from 'axios';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { loginSuccess, logout } from './store/slices/userSlice';
@@ -16,7 +15,6 @@ import ProductsListPage from "./pages/customer/ProductsListPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import SellerDashboardPage from "./pages/seller/SellerDashboardPage";
 import CustomerMoreDetailPage from './pages/admin/CustomerMoreDetailPage';
-import CustomerDetailsPage from './components/admin/forCustomers/CustomerDetails';
 import CustomersListPage from './pages/admin/CustomersListPage';
 import SellersListPage from './pages/admin/SellersListPage';
 import ManageProductsPage from './pages/admin/ManageProductsPage';
@@ -50,10 +48,6 @@ function App() {
   useEffect(() => {
     const persistLogin = async () => {
       try {
-        // const response = await axios.get("http://localhost:3333/user/profile", {
-        //  withCredentials: true,
-        // });
-
         const response = await httpClient.get('/user/refresh-token');
         dispatch(
           loginSuccess({
@@ -67,11 +61,6 @@ function App() {
         dispatch(logout());
 
         try {
-          // await axios.post(
-          //   "http://localhost:3333/user/logout",
-          //   {},
-          //   { withCredentials: true }
-          // );
           await logoutUser()
         } catch (logoutError) {
           console.error("Error during logout:", logoutError);

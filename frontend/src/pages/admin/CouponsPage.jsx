@@ -1,16 +1,15 @@
 import React from 'react'
 import NavbarTwo from '../../components/common/NavbarTwo'
-import DashBoard from '../../components/admin/DashBorad'
 import Footer from '../../components/common/Footer'
-import Products from '../../components/admin/forProducts/Products'
 import Coupons from '../../components/admin/forCoupons/Coupons'
+import Sidebar from '../../components/admin/sidebar'
 
 function CouponsPage() {
     return (
         <div>
             <NavbarTwo />
             <div className="px-[10%] py-6 flex">
-                <DashBoard />
+                <Sidebar />
                 <Coupons />
             </div>
             <Footer />

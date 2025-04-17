@@ -35,6 +35,9 @@ import ReferralOffer from "../models/referalOfferModel.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/tokenUtils.js";
 import logger from "../utils/logger.js";
 
+const cookieMaxAge = parseInt(process.env.COOKIE_MAX_AGE);
+
+
 
 export const signUp = async (req, res) => {
 
@@ -184,7 +187,7 @@ export const signUp = async (req, res) => {
             secure: false, // Use secure cookies in production
             sameSite: "strict",
             path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: cookieMaxAge
         });
 
 
@@ -256,8 +259,10 @@ export const login = async (req, res) => {
             secure: false, // Use secure cookies in production
             sameSite: "strict",
             path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: cookieMaxAge
         });
+
+        logger.info(`${user.username} logged `);
 
         return res.status(OK).json({
             success: true,
@@ -439,7 +444,7 @@ export const googleLogin = async (req, res) => {
             secure: false,
             sameSite: "strict",
             path: "/",
-            maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+            maxAge: cookieMaxAge
         });
 
         logger.info(`${user.username} logged `);

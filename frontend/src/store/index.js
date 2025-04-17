@@ -10,6 +10,7 @@ import sellerSideSelectedSlice from "./slices/sellerSideSelectedSlice.js"
 import userSidebarSelectedSlice from "./slices/userSidebarSelectedSlice.js"
 import checkoutSlice from "./slices/checkoutSlice.js"
 import cartCheckoutSlice from "./slices/cartCheckoutSlice.js"
+import sidebarReducer from "./slices/sideBarSlice.js"
 
 const store = configureStore({
     reducer: {
@@ -20,7 +21,8 @@ const store = configureStore({
         sellerSideSelected: sellerSideSelectedSlice,
         userSideSelected: userSidebarSelectedSlice,
         checkout: checkoutSlice,
-        cartCheckout: cartCheckoutSlice
+        cartCheckout: cartCheckoutSlice,
+        sidebar: sidebarReducer,
     }
 })
 

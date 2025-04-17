@@ -54,9 +54,9 @@ function EditProduct({ setSelectedSection }) {
         async function fetchCategories() {
 
             try {
-                //const response = await axios.get(`${API_BASE_URL}/seller/categories`);
+                const response = await axios.get(`${API_BASE_URL}/seller/categories`);
                 // Assuming the response returns an array of categories
-                const response = await getCategoryList()
+                //const response = await getCategoryList()
                 setCategories(response.data.categories);
             } catch (error) {
                 console.error("Error fetching categories:", error);
