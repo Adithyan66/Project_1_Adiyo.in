@@ -3,17 +3,15 @@
 
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
-import customerID from "../../../assets/images/customerID.png";
-import email from "../../../assets/images/email.png";
-import address from "../../../assets/images/address.png";
-import phone from "../../../assets/images/phone.png";
-import lastonline from "../../../assets/images/lastonline.png";
-import LastTransaction from "../../../assets/images/Last Transaction.png";
-import { toggleUserBlockStatus } from "../../../services/adminCustomerServiced";
+import customerID from "../../../../assets/images/customerID.png";
+import email from "../../../../assets/images/email.png";
+import address from "../../../../assets/images/address.png";
+import phone from "../../../../assets/images/phone.png";
+import lastonline from "../../../../assets/images/lastonline.png";
+import LastTransaction from "../../../../assets/images/Last Transaction.png";
+import { toggleUserBlockStatus } from "../../../../services/adminCustomerServiced";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomerDetails({ customer }) {
 
@@ -399,53 +397,58 @@ export default function CustomerDetails({ customer }) {
 
             {blockModal.open && (
                 <div className="fixed inset-0 flex items-center justify-center z-50">
-                    <div className="bg-white rounded p-6 w-100 shadow-2xl border-4 border-black">
-                        <h2 className="text-xl font-bold mb-4 text-center">
-                            Confirm to {isActive ? "Block" : "UnBlock"} !!!
-                        </h2>
-                        <p className="mb-6 text-center">
-                            Are you sure you want to {isActive ? "Block" : "UnBlock"} this user?
-                        </p>
-                        <div className="flex justify-center gap-4">
-                            <button
-                                className="bg-gray-300 text-black px-4 py-2 rounded"
-                                onClick={handleCloseBlockModal}
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                className="bg-black text-white px-4 py-2 rounded flex items-center justify-center"
-                                disabled={blockLoading}
-                                onClick={() => handleBlock(customer._id, isActive)}
-                            >
-                                {blockLoading ? (
-                                    <div className="flex items-center">
-                                        <svg
-                                            className="animate-spin h-5 w-5 mr-2 text-white"
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <circle
-                                                className="opacity-25"
-                                                cx="12"
-                                                cy="12"
-                                                r="10"
-                                                stroke="currentColor"
-                                                strokeWidth="4"
-                                            ></circle>
-                                            <path
-                                                className="opacity-75"
-                                                fill="currentColor"
-                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                                            ></path>
-                                        </svg>
-                                        Updating...
-                                    </div>
-                                ) : (
-                                    isActive ? "Block" : "UnBlock"
-                                )}
-                            </button>
+                    {/* Semi-transparent backdrop */}
+                    <div className="absolute inset-0 bg-black opacity-50">
+                    </div>
+                    <div className="fixed inset-0 flex items-center justify-center z-50">
+                        <div className="bg-white rounded p-6 w-100 shadow-2xl ">
+                            <h2 className="text-xl font-bold mb-4 text-center">
+                                Confirm to {isActive ? "Block" : "UnBlock"} !!!
+                            </h2>
+                            <p className="mb-6 text-center">
+                                Are you sure you want to {isActive ? "Block" : "UnBlock"} this user?
+                            </p>
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    className="bg-gray-300 text-black px-4 py-2 rounded"
+                                    onClick={handleCloseBlockModal}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="bg-black text-white px-4 py-2 rounded flex items-center justify-center"
+                                    disabled={blockLoading}
+                                    onClick={() => handleBlock(customer._id, isActive)}
+                                >
+                                    {blockLoading ? (
+                                        <div className="flex items-center">
+                                            <svg
+                                                className="animate-spin h-5 w-5 mr-2 text-white"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                                                ></path>
+                                            </svg>
+                                            Updating...
+                                        </div>
+                                    ) : (
+                                        isActive ? "Block" : "UnBlock"
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

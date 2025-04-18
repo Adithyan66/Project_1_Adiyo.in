@@ -1,21 +1,14 @@
 import React from 'react'
 import { useState } from 'react';
-import axios from 'axios';
 import { toast } from 'react-toastify';
-
 import { Eye, ShowEye } from "../../../icons/icons";
-
 import facebook from "../../../assets/images/Facebook (Button).png"
-import google from "../../../assets/images/Google (Button).png"
 import apple from "../../../assets/images/Apple (Button).png"
-
 import { useDispatch } from 'react-redux';
 import { loginSuccess } from '../../../store/slices/userSlice';
 import { setLoginPopup, setActiveForm } from '../../../store/slices/authModalSlice.js';
-
 import GoogleSignIn from './GoogleSignin.jsx';
 import { Navigate, useNavigate } from 'react-router';
-import httpClient from '../../../services/httpClient.js';
 import { login } from '../../../services/authService.js';
 
 function LoginForm() {
@@ -55,26 +48,10 @@ function LoginForm() {
         }
 
         try {
-
-            // const response = await axios.post(
-            //     "http://localhost:3333/user/login",
-            //     { email, password },
-            //     {
-            //         headers: { "Content-Type": "application/json" },
-            //         withCredentials: true,
-            //     }
-            // );
-
-            // const response = await httpClient.post("/user/login",
-            //     { email, password },
-            //     { headers: { "Content-Type": "application/json" }, }
-            // )
-
             const response = await login({ email, password })
 
             if (response.data && response.data.token) {
                 localStorage.setItem('accessToken', response.data.token);
-                // Optionally set user data in context or state
                 console.log("Logged in successfully!");
             }
 

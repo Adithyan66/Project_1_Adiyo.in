@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from '../../components/common/Footer'
-import CustomerRightSection from '../../components/admin/forCustomers/CustomerDetails.jsx'
 import { useParams } from 'react-router-dom'
 import { getCustomerDetails } from '../../services/adminCustomerServiced'
 import Sidebar from '../../components/admin/sidebar.jsx'
+import CustomerDetails from '../../components/admin/dashboard/forCustomers/CustomerDetails.jsx'
 
 
 function CustomerMoreDetailPage() {
@@ -33,9 +33,9 @@ function CustomerMoreDetailPage() {
     return (
         <div>
             <NavbarTwo />
-            <div className="px-[10%] py-6 flex">
+            <div className="px-0 sm:px-[10%] py-0 sm:py-6 flex flex-col md:flex-row">
                 <Sidebar />
-                {customer && <CustomerRightSection customer={customer} />}
+                {customer && <CustomerDetails customer={customer} />}
             </div>
             <Footer />
         </div>

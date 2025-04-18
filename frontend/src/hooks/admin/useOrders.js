@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getFilteredOrders, updateOrderStatusById, verifyOrderReturn } from '../../services/orderService';
 
-// Custom hook for Orders component logic
 const useOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);

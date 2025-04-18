@@ -3,7 +3,6 @@ import { getCategoryList } from '../../services/categoryService';
 import { adminDeleteProduct, getProducts } from '../../services/productService';
 import useDebounce from '../common/useDebounce';
 
-// Custom hook for Products component logic
 const useProducts = () => {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -24,7 +23,6 @@ const useProducts = () => {
         productId: null,
     });
 
-    // Debounce search term with 300ms delay
     const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
     useEffect(() => {

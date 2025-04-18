@@ -29,10 +29,13 @@ export const addToWishlist = async (data) => {
     }
 }
 
-export const adminGetWalletTransactions = async () => {
+export const adminGetWalletTransactions = async ({ page, limit, type, search }) => {
 
     try {
-        const response = await httpClient.get(`/admin/wallet-transactions`);
+
+        const response = await httpClient.get(`/admin/wallet-transactions/`,
+            { params: { page, limit, type, search } }
+        );
         return response;
     } catch (error) {
         console.error("Error getting transactions:", error);

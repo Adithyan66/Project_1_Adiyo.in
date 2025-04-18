@@ -7,10 +7,10 @@ function CheckoutPage() {
     return (
         <div>
             <NavbarThree />
-            <div className="mt-42">
+            <div className="md:mt-42">
                 <Checkout />
             </div>
-            <Footer />
+            {/* <Footer /> */}
         </div>
     )
 }

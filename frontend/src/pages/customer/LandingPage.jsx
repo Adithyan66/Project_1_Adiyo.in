@@ -7,6 +7,7 @@ import BrowseByStyle from '../../components/common/landingPage/BrowseByStyle'
 import Newsletter from '../../components/common/landingPage/NewsLetter'
 import Footer from '../../components/common/Footer'
 import { useNavigate } from 'react-router'
+import NewNavbar from '../../components/common/navbar/NewNavbar'
 
 
 function LandingPage() {
@@ -20,6 +21,7 @@ function LandingPage() {
     return (
         <>
             <Navbar toProductPage={toProductPage} />
+            {/* <NewNavbar toProductPage={toProductPage} /> */}
             <HeroSection />
             <Brandadd />
             <LandingProducts />

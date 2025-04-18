@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import useOrderDetails from '../../../hooks/admin/useOrderDetails';
-import DataTable from '../../common/adminTable/DataTable';
-import DetailsCard from '../../common/details/DetailsCard';
-import ErrorModal from '../../common/error/ErrorModal';
-import { PulseRingLoader } from '../../common/loading/Spinner';
+import useOrderDetails from '../../../../hooks/admin/useOrderDetails';
+import DataTable from '../../../common/adminTable/DataTable';
+import DetailsCard from '../../../common/details/DetailsCard';
+import ErrorModal from '../../../common/error/ErrorModal';
+import { PulseRingLoader } from '../../../common/loading/Spinner';
 
 
 const OrderDetails = () => {

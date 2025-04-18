@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router';
-import { PulseRingLoader } from '../../common/loading/Spinner';
-import useOrders from '../../../hooks/admin/useOrders';
-import AdminPagination from '../../common/pagination/adminPagination';
-import DataTable from '../../common/adminTable/DataTable';
-import ErrorModal from '../../common/error/ErrorModal';
-import GenericHeaderSection from '../../common/adminTable/GenericHeaderSection';
+import { PulseRingLoader } from '../../../common/loading/Spinner';
+import useOrders from '../../../../hooks/admin/useOrders';
+import AdminPagination from '../../../common/pagination/adminPagination';
+import DataTable from '../../../common/adminTable/DataTable';
+import ErrorModal from '../../../common/error/ErrorModal';
+import GenericHeaderSection from '../../../common/adminTable/GenericHeaderSection';
 
 // Orders Component
 const Orders = () => {
@@ -76,7 +76,7 @@ const Orders = () => {
         {
             header: 'Date',
             field: 'createdAt',
-            sortable: true,
+            sortable: false,
             render: (order) => formatDate(order.createdAt),
         },
         {

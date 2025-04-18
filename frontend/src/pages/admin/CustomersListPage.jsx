@@ -1,8 +1,8 @@
 import React from 'react'
-import Customers from '../../components/admin/forCustomers/Customers'
 import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from '../../components/common/Footer'
 import Sidebar from '../../components/admin/sidebar'
+import Customers from '../../components/admin/dashboard/forCustomers/Customers'
 
 function CustomersListPage() {
 
@@ -10,7 +10,7 @@ function CustomersListPage() {
     return (
         <div>
             <NavbarTwo />
-            <div className="px-[10%] py-6 flex">
+            <div className="px-0 sm:px-[10%] py-0 sm:py-6 flex flex-col md:flex-row">
                 <Sidebar />
                 <Customers />
             </div>

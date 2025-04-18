@@ -1,14 +1,14 @@
 import React from 'react'
 import NavbarTwo from '../../components/common/NavbarTwo'
 import Footer from '../../components/common/Footer'
-import Coupons from '../../components/admin/forCoupons/Coupons'
 import Sidebar from '../../components/admin/sidebar'
+import Coupons from '../../components/admin/dashboard/forCoupons/Coupons'
 
 function CouponsPage() {
     return (
         <div>
             <NavbarTwo />
-            <div className="px-[10%] py-6 flex">
+            <div className="px-0 sm:px-[10%] py-0 sm:py-6 flex flex-col md:flex-row">
                 <Sidebar />
                 <Coupons />
             </div>

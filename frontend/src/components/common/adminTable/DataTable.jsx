@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
-// Reusable DataTable Component
+
 const DataTable = ({ columns, data, sortBy, sortOrder, onSort, onRowClick, actions = [] }) => {
     return (
         <div className="bg-white rounded shadow overflow-x-auto">
@@ -55,7 +55,7 @@ const DataTable = ({ columns, data, sortBy, sortOrder, onSort, onRowClick, actio
                                                     key={idx}
                                                     className={action.className}
                                                     onClick={(e) => {
-                                                        e.stopPropagation(); // Prevent row click
+                                                        e.stopPropagation();
                                                         action.handler(item);
                                                     }}
                                                 >

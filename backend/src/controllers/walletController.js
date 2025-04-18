@@ -321,33 +321,55 @@ export const walletRecharge = async (req, res) => {
 
 
 
-
 export const walletTransactions = async (req, res) => {
-
     try {
+        const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+        const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 10, 1), 100);
 
-        const transactions = await Transaction.find({}).populate("userId").populate("walletId")
+        const { type, search } = req.query;
+        let filter = {};
+
+        if (type) {
+            filter.type = type;
+        }
+        if (search) {
+
+            filter = { transactionId: { $regex: search, $options: "i" } }
+        }
+
+        const [transactions, totalCount] = await Promise.all([
+            Transaction
+                .find(filter)
+                .populate('userId')
+                .populate('walletId')
+                .sort({ createdAt: -1 })
+                .skip(limit * (page - 1))
+                .limit(limit),
+            Transaction.countDocuments(filter)
+        ]);
 
         if (!transactions) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "no transactions found"
-            })
+                message: 'No transactions found for your criteria.'
+            });
         }
 
-        res.status(OK).json({
+        const totalPages = Math.ceil(totalCount / limit);
+
+        return res.status(OK).json({
             success: true,
-            message: "transactions fetched successfully",
-            transactions
-        })
+            message: 'Transactions fetched successfully.',
+            transactions,
+            totalPages,
+            totalTransactions: totalCount
+        });
 
     } catch (error) {
-        console.log("error in fetching transactions", error)
-        res.status(INTERNAL_SERVER_ERROR).json({
+        console.error('Error fetching wallet transactions:', error);
+        return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "server error"
-        })
+            message: 'Internal server error.'
+        });
     }
-}
-
-
+};

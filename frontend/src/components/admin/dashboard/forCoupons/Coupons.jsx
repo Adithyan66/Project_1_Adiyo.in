@@ -1,17 +1,17 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Coupen } from '../../../icons/icons';
-import useCoupons from '../../../hooks/admin/useCoupons';
-import DataTable from '../../common/adminTable/DataTable';
-import AdminPagination from '../../common/pagination/adminPagination';
-import { PulseRingLoader } from '../../common/loading/Spinner';
-import ErrorModal from '../../common/error/ErrorModal';
+import { Coupen } from '../../../../icons/icons';
+import useCoupons from '../../../../hooks/admin/useCoupons';
+import DataTable from '../../../common/adminTable/DataTable';
+import AdminPagination from '../../../common/pagination/adminPagination';
+import { PulseRingLoader } from '../../../common/loading/Spinner';
+import ErrorModal from '../../../common/error/ErrorModal';
 import CouponModal from './CouponModal';
-import editIcon from '../../../assets/images/edit.png';
-import deleteIcon from '../../../assets/images/delete.png';
-import GenericHeaderSection from '../../common/adminTable/GenericHeaderSection';
+import editIcon from '../../../../assets/images/edit.png';
+import deleteIcon from '../../../../assets/images/delete.png';
+import GenericHeaderSection from '../../../common/adminTable/GenericHeaderSection';
 
-// Coupons Component
+
 const Coupons = () => {
     const navigate = useNavigate();
     const {
@@ -42,7 +42,6 @@ const Coupons = () => {
         formatDate,
     } = useCoupons();
 
-    // Define columns for DataTable
     const columns = [
         {
             header: '',
@@ -99,7 +98,6 @@ const Coupons = () => {
         },
     ];
 
-    // Define actions for DataTable
     const actions = [
         {
             label: <img src={editIcon} alt="edit" className="w-5 h-5" />,
@@ -113,14 +111,13 @@ const Coupons = () => {
         },
     ];
 
-    // Error state: show only ErrorModal
     if (error && coupons.length === 0) {
         return <ErrorModal isOpen={true} message={error} onClose={() => navigate(-1)} />;
     }
 
     return (
         <div className="p-4 md:p-6 bg-gray-50 w-full min-h-[800px]">
-            {/* GenericHeaderSection with Add Coupon button */}
+
             <GenericHeaderSection
                 title="Coupons Management"
                 searchPlaceholder="Search by name..."

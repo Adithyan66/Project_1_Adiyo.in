@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { Coupen } from '../../../icons/icons';
-import useCouponForm from '../../../hooks/admin/useCouponsForm';
+import { Coupen } from '../../../../icons/icons';
+import useCouponForm from '../../../../hooks/admin/useCouponsForm';
 
 
 const INPUT_CLASSES =
@@ -69,7 +69,7 @@ const CouponModal = ({ mode, isOpen, onClose, fetchCoupons, coupon }) => {
             {/* Semi-transparent backdrop */}
             <div className="absolute inset-0 bg-black opacity-50"></div>
             <div
-                className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-30 backdrop-blur-xs"
+                className="fixed inset-0 z-50 flex items-center justify-center  bg-opacity-30 "
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="coupon-modal-title"

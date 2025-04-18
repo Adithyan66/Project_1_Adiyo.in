@@ -5,14 +5,12 @@ const SalesDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
 
-    // State for sales details
     const [saleDetails, setSaleDetails] = useState({
         loading: true,
         error: null,
         data: null
     });
 
-    // Generate dummy sale details based on the ID
     const generateSaleDetails = (saleId) => {
         return {
             _id: saleId,
@@ -61,7 +59,6 @@ const SalesDetails = () => {
         return () => clearTimeout(timeoutId);
     }, [id]);
 
-    // Formatting utility functions
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('en-IN', {
             day: '2-digit',
