@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import "./main.css";
 import { BrowserRouter } from "react-router-dom";
 import { PayPalScriptProvider } from "@paypal/react-paypal-js";
-
+import ErrorBoundaryWrapper from "./components/common/error/ErrorFallback.jsx"
 import App from "./App.jsx";
 
 import store from "./store";
@@ -19,7 +19,9 @@ createRoot(document.getElementById("root")).render(
             intent: "capture"
         }}>
             <Provider store={store}>
-                <App />
+                <ErrorBoundaryWrapper>
+                    <App />
+                </ErrorBoundaryWrapper>
             </Provider>
         </PayPalScriptProvider>
     </BrowserRouter >

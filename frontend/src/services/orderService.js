@@ -37,6 +37,8 @@ export const returnRequest = async (orderId, items, reason) => {
 export const getOrders = async () => {
     try {
         const response = await httpClient.get(`/user/orders`);
+        console.log(response.data.orders);
+
         return response;
     } catch (error) {
         console.error("Error fetching orders:", error);

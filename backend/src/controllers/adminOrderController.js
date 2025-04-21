@@ -96,9 +96,12 @@ export const getOrderDetails = async (req, res) => {
 
 
         formattedOrder.products = order.orderItems.map((item) => {
+
             const product = item.product;
 
             const colorData = product.colors.find((c) => c.color === item.color) || {};
+            console.log("okomdkoveofjvogfbogfnbogbogb ojgfohj", colorData.images);
+
             return {
                 _id: product._id,
                 name: product.name,

@@ -61,3 +61,14 @@ export const clearUserCart = async () => {
         throw error;
     }
 };
+
+
+export const checkAvailable = async (items) => {
+    try {
+        const response = await httpClient.post("user/check-cart-availablity", { items })
+        return response
+    } catch {
+        console.error("Error checking cart:", error);
+        throw error;
+    }
+}

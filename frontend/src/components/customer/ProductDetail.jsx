@@ -742,7 +742,7 @@ function ProductDetail({ product }) {
     return (
         <div className={`max-w-6xl mx-auto px-4 py-8 ${isMobile ? 'mt-[80px]' : 'mt-[100px]'}`}>
             {/* Breadcrumbs - Hide on mobile */}
-            {!isMobile && <Breadcrumbs product={product} />}
+            {/* {!isMobile && <Breadcrumbs product={product} />} */}
 
             {/* Main Content */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -957,7 +957,6 @@ function ProductDetail({ product }) {
     );
 }
 
-// Add a CSS class to hide scrollbars visually while maintaining scroll functionality
 const style = document.createElement('style');
 style.textContent = `
   .no-scrollbar::-webkit-scrollbar {

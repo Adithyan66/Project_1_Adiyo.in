@@ -19,6 +19,7 @@ const {
 
 
 import Wishlist from "../models/wishListModel.js";
+import { attachSignedUrlsToWishlistItems } from "../utils/imageService.js";
 
 
 
@@ -36,9 +37,11 @@ export const getWishlist = async (req, res) => {
             wishlist = { items: [] };
         }
 
+        const wishlistForRes = await attachSignedUrlsToWishlistItems(wishlist.items)
+
         res.status(OK).json({
             success: true,
-            wishlist: wishlist.items
+            wishlist: wishlistForRes
         });
 
     } catch (error) {

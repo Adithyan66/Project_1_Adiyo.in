@@ -30,6 +30,7 @@ import Coupon from "../models/couponModel.js";
 import { Wallet, Transaction } from "../models/walletModel.js";
 import { getSizeKey } from "../services/getSizeKey.js";
 import { log } from "console";
+import { attachSignedUrlsToOrderItems, attachSignedUrlsToOrders, getSignedImageUrl } from "../utils/imageService.js";
 
 
 export const createOrder = async (req, res) => {
@@ -94,6 +95,8 @@ export const createOrder = async (req, res) => {
 
             const colorVariant = product.colors.find(c => c.color === productColor);
 
+            const productImg = await getSignedImageUrl(colorVariant.images[0])
+
             if (!colorVariant) return res.status(BAD_REQUEST).json({
                 success: false,
                 message: `Color ${productColor} not available for product ${product.name}`
@@ -132,7 +135,8 @@ export const createOrder = async (req, res) => {
                 quantity,
                 itemPrice,
                 itemDiscountedPrice,
-                sizeKey
+                sizeKey,
+                productImg
             });
         }
 
@@ -173,7 +177,6 @@ export const createOrder = async (req, res) => {
             } else {
 
                 for (const category of productCategories) {
-                    console.log("category", appliedCoupon.applicableCategories._id, "          ji", category);
 
                     if (appliedCoupon.applicableCategories._id.equals(category)) {
                         isCouponApplicable = true;
@@ -296,7 +299,7 @@ export const createOrder = async (req, res) => {
 
             const {
                 product, productId, productColor, productSize,
-                quantity, itemPrice, itemDiscountedPrice, sizeKey
+                quantity, itemPrice, itemDiscountedPrice, sizeKey, productImg
             } = productData;
 
             const orderItems = [];
@@ -308,7 +311,8 @@ export const createOrder = async (req, res) => {
                 size: productSize,
                 quantity,
                 price: itemPrice,
-                discountedPrice: itemDiscountedPrice
+                discountedPrice: itemDiscountedPrice,
+                productImg: productImg
             };
 
             orderItems.push(orderItem);
@@ -509,10 +513,12 @@ export const getOrderById = async (req, res) => {
             message: "order not found"
         });
 
+        const orderForRes = await attachSignedUrlsToOrderItems(order)
+
 
         res.status(OK).json({
             success: true,
-            order
+            order: orderForRes
         });
 
     } catch (error) {
@@ -537,10 +543,12 @@ export const getUserOrders = async (req, res) => {
             })
             .sort({ createdAt: -1 });
 
+        const ordersForRes = await attachSignedUrlsToOrders(orders)
+
         res.status(OK).json({
             success: true,
             count: orders.length,
-            orders
+            orders: ordersForRes
         });
 
     } catch (error) {

@@ -345,8 +345,8 @@ const ManageAddresses = ({ checkOut, renderStepContent }) => {
     }, []);
 
     const fetchAddresses = async () => {
-        setIsLoading(true)
         try {
+            setIsLoading(true)
             const response = await getAddress();
 
             if (response.data.success) {

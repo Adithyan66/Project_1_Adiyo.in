@@ -20,35 +20,132 @@ const {
 import Category from "../models/categoryModel.js";
 
 
+// export const addCategory = async (req, res) => {
+
+//     try {
+
+//         const { name, description, thumbnail } = req.body;
+
+//         if (!name) {
+
+//             return res.status(BAD_REQUEST).json({ error: 'Category name is required.' });
+//         }
+//         const newCategory = new Category({ name, description, thumbnail });
+
+//         const savedCategory = await newCategory.save();
+
+//         res.status(CREATED).json(savedCategory);
+
+//     } catch (error) {
+
+//         console.error('Error adding category:', error);
+//         res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: 'Server error while adding category.'
+//         });
+//     }
+// }
+
+
+
 export const addCategory = async (req, res) => {
-
     try {
-
         const { name, description, thumbnail } = req.body;
 
         if (!name) {
-
-            return res.status(BAD_REQUEST).json({ error: 'Category name is required.' });
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Category name is required.'
+            });
         }
-        const newCategory = new Category({ name, description, thumbnail });
+
+        if (typeof name !== 'string') {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Category name must be a string.'
+            });
+        }
+
+        if (name.trim().length < 2 || name.trim().length > 50) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Category name must be between 2 and 50 characters.'
+            });
+        }
+
+
+        const existingCategory = await Category.findOne({ name: { $regex: new RegExp(`^${name.trim()}$`, 'i') } });
+        if (existingCategory) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'A category with this name already exists.'
+            });
+        }
+
+        const newCategory = new Category({
+            name: name.trim(),
+            description: description ? description.trim() : undefined,
+            thumbnail
+        });
 
         const savedCategory = await newCategory.save();
 
-        res.status(CREATED).json(savedCategory);
+        res.status(CREATED).json({
+            success: true,
+            data: savedCategory
+        });
 
     } catch (error) {
-
         console.error('Error adding category:', error);
         res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: 'Server error while adding category.'
+            message: 'Server error while adding category.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
         });
     }
 }
 
+// export const addSubCategories = async (req, res) => {
+
+//     try {
+//         const { categoryId } = req.params;
+//         const { name } = req.body;
+
+//         if (!name) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: 'Subcategory name is required.'
+//             });
+//         }
+
+//         const category = await Category.findById(categoryId);
+
+//         if (!category) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: 'Category not found.'
+//             });
+//         }
+
+//         const newSubcategory = { name };
+
+//         category.subcategories.push(newSubcategory);
+
+//         await category.save();
+
+//         const addedSubcategory = category.subcategories[category.subcategories.length - 1];
+
+//         res.status(CREATED).json(addedSubcategory);
+
+//     } catch (error) {
+
+//         console.error('Error adding subcategory:', error);
+//         res.status(INTERNAL_SERVER_ERROR).json({ error: 'Server error while adding subcategory.' });
+//     }
+// }
+
 
 export const addSubCategories = async (req, res) => {
-
     try {
         const { categoryId } = req.params;
         const { name } = req.body;
@@ -60,29 +157,58 @@ export const addSubCategories = async (req, res) => {
             });
         }
 
-        const category = await Category.findById(categoryId);
-
-        if (!category) {
+        if (typeof name !== 'string') {
             return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Subcategory name must be a string.'
+            });
+        }
+
+        if (name.trim().length < 2 || name.trim().length > 50) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'Subcategory name must be between 2 and 50 characters.'
+            });
+        }
+
+        const category = await Category.findById(categoryId);
+        if (!category) {
+            return res.status(NOT_FOUND).json({
                 success: false,
                 message: 'Category not found.'
             });
         }
 
-        const newSubcategory = { name };
+        const subcategoryExists = category.subcategories.some(
+            subcategory => subcategory.name.toLowerCase() === name.trim().toLowerCase()
+        );
+
+        if (subcategoryExists) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'A subcategory with this name already exists in this category.'
+            });
+        }
+
+        const newSubcategory = { name: name.trim() };
 
         category.subcategories.push(newSubcategory);
-
         await category.save();
 
         const addedSubcategory = category.subcategories[category.subcategories.length - 1];
 
-        res.status(CREATED).json(addedSubcategory);
+        res.status(CREATED).json({
+            success: true,
+            data: addedSubcategory
+        });
 
     } catch (error) {
-
         console.error('Error adding subcategory:', error);
-        res.status(INTERNAL_SERVER_ERROR).json({ error: 'Server error while adding subcategory.' });
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: 'Server error while adding subcategory.',
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
     }
 }
 

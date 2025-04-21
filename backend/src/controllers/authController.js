@@ -184,7 +184,7 @@ export const signUp = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false, // Use secure cookies in production
+            secure: false,
             sameSite: "strict",
             path: "/",
             maxAge: cookieMaxAge
@@ -507,49 +507,10 @@ export const logout = (req, res) => {
     }
 };
 
-// export const profile = async (req, res) => {
-
-//     try {
-
-//         console.log("dongt workkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk");
-
-
-//         const user = await User.findById(req.user.userId)
-
-//         if (!user.isActive) {
-
-//             return res.status(UNAUTHORIZED).json({
-//                 status: false,
-//                 message: "invalid user"
-//             })
-//         }
-
-//         return res.status(OK).json({
-//             status: true,
-//             message: "token verified",
-//             role: user.role,
-//             user: {
-//                 _id: user._id,
-//                 email: user.email,
-//                 username: user.username,
-//                 profileImg: user.profileImg
-//             }
-//         })
-
-//     } catch (error) {
-
-//         return res.status(UNAUTHORIZED).json({
-//             status: false,
-//             message: "invalid token"
-//         })
-//     }
-// }
-
 
 
 export const profile = async (req, res) => {
     try {
-        // Get token directly (since we're not sure if middleware set req.user)
         const token = req.cookies.session;
 
         if (!token) {

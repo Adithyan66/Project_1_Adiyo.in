@@ -7,8 +7,6 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { createAddress, updateAddress } from '../../../services/profileService';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL;
-
 const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
     const initialState = {
         fullName: '',
@@ -123,9 +121,6 @@ const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
                     try {
                         const { latitude, longitude } = position.coords;
 
-                        console.log(latitude, longitude);
-
-
                         const response = await axios.get(
                             `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
                         );
@@ -133,7 +128,6 @@ const AddEditAddressModal = ({ setShowModal, addressToEdit = null }) => {
                         const addressData = response.data;
 
                         const address = addressData.address;
-                        console.log(address);
 
                         setFormData(prev => ({
                             ...prev,

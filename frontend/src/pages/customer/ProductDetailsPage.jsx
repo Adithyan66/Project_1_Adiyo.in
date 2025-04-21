@@ -24,6 +24,7 @@ function ProductDetailsPage() {
             try {
                 console.log("Starting to fetch", id);
                 const response = await axios.get(`http://localhost:3333/user/product/${id}`);
+                console.log(response.data.product);
 
                 if (response.data && response.data.product) {
                     const fetchedProduct = response.data.product;
@@ -59,7 +60,7 @@ function ProductDetailsPage() {
             <Navbar />
             <ProductDetail product={product} selectedImage={selectedImage} setSelectedImage={setSelectedImage} />
             <ExtraDetails product={product} />
-            <AlsoLikeProducts />
+            {/* <AlsoLikeProducts /> */}
             <Newsletter />
             <Footer />
         </div>

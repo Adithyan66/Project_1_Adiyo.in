@@ -57,6 +57,8 @@ const cartCheckoutSlice = createSlice({
             });
         },
         updateQuantity: (state, action) => {
+            console.log("i am reduxx");
+
             const { index, amount } = action.payload;
             if (index < 0 || index >= state.order.length) return;
             const orderItem = state.order[index];

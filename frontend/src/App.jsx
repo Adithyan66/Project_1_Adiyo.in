@@ -149,6 +149,8 @@ function App() {
 
         <Route path="/seller" element={<SellerProtected>  <SellerDashboardPage />  </SellerProtected>} />
 
+        <Route path="*" element={<LandingPage />} />
+
       </Routes >
 
       <ToastContainer position="top-center" autoClose={1000} hideProgressBar />

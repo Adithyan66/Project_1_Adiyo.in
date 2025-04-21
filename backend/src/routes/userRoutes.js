@@ -67,6 +67,7 @@ import {
 import {
     addCart,
     cartItems,
+    checkAvailability,
     checkCart,
     deleteCart,
     removeCartItem,
@@ -139,7 +140,7 @@ router.post("/wishlist/add", authenticateUser, addWishlist)
 router.post("/coupons/validate", validateCoupon)
 router.post("/wallet-recharge", authenticateUser, verifyRazorpayPayment, walletRecharge)
 router.post("/add-money-razopay", authenticateUser, addMoneyRazopay)
-
+router.post("/check-cart-availablity", checkAvailability)
 
 
 router.get("/refresh-token", tokenRefresh)
@@ -152,7 +153,7 @@ router.get("/address", authenticateUser, getUserAddresses)
 router.get("/cart-items", authenticateUser, cartItems)
 router.get("/check-cart", authenticateUser, checkCart)
 router.get("/orders", authenticateUser, getUserOrders)
-router.get("/orders/:orderId", getOrderById)
+router.get("/orders/:orderId", authenticateUser, getOrderById)
 router.get("/new-arrivals", getNewArrivals)
 router.get("/top-selling", getTopSellingProducts)
 router.get("/wishlist", authenticateUser, getWishlist)

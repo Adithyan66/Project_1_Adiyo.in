@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getFilteredOrders, updateOrderStatusById, verifyOrderReturn } from '../../services/orderService';
-
+import useDebounce from "../../hooks/common/useDebounce"
 const useOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -42,9 +42,11 @@ const useOrders = () => {
         'return requested',
     ];
 
+    const debouncedSearch = useDebounce(searchTerm, 300)
+
     useEffect(() => {
         fetchOrders();
-    }, [currentPage, pageSize, searchTerm, sortBy, sortOrder, statusFilter]);
+    }, [currentPage, pageSize, debouncedSearch, sortBy, sortOrder, statusFilter]);
 
     const fetchOrders = async () => {
         setLoading(true);

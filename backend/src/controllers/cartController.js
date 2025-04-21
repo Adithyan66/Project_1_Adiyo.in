@@ -23,6 +23,8 @@ import mongoose from "mongoose";
 import Product from "../models/productModel.js"
 import Cart from "../models/cartSchema.js";
 import Wishlist from "../models/wishListModel.js";
+import { attachSignedUrlsToCartItems } from "../utils/imageService.js";
+
 
 
 
@@ -187,10 +189,12 @@ export const cartItems = async (req, res) => {
             })
         }
 
+        const cartItemsForRes = await attachSignedUrlsToCartItems(cart.items)
+
         res.status(OK).json({
             success: true,
             message: "cart items fetched succesfully",
-            items: cart.items
+            items: cartItemsForRes
         })
 
     } catch (error) {
@@ -417,3 +421,58 @@ export const deleteCart = async (req, res) => {
         });
     }
 }
+
+
+
+export const checkAvailability = async (req, res) => {
+    try {
+        const { items } = req.body;
+        // items: [{ productId, selectedColor, selectedSize, quantity }, …]
+
+        const availability = await Promise.all(items.map(async item => {
+
+            const { productId, selectedColor, selectedSize, quantity } = item;
+
+            const product = await Product.findById(productId)
+                //    .select('colors')
+                .lean();
+            if (!product) {
+                return { productId, productName: product.name, available: false, reason: 'Not found' };
+            }
+
+            const colorDoc = product.colors.find(c => c.color === selectedColor);
+            if (!colorDoc) {
+                return { productId, productName: product.name, available: false, reason: 'Color not available' };
+            }
+
+            const sizeKey = selectedSize.toLowerCase();
+            const variant = colorDoc.variants?.[sizeKey];
+            if (!variant) {
+                return { productId, productName: product.name, available: false, reason: 'Size not available' };
+            }
+
+            const inStock = variant.stock >= quantity;
+            return {
+                productName: product.name,
+                available: inStock,
+                stock: variant.stock,
+                reason: inStock ? null : 'Insufficient stock'
+            };
+        }));
+
+        const status = availability.filter(product => product.available === false)
+
+        console.log("statusssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", status);
+
+
+        if (status.length > 0) {
+            return res.status(OK).json({ success: false, availability: status })
+        }
+
+        return res.status(OK).json({ success: true, availability });
+
+    } catch (err) {
+        console.error('Error in checkAvailability:', err);
+        return res.status(INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
+    }
+};

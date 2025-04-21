@@ -21,6 +21,7 @@ const {
 const ObjectId = mongoose.Types.ObjectId;
 import mongoose from "mongoose";
 import Product from "../models/productModel.js"
+import { getSignedImageUrl, productsWithSignedUrls, singleProductWithSignedUrls } from "../utils/imageService.js";
 
 
 export const getNewArrivals = async (req, res) => {
@@ -38,19 +39,22 @@ export const getNewArrivals = async (req, res) => {
             .populate('category', 'name')
             .lean();
 
-        const transformedProducts = products.map(product => {
-            const firstColor = product.colors[0];
-            return {
-                id: product._id,
-                title: product.name,
-                image: firstColor?.images[0] || '',
-                price: firstColor?.discountPrice || 0,
-                oldPrice: firstColor?.basePrice || 0,
-                rating: 4,
-                brand: product.brand,
-                category: product.category?.name || 'Uncategorized'
-            };
-        });
+        const transformedProducts = await Promise.all(
+            products.map(async (product) => {
+                const firstColor = product.colors[0];
+                const image = await getSignedImageUrl(firstColor.images[0])
+                return {
+                    id: product._id,
+                    title: product.name,
+                    image: image || '',
+                    price: firstColor?.discountPrice || 0,
+                    oldPrice: firstColor?.basePrice || 0,
+                    rating: 4,
+                    brand: product.brand,
+                    category: product.category?.name || 'Uncategorized'
+                };
+            })
+        )
 
         res.status(OK).json({
             success: true,
@@ -84,19 +88,22 @@ export const getTopSellingProducts = async (req, res) => {
             .populate('category', 'name')
             .lean();
 
-        const transformedProducts = products.map(product => {
-            const firstColor = product.colors[0];
-            return {
-                id: product._id,
-                title: product.name,
-                image: firstColor?.images[0] || '',
-                price: firstColor?.discountPrice || 0,
-                oldPrice: firstColor?.basePrice || 0,
-                rating: 4,
-                brand: product.brand,
-                category: product.category?.name || 'Uncategorized'
-            };
-        });
+        const transformedProducts = await Promise.all(
+            products.map(async (product) => {
+                const firstColor = product.colors[0];
+                const image = await getSignedImageUrl(firstColor.images[0])
+                return {
+                    id: product._id,
+                    title: product.name,
+                    image: image || '',
+                    price: firstColor?.discountPrice || 0,
+                    oldPrice: firstColor?.basePrice || 0,
+                    rating: 4,
+                    brand: product.brand,
+                    category: product.category?.name || 'Uncategorized'
+                };
+            })
+        )
 
         res.status(OK).json({
             success: true,
@@ -273,13 +280,15 @@ export const productList = async (req, res) => {
         const countResult = await Product.aggregate(countPipeline);
         const totalProducts = countResult[0] ? countResult[0].total : 0;
 
+        const productsForRes = await productsWithSignedUrls(products)
+
         res.status(OK).json({
             status: true,
             message: "Fetched successfully",
             page,
             totalPages: Math.ceil(totalProducts / limit),
             totalProducts,
-            products,
+            products: productsForRes,
         });
     } catch (error) {
         console.error("Error fetching products:", error);
@@ -307,10 +316,15 @@ export const productDetail = async (req, res) => {
             });
         }
 
+        const productsForRes = await singleProductWithSignedUrls(product)
+
+        console.log(productsForRes);
+
+
         res.status(OK).json({
             status: true,
             message: "product detail fetched succesfully",
-            product
+            product: productsForRes
         })
 
     } catch (error) {

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { TrashIcon } from 'lucide-react';
 
 const CategoryList = ({ categories, selectedCategoryId, onSelectCategory, onDeleteCategory }) => {
+
     return (
         <div className="col-span-3 bg-white rounded-lg shadow-md overflow-hidden">
             <div className="p-4 bg-black border-b border-gray-200">

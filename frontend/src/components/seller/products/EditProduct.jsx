@@ -355,11 +355,6 @@ function EditProduct({ setSelectedSection }) {
         });
 
         try {
-            // const response = await axios.put(
-            //     `${API_BASE_URL}/seller/edit-product/${productId}`,
-            //     formData,
-            //     { headers: { "Content-Type": "multipart/form-data" } }
-            // );
             const response = await editProduct(productId, formData)
 
             console.log("Updated product:", response.data.product);

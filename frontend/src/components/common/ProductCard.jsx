@@ -309,7 +309,7 @@ function ProductCard({ product }) {
           </div>
           {/* Out of stock overlay */}
           {isOutOfStock && (
-            <div className="absolute bottom-2 right-2">
+            <div className="absolute bottom-20 right-2">
               <div className="text-white px-2 sm:px-3 py-1 rounded-full font-medium text-xs sm:text-sm flex items-center">
                 <img
                   src={soldOut}
