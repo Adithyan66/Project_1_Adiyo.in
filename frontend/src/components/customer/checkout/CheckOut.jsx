@@ -18,6 +18,7 @@ const Checkout = ({
     OrderSummaryComponent,
     PaymentComponent,
     OrderConfirmationComponent,
+    OrderFailureComponent,
     OrderSummarySidebarComponent
 }) => {
     const navigate = useNavigate();
@@ -57,8 +58,7 @@ const Checkout = ({
                 return <PaymentComponent onPlaceOrder={handlePlaceOrder} cartOrder={isCartCheckout} />;
             case 'confirmation':
                 return <OrderConfirmationComponent orderDetails={orderResponse} isCartCheckout={isCartCheckout} />;
-            default:
-                return null;
+            default: return null;
         }
     };
 
@@ -131,7 +131,10 @@ const Checkout = ({
                             <div className="bg-white rounded-lg shadow-sm p-4">
                                 <OrderConfirmationComponent orderDetails={orderResponse} isCartCheckout={isCartCheckout} />
                             </div>
-                        ) : (
+                        ) : currentStep === 'failure' ? (
+                            <div className="bg-white rounded-lg shadow-sm p-4">
+                                <OrderFailureComponent orderData={orderResponse} />
+                            </div>) : (
                             <div className="flex flex-col lg:flex-row gap-6">
                                 <div className="lg:w-2/3 w-full">
                                     <div className="bg-white rounded-lg shadow-sm p-4">

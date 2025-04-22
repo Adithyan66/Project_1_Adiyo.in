@@ -102,9 +102,8 @@ const UserReferralSchema = new mongoose.Schema({
 // };
 
 UserReferralSchema.methods.updateStats = async function () {
-    const Referral = mongoose.model('Referral');
-    console.log('this.referrals', this.referrals);
 
+    const Referral = mongoose.model('Referral');
     const [totalReferrals, activeReferrals, paidReferrals, pendingReferrals] = await Promise.all([
         Referral.countDocuments({ _id: { $in: this.referrals } }),
         Referral.countDocuments({ _id: { $in: this.referrals }, status: 'active' }),

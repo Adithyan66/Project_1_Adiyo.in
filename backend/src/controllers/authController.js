@@ -127,9 +127,6 @@ export const signUp = async (req, res) => {
 
             } catch (error) {
 
-                console.log("Transaction error:", error);
-
-
                 await session.abortTransaction();
                 session.endSession();
                 throw error;

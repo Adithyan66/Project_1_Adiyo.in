@@ -37,9 +37,6 @@ export const getOrders = async (req, res) => {
         const search = req.query.search;
         const status = req.query.status;
 
-        console.log(req.query);
-
-
         const filter = {};
 
         if (search) {
@@ -100,7 +97,6 @@ export const getOrderDetails = async (req, res) => {
             const product = item.product;
 
             const colorData = product.colors.find((c) => c.color === item.color) || {};
-            console.log("okomdkoveofjvogfbogfnbogbogb ojgfohj", colorData.images);
 
             return {
                 _id: product._id,
@@ -218,8 +214,6 @@ export const verifyReturn = async (req, res) => {
 
     const { orderId } = req.params;
     const { productId, userId, approved } = req.body;
-
-    console.log(productId, userId, approved, orderId);
 
     if (!productId || !userId || typeof approved !== "boolean") {
         return res.status(BAD_REQUEST).json({

@@ -167,7 +167,7 @@ export const addCart = async (req, res) => {
 }
 
 
-export const cartItems = async (req, res) => {
+export const cartItems = async (req, res, next) => {
 
     const userId = req.user.userId
 
@@ -198,12 +198,12 @@ export const cartItems = async (req, res) => {
         })
 
     } catch (error) {
-
-        console.log(error)
-        res.status(INTERNAL_SERVER_ERROR).json({
-            success: false,
-            message: "server error"
-        })
+        next(error)
+        // console.log(error)
+        // res.status(INTERNAL_SERVER_ERROR).json({
+        //     success: false,
+        //     message: "server error"
+        // })
     }
 }
 
@@ -461,9 +461,6 @@ export const checkAvailability = async (req, res) => {
         }));
 
         const status = availability.filter(product => product.available === false)
-
-        console.log("statusssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", status);
-
 
         if (status.length > 0) {
             return res.status(OK).json({ success: false, availability: status })

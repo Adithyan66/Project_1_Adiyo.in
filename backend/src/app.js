@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
-
+import { corsOptions } from "./config/corsConfig.js";
 
 import userRouter from "./routes/userRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
@@ -11,6 +11,8 @@ import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import HttpStatusCodefrom from "./utils/httpStatusCodes.js";
+const { NOT_FOUND } = HttpStatusCodefrom
 
 dotenv.config();
 
@@ -24,12 +26,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-    cors({
-        origin: "http://localhost:5173",
-        credentials: true,
-    })
-);
+app.use(cors(corsOptions));
 
 connectDB();
 
@@ -51,7 +48,19 @@ app.use(morgan('combined', { stream: logStream }));
 app.use("/admin", adminRoutes)
 app.use("/seller", sellerRoutes)
 app.use("/user", userRouter);
+app.use((req, res, next) => {
+    res.status(NOT_FOUND).json({ message: 'Route not found' });
+});
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    const status = err.statusCode || 500;
+    res.status(status).json({
+        success: false,
+        message: err.message || 'Internal Server Error',
+        ...(process.env.NODE_ENV !== 'production' && { stack: err.stack }),
+    });
+});
 
 
 export default app;

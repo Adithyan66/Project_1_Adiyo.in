@@ -14,7 +14,6 @@ export const razorpay = new Razorpay({
 
 export const verifyRazorpayPayment = async (req, res, next) => {
     try {
-        console.log("middleware", req.body);
 
         if (req.body.paymentMethod === "razorpay") {
             const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;

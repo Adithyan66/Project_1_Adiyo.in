@@ -153,7 +153,7 @@ function App() {
 
       </Routes >
 
-      <ToastContainer position="top-center" autoClose={1000} hideProgressBar />
+      <ToastContainer position="top-center" autoClose={4000} hideProgressBar />
 
     </>
   );

@@ -70,8 +70,6 @@ export const validateCoupon = async (req, res) => {
 
             const couponCategoryId = coupon.applicableCategories.toString();
             let categoryMatched = false;
-            console.log(productCategories);
-
 
             for (const category of prodCategoriesArray) {
                 const categoryId = category._id ? category._id.toString() : category.toString();

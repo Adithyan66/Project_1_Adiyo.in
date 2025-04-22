@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getCartItems } from "../../../services/cartService";
 import { placeOrder } from "../../../services/checkoutService";
 
-// t
+
 function useCheckout({
     checkoutState,
     setCurrentStep,
@@ -20,8 +20,7 @@ function useCheckout({
     const [orderResponse, setOrderResponse] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Validate order on mount
-    console.log("orderrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr", order);
+
     let data = useSelector((state) => state.cartCheckout.confirmationData)
 
 
@@ -38,7 +37,6 @@ function useCheckout({
         }
     }, [order, currentStep, navigate, dispatch, toast, isCartCheckout, orderResponse]);
 
-    // Calculate order summary
     const calculateOrderSummary = () => {
         if (!order) return null;
         const items = isCartCheckout
@@ -62,7 +60,6 @@ function useCheckout({
         };
     };
 
-    // Handle order placement
     const handlePlaceOrder = async (paymentMethod, captchaValue, orderId) => {
         if (paymentMethod === 'cod' && captchaValue === '') {
             toast.error("Please complete the captcha verification");
@@ -121,26 +118,29 @@ function useCheckout({
             };
 
             const response = await placeOrder(orderData);
+            console.log("respooooooooo", response.data);
+            setOrderResponse(response.data.order);
+
             if (response.data.success) {
-                setOrderResponse(response.data.order);
-                console.log("why not whyyyyyy", response.data.order);
-
                 dispatch(setConfirmationData(response.data.order));
-                console.log("in redux", data);
-
                 if (isCartCheckout) {
                     // await mockClearUserCart();
                     // dispatch(clearCart());
-
                 }
                 toast.success("Order placed successfully!");
                 dispatch(setCurrentStep('confirmation'));
+
+            } else if (!response.data.success) {
+                dispatch(setCurrentStep('failure'));
                 return response.data;
             }
+
         } catch (error) {
+
             console.error("Error placing order:", error);
             toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
             throw error;
+
         } finally {
             setIsLoading(false);
         }

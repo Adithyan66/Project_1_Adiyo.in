@@ -106,7 +106,6 @@ export const toggleReferalStatus = async (req, res) => {
         if (status) {
 
             const offers = await ReferralOffer.updateMany({}, { isActive: false })
-            console.log(offers);
         }
 
         const update = await ReferralOffer.findByIdAndUpdate(id, { isActive: status }, { new: true })

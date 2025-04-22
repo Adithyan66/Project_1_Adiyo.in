@@ -129,17 +129,6 @@ const OrderDetails = () => {
 
         setIsSubmitting(true);
         try {
-            // await axios.post(`${API_BASE_URL}/user/orders/${orderId}/return`,
-            //     {
-            //         items: itemsToReturn.map(item => ({
-            //             productId: item.product._id,
-            //             quantity: item.returnQuantity,
-            //             reason: returnReason
-            //         })),
-            //         reason: returnReason
-            //     },
-            //     { withCredentials: true }
-            // );
 
             const items = itemsToReturn.map(item => ({
                 productId: item.product._id,
@@ -517,7 +506,8 @@ const OrderDetails = () => {
                                 status === 'cancelled' ? 'cancelled' :
                                     status === 'return requested' ? 'return requested' :
                                         status === 'returned' ? 'returned' :
-                                            'processing';
+                                            status === 'failed' ? 'failed' :
+                                                'processing';
 
         const statusConfig = {
             'pending': {
@@ -573,12 +563,7 @@ const OrderDetails = () => {
             <div className="bg-gray-50 p-6 rounded-lg mb-8 border border-gray-200">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between">
                     <div className="flex items-center mb-4 md:mb-0">
-                        <button
-                            onClick={() => navigate('/user/orders')}
-                            className="mr-4 bg-white p-2 rounded-full shadow-sm hover:bg-gray-100 focus:outline-none"
-                        >
-                            <ArrowLeft size={18} />
-                        </button>
+
                         <div>
                             <div className="flex items-center">
                                 <h2 className="text-2xl font-medium">Order #{order.orderId}</h2>

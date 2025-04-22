@@ -31,9 +31,6 @@ import Order from "../models/orderModel.js"
 
 export const salesReport = async (req, res) => {
 
-    console.log("workeddd");
-
-
     try {
 
         const {
@@ -363,7 +360,6 @@ export const getDashboardData = async (req, res) => {
 
         const ordersData = await Order.aggregate(ordersPipeline);
         const customerData = await User.aggregate(customerPipeline)
-        console.log("hiiiiiiiiiii", customerData);
 
         const summaryAgg = await Order.aggregate([
             {
@@ -448,7 +444,6 @@ export const getDashboardData = async (req, res) => {
                 $limit: 5
             }
         ])
-        console.log("cattttttttttttttttttttttttttttttttttttttttttttttttttt", topCategorysData);
 
 
         const topCategorys = await Promise.all(
@@ -461,7 +456,6 @@ export const getDashboardData = async (req, res) => {
                 }
             })
         )
-        console.log("ssssssssssssssssssssssssssssssssssssssssssssssss", topCategorys);
 
 
 

@@ -112,11 +112,8 @@ export const attachSignedUrlsToOrders = async (orders) => {
 
 export const attachSignedUrlsToCartItems = async (items) => {
     if (!Array.isArray(items)) {
-        console.warn('Invalid items: must be an array', items);
         return items;
     }
-
-    console.log('Processing cart items:', items.length);
 
     const updatedItems = await Promise.all(
         items.map(async (item) => {
@@ -131,12 +128,10 @@ export const attachSignedUrlsToCartItems = async (items) => {
             const updatedColors = await Promise.all(
                 product.colors.map(async (color) => {
                     if (Array.isArray(color.images)) {
-                        console.log(`Processing images for color ${color.color}:`, color.images);
                         const signedUrls = await Promise.all(
                             color.images.map(publicId => getSignedImageUrl(publicId))
                         );
                         const validUrls = signedUrls.filter(url => url !== null);
-                        console.log(`Generated URLs for color ${color.color}:`, validUrls);
                         return { ...color, images: validUrls };
                     }
                     return color;
@@ -150,7 +145,6 @@ export const attachSignedUrlsToCartItems = async (items) => {
         })
     );
 
-    console.log('Updated items:', updatedItems);
     return updatedItems;
 };
 
@@ -160,11 +154,9 @@ export const attachSignedUrlsToCartItems = async (items) => {
 export const attachSignedUrlsToWishlistItems = async (items) => {
     // Validate items
     if (!Array.isArray(items)) {
-        console.warn('Invalid wishlist items: must be an array', items);
         return items;
     }
 
-    console.log('Processing wishlist items:', items.length);
 
     const updatedItems = await Promise.all(
         items.map(async (item) => {
@@ -179,12 +171,10 @@ export const attachSignedUrlsToWishlistItems = async (items) => {
             const updatedColors = await Promise.all(
                 product.colors.map(async (color) => {
                     if (Array.isArray(color.images)) {
-                        console.log(`Processing images for color ${color.color}:`, color.images);
                         const signedUrls = await Promise.all(
                             color.images.map(publicId => getSignedImageUrl(publicId))
                         );
                         const validUrls = signedUrls.filter(url => url !== null);
-                        console.log(`Generated URLs for color ${color.color}:`, validUrls);
                         return { ...color, images: validUrls };
                     }
                     return color;
@@ -198,7 +188,6 @@ export const attachSignedUrlsToWishlistItems = async (items) => {
         })
     );
 
-    console.log('Updated wishlist items:', updatedItems);
     return updatedItems;
 };
 
@@ -215,7 +204,6 @@ export const attachSignedUrlsToOrderItems = async (order) => {
         return plainOrder;
     }
 
-    console.log('Processing order items:', plainOrder.orderItems.length);
 
     const updatedItems = await Promise.all(
         plainOrder.orderItems.map(async (item) => {
@@ -228,12 +216,10 @@ export const attachSignedUrlsToOrderItems = async (order) => {
             const updatedColors = await Promise.all(
                 product.colors.map(async (color) => {
                     if (Array.isArray(color.images)) {
-                        console.log(`Processing images for color ${color.color}:`, color.images);
                         const signedUrls = await Promise.all(
                             color.images.map(publicId => getSignedImageUrl(publicId))
                         );
                         const validUrls = signedUrls.filter(url => url !== null);
-                        console.log(`Generated URLs for color ${color.color}:`, validUrls);
                         return { ...color, images: validUrls };
                     }
                     return color;
@@ -247,7 +233,6 @@ export const attachSignedUrlsToOrderItems = async (order) => {
         })
     );
 
-    console.log('Updated order items:', updatedItems);
     return {
         ...plainOrder,
         orderItems: updatedItems,
@@ -267,17 +252,14 @@ export const attachSignedUrlsToProduct = async (product) => {
         return plainProduct;
     }
 
-    console.log('Processing product colors:', plainProduct.colors.length);
 
     const updatedColors = await Promise.all(
         plainProduct.colors.map(async (color) => {
             if (Array.isArray(color.images)) {
-                console.log(`Processing images for color ${color.color}:`, color.images);
                 const signedUrls = await Promise.all(
                     color.images.map(publicId => getSignedImageUrl(publicId))
                 );
                 const validUrls = signedUrls.filter(url => url !== null);
-                console.log(`Generated URLs for color ${color.color}:`, validUrls);
                 return { ...color, images: validUrls };
             }
             return color;
@@ -289,6 +271,5 @@ export const attachSignedUrlsToProduct = async (product) => {
         colors: updatedColors,
     };
 
-    console.log('Updated product:', updatedProduct);
     return updatedProduct;
 };

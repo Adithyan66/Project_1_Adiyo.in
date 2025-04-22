@@ -8,6 +8,7 @@ import Payment from '../../components/customer/checkout/Payment';
 import OrderConfirmation from '../../components/customer/checkout/OrderConfirmation';
 import OrderSummarySidebar from '../../components/customer/checkout/OrderSummarySidebar';
 import { setCartCurrentStep, setCartConfirmationData } from '../../store/slices/cartCheckoutSlice'
+import OrderFailure from '../../components/customer/checkout/OrderFailure';
 
 function CheckoutPage() {
     return (
@@ -25,6 +26,7 @@ function CheckoutPage() {
                     PaymentComponent={Payment}
                     OrderConfirmationComponent={OrderConfirmation}
                     OrderSummarySidebarComponent={OrderSummarySidebar}
+                    OrderFailureComponent={OrderFailure}
                 />
             </div>
             <Footer />
