@@ -12,6 +12,8 @@ dist
 .env
 dist-ssr
 *.local
+git rm --cached .env
+
 
 # Editor directories and files
 .vscode/*
