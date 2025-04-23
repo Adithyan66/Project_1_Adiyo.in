@@ -62,6 +62,15 @@ export const getProductDetils = async (productId) => {
         throw error;
     }
 }
+export const getUserDroductDetail = async (id) => {
+    try {
+        const response = await httpClient.get(`/user/product/${id}`);
+        return response;
+    } catch (error) {
+        console.error("Error fetching product details:", error);
+        throw error;
+    }
+}
 
 export const editProduct = async (productId, formData) => {
     try {

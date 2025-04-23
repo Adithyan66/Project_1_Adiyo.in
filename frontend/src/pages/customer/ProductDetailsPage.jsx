@@ -10,6 +10,7 @@ import Footer from '../../components/common/Footer'
 
 import { useNavigate } from "react-router-dom";
 import ProductDetailShimmer from "../../components/customer/shimmerUI/ProductDetailShimmer";
+import { getUserDroductDetail } from "../../services/productService";
 
 function ProductDetailsPage() {
 
@@ -23,7 +24,11 @@ function ProductDetailsPage() {
         const fetchProduct = async () => {
             try {
                 console.log("Starting to fetch", id);
-                const response = await axios.get(`http://localhost:3333/user/product/${id}`);
+
+                const response = await getUserDroductDetail(id)
+
+                //const response = await axios.get(`http://localhost:3333/user/product/${id}`);
+
                 console.log(response.data.product);
 
                 if (response.data && response.data.product) {
