@@ -1,6 +1,5 @@
 
 
-import logo from "../../assets/images/Adiyo.in.svg";
 import { NavButtons } from "./navbar/NavButtons.jsx";
 import { useEffect, useRef, useState } from "react";
 

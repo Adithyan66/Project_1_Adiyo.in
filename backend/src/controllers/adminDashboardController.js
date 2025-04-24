@@ -157,8 +157,6 @@ export const getDashboardData = async (req, res) => {
 
         let sellersPipeline = [];
 
-        console.log(req.query);
-
 
         if (timeFilter === 'yearly') {
             if (!year) {
@@ -386,7 +384,6 @@ export const getDashboardData = async (req, res) => {
 
             ordersChart = months.map((monthName, index) => {
                 const record = ordersData.find(item => item._id === index + 1);
-                console.log("record", record);
 
                 return { name: monthName, value: record ? record.count : 0 };
             });

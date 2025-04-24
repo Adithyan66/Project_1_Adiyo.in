@@ -60,6 +60,93 @@ function useCheckout({
         };
     };
 
+    // const handlePlaceOrder = async (paymentMethod, captchaValue, orderId) => {
+    //     if (paymentMethod === 'cod' && captchaValue === '') {
+    //         toast.error("Please complete the captcha verification");
+    //         return Promise.reject(new Error("Captcha verification required"));
+    //     }
+
+    //     if (!address || !address[0]?._id) {
+    //         toast.error("Please select a shipping address");
+    //         return Promise.reject(new Error("Shipping address required"));
+    //     }
+
+    //     if (paymentMethod === 'paypal' && !orderId) {
+    //         toast.error("PayPal payment not completed. Please try again.");
+    //         return Promise.reject(new Error("PayPal order ID missing"));
+    //     }
+
+    //     if (paymentMethod === "razorpay" && !orderId) {
+    //         toast.error("Razorpay payment not completed. Please try again.");
+    //         return Promise.reject(new Error("Razorpay order ID missing"));
+    //     }
+
+    //     setIsLoading(true);
+
+    //     try {
+    //         let productDetails;
+    //         if (isCartCheckout) {
+    //             const cartItems = await getCartItems();
+    //             productDetails = cartItems.data.items.map(item => ({
+    //                 productId: item.product._id,
+    //                 productColor: item.selectedColor,
+    //                 productSize: item.selectedSize,
+    //                 quantity: item.quantity
+    //             }));
+    //         } else {
+    //             productDetails = [{
+    //                 productId: order.productDetails._id,
+    //                 productColor: order.productColor,
+    //                 productSize: order.productSize,
+    //                 quantity: order.quantity
+    //             }];
+    //         }
+
+    //         const orderData = {
+    //             addressId: address[0]._id,
+    //             productDetails,
+    //             paymentMethod,
+    //             ...(paymentMethod === 'paypal' && { paypalOrderID: orderId }),
+    //             ...(paymentMethod === 'razorpay' && {
+    //                 razorpayOrderDetails: {
+    //                     razorpay_order_id: orderId.razorpay_order_id,
+    //                     razorpay_payment_id: orderId.razorpay_payment_id,
+    //                     razorpay_signature: orderId.razorpay_signature
+    //                 }
+    //             }),
+    //             couponCode: coupon
+    //         };
+
+    //         const response = await placeOrder(orderData);
+    //         console.log("respooooooooo", response.data);
+    //         setOrderResponse(response.data.order);
+
+    //         if (response.data.success) {
+    //             dispatch(setConfirmationData(response.data.order));
+    //             if (isCartCheckout) {
+    //                 // await mockClearUserCart();
+    //                 // dispatch(clearCart());
+    //             }
+    //             toast.success("Order placed successfully!");
+    //             dispatch(setCurrentStep('confirmation'));
+
+    //         } else if (!response.data.success) {
+    //             dispatch(setCurrentStep('failure'));
+    //             return response.data;
+    //         }
+
+    //     } catch (error) {
+
+    //         console.error("Error placing order:", error);
+    //         toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
+    //         throw error;
+
+    //     } finally {
+    //         setIsLoading(false);
+    //     }
+    // };
+
+
     const handlePlaceOrder = async (paymentMethod, captchaValue, orderId) => {
         if (paymentMethod === 'cod' && captchaValue === '') {
             toast.error("Please complete the captcha verification");
@@ -76,9 +163,9 @@ function useCheckout({
             return Promise.reject(new Error("PayPal order ID missing"));
         }
 
-        if (paymentMethod === "razorpay" && !orderId) {
+        if (paymentMethod === "razorpay" && (!orderId || !orderId.razorpay_order_id)) {
             toast.error("Razorpay payment not completed. Please try again.");
-            return Promise.reject(new Error("Razorpay order ID missing"));
+            return Promise.reject(new Error("Razorpay order details missing"));
         }
 
         setIsLoading(true);
@@ -107,40 +194,30 @@ function useCheckout({
                 productDetails,
                 paymentMethod,
                 ...(paymentMethod === 'paypal' && { paypalOrderID: orderId }),
-                ...(paymentMethod === 'razorpay' && {
-                    razorpayOrderDetails: {
-                        razorpay_order_id: orderId.razorpay_order_id,
-                        razorpay_payment_id: orderId.razorpay_payment_id,
-                        razorpay_signature: orderId.razorpay_signature
-                    }
-                }),
+                ...(paymentMethod === 'razorpay' && { razorpayOrderDetails: orderId }),
                 couponCode: coupon
             };
 
             const response = await placeOrder(orderData);
-            console.log("respooooooooo", response.data);
             setOrderResponse(response.data.order);
 
             if (response.data.success) {
                 dispatch(setConfirmationData(response.data.order));
-                if (isCartCheckout) {
-                    // await mockClearUserCart();
-                    // dispatch(clearCart());
-                }
+                // if (isCartCheckout) {
+                //     dispatch(clearCart());
+                // }
                 toast.success("Order placed successfully!");
                 dispatch(setCurrentStep('confirmation'));
-
-            } else if (!response.data.success) {
+            } else {
                 dispatch(setCurrentStep('failure'));
                 return response.data;
             }
 
+            return response.data;
         } catch (error) {
-
             console.error("Error placing order:", error);
             toast.error(error.response?.data?.message || "Failed to place order. Please try again.");
             throw error;
-
         } finally {
             setIsLoading(false);
         }

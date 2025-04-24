@@ -318,9 +318,6 @@ export const productDetail = async (req, res) => {
 
         const productsForRes = await singleProductWithSignedUrls(product)
 
-        console.log(productsForRes);
-
-
         res.status(OK).json({
             status: true,
             message: "product detail fetched succesfully",

@@ -7,11 +7,11 @@ import BrowseByStyle from '../../components/common/landingPage/BrowseByStyle'
 import Newsletter from '../../components/common/landingPage/NewsLetter'
 import Footer from '../../components/common/Footer'
 import { useNavigate } from 'react-router'
-import NewNavbar from '../../components/common/navbar/NewNavbar'
+
+
 
 
 function LandingPage() {
-
     const navigate = useNavigate()
 
     const toProductPage = () => {
@@ -19,17 +19,17 @@ function LandingPage() {
     }
 
     return (
-        <>
+        <div className="overflow-x-hidden">
             <Navbar toProductPage={toProductPage} />
-            {/* <NewNavbar toProductPage={toProductPage} /> */}
             <HeroSection />
             <Brandadd />
             <LandingProducts />
             <BrowseByStyle />
             <Newsletter />
             <Footer />
-        </>
+        </div>
     )
 }
+
 
 export default LandingPage

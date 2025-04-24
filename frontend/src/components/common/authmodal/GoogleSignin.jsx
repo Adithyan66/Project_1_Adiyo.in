@@ -87,12 +87,6 @@ function GoogleSignIn() {
 
     const handleCredentialResponse = async (response) => {
         try {
-            // const res = await axios.post(
-            //     'http://localhost:3333/user/google-login',
-            //     { token: response.credential },
-            //     { withCredentials: true }
-            // );
-
             const res = await googleLogin(response.credential)
 
             dispatch(loginSuccess({

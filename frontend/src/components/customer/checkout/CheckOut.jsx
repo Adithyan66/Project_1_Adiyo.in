@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import { CreditCard, ShoppingBag, Truck, CheckCircle } from 'lucide-react';
 import AddressSelection from '../../customer/profile/ManageAddresses';
 import useCheckout from '../../../hooks/user/checkout/useCheckOut';
+import ShimmerOrderConfirmation from '../shimmerUI/ShimmerOrderConfirmation';
 
 const Checkout = ({
     checkoutState,
@@ -64,9 +65,7 @@ const Checkout = ({
 
     if (isLoading) {
         return (
-            <div>
-                <h1>Processing...</h1>
-            </div>
+            <ShimmerOrderConfirmation />
         );
     }
 

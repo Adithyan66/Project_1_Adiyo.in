@@ -6,7 +6,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-
 import 'react-toastify/dist/ReactToastify.css';
 
 import { Eye, ShowEye } from "../../../icons/icons";
@@ -43,8 +42,9 @@ function SignupForm() {
     const [referralCode, setReferralCode] = useState(""); // New referral code state
     const [showPassword, setShowPassword] = useState(false);
 
-    // Loading state
-    const [loading, setLoading] = useState(false);
+    // Loading states
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [registering, setRegistering] = useState(false);
 
     // Countdown effect for resend button
     useEffect(() => {
@@ -60,36 +60,31 @@ function SignupForm() {
     // Function to send OTP for signup
     const handleSendOtp = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setSendingOtp(true);
 
         // Validate email format
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             toast.error("Please enter a valid email address");
-            setLoading(false);
+            setSendingOtp(false);
             return;
         }
         try {
             const response = await sentOtp(email);
-            //const response = await axios.post(`http://localhost:3333/user/signup-send-otp`, { email });
             toast.success(response.data.message);
             setEmailSent(true);
-            // Start a 60-second countdown for resending OTP (if needed)
             setCounter(60);
         } catch (err) {
             toast.error(err.response?.data?.message || "Failed to send OTP");
         } finally {
-            setLoading(false);
+            setSendingOtp(false);
         }
     };
 
-    // Callback to mark OTP as verified, called from the OTPVerification component
     const handleOtpVerified = (resetToken) => {
         setOtpVerified(true);
-        // Optionally, you can store the reset token or other data from OTP verification
     };
 
-    // Validate the registration details once OTP is verified
     const validateRegistration = () => {
         if (!username || !password || !confirmPassword) {
             toast.error("All fields are required");
@@ -106,35 +101,25 @@ function SignupForm() {
         return true;
     };
 
-    // Handle final registration submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateRegistration()) return;
 
+        setRegistering(true);
         try {
             const role = "customer";
-            // Include referral code in signup data if provided
             const signupData = { username, email, password, role };
             if (referralCode) {
                 signupData.referralCode = referralCode;
             }
 
             const response = await signup(signupData);
-            // const response = await axios.post(
-            //     "http://localhost:3333/user/signup",
-            //     signupData,
-            //     {
-            //         headers: { "Content-Type": "application/json" },
-            //         withCredentials: true,
-            //     }
-            // );
 
             if (response.data && response.data.token) {
                 localStorage.setItem('accessToken', response.data.token);
                 // Optionally set user data in context or state
                 console.log("Logged in successfully!");
             }
-
 
             if (response.data.success) {
                 dispatch(setLoginPopup(false));
@@ -155,6 +140,8 @@ function SignupForm() {
         } catch (err) {
             const errorMsg = err.response?.data?.message || err.message;
             toast.error(`Error: ${errorMsg}`);
+        } finally {
+            setRegistering(false);
         }
     };
 
@@ -175,7 +162,7 @@ function SignupForm() {
                         className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        disabled={emailSent} // Disable email input once OTP is sent
+                        disabled={emailSent || sendingOtp} // Disable when OTP is sent or sending
                         required
                     />
                 </div>
@@ -186,9 +173,19 @@ function SignupForm() {
                         <button
                             onClick={handleSendOtp}
                             className="text-gray-800 hover:text-gray-700 text-sm"
-                            disabled={loading}
+                            disabled={sendingOtp}
                         >
-                            Send OTP
+                            {sendingOtp ? (
+                                <span className="flex items-center justify-end">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Sending OTP...
+                                </span>
+                            ) : (
+                                "Send OTP"
+                            )}
                         </button>
                     </div>
                 )}
@@ -217,6 +214,7 @@ function SignupForm() {
                                 className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
+                                disabled={registering}
                                 required
                             />
                         </div>
@@ -231,12 +229,14 @@ function SignupForm() {
                                 className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400 pr-10"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
+                                disabled={registering}
                                 required
                             />
                             <button
                                 type="button"
                                 className="absolute right-3 top-9 text-gray-500"
                                 onClick={() => setShowPassword(!showPassword)}
+                                disabled={registering}
                             >
                                 {showPassword ? <Eye /> : <ShowEye />}
                             </button>
@@ -252,12 +252,14 @@ function SignupForm() {
                                 className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400 pr-10"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
+                                disabled={registering}
                                 required
                             />
                             <button
                                 type="button"
                                 className="absolute right-3 top-9 text-gray-500"
                                 onClick={() => setShowPassword(!showPassword)}
+                                disabled={registering}
                             >
                                 {showPassword ? <Eye /> : <ShowEye />}
                             </button>
@@ -273,16 +275,27 @@ function SignupForm() {
                                 className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400"
                                 value={referralCode}
                                 onChange={(e) => setReferralCode(e.target.value)}
+                                disabled={registering}
                             />
                         </div>
 
                         {/* Final Register Button */}
                         <button
                             type="submit"
-                            className="w-full bg-black text-white py-2 rounded-md font-semibold hover:bg-gray-900 transition-colors"
-                            disabled={loading}
+                            className="w-full bg-black text-white py-2 rounded-md font-semibold hover:bg-gray-900 transition-colors flex items-center justify-center"
+                            disabled={registering}
                         >
-                            Register
+                            {registering ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Registering...
+                                </>
+                            ) : (
+                                "Register"
+                            )}
                         </button>
                     </>
                 )}
@@ -297,13 +310,13 @@ function SignupForm() {
 
             {/* Social Icons */}
             <div className="flex justify-center space-x-4">
-                <button className="bg-gray-100 hover:bg-gray-200 transition-colors">
+                <button className="bg-gray-100 hover:bg-gray-200 transition-colors" disabled={sendingOtp || registering}>
                     <img src={facebook} alt="Facebook" />
                 </button>
-                <button className="bg-gray-100 hover:bg-gray-200 transition-colors">
+                <button className="bg-gray-100 hover:bg-gray-200 transition-colors" disabled={sendingOtp || registering}>
                     <GoogleSignIn />
                 </button>
-                <button className="bg-gray-100 hover:bg-gray-200 transition-colors">
+                <button className="bg-gray-100 hover:bg-gray-200 transition-colors" disabled={sendingOtp || registering}>
                     <img src={apple} alt="Apple" />
                 </button>
             </div>
@@ -314,6 +327,7 @@ function SignupForm() {
                 <button
                     className="text-blue-600 hover:underline font-medium"
                     onClick={() => dispatch(setActiveForm("login"))}
+                    disabled={sendingOtp || registering}
                 >
                     Login Now
                 </button>

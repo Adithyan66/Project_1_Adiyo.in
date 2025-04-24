@@ -1,4 +1,8 @@
 
+
+
+
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
@@ -21,7 +25,8 @@ function Forgot() {
 
     const [otpSent, setOtpSent] = useState(false);
     const [otpVerified, setOtpVerified] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [sendingOtp, setSendingOtp] = useState(false);
+    const [resettingPassword, setResettingPassword] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
@@ -41,66 +46,56 @@ function Forgot() {
 
     const handleSendOtp = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setSendingOtp(true);
         setMessage("");
         setError("");
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             toast.error("Please enter a valid email address");
-            setLoading(false);
+            setSendingOtp(false);
             return;
         }
 
         try {
             const response = await forgotPassword(email);
-            // const response = await axios.post(`http://localhost:3333/user/forgot-password`, { email });
             toast.success(response.data.message);
             setOtpSent(response.data.status);
 
-            // Start the countdown timer for 60 seconds
             setCounter(60);
         } catch (err) {
             console.log(err);
-            toast.error(err.response.data.message);
+            toast.error(err.response?.data?.message || "Failed to send OTP");
             setError(err.response?.data?.message || "Failed to send OTP");
         } finally {
-            setLoading(false);
+            setSendingOtp(false);
         }
     };
 
     const handleResetPassword = async (e) => {
         e.preventDefault();
-        setLoading(true);
+        setResettingPassword(true);
         setMessage("");
         setError("");
 
         if (password.length < 6) {
             toast.error("Password should be at least 6 characters long");
-            setLoading(false);
+            setResettingPassword(false);
             return;
         }
 
         if (password !== confirmPassword) {
             toast.error("Passwords do not match");
-            setLoading(false);
+            setResettingPassword(false);
             return;
         }
 
         try {
-
             const response = await resetPassword({
                 email,
                 password,
                 resetToken,
             });
-            // const response = await axios.post(`http://localhost:3333/user/reset-password`, {
-            //     email,
-            //     password,
-            //     resetToken,
-            // });
-
-            console.log("response", response);
 
             if (response.data.status) {
                 setMessage(response.data.message || "Password reset successfully. Please log in.");
@@ -114,7 +109,7 @@ function Forgot() {
             console.log(error);
             setError(error.response?.data?.message || "Failed to reset password.");
         } finally {
-            setLoading(false);
+            setResettingPassword(false);
         }
     };
 
@@ -142,16 +137,28 @@ function Forgot() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400"
-                    disabled={otpSent}
+                    disabled={otpSent || sendingOtp}
                 />
             </div>
             <div className="text-right">
                 <button
                     onClick={handleSendOtp}
                     className="text-gray-800 hover:text-gray-700 text-sm"
-                    disabled={otpSent && counter > 0}
+                    disabled={sendingOtp || (otpSent && counter > 0)}
                 >
-                    {otpSent && counter > 0 ? `Resend Code in ${counter}s` : "Send Code"}
+                    {sendingOtp ? (
+                        <span className="flex items-center justify-end">
+                            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Sending Code...
+                        </span>
+                    ) : otpSent && counter > 0 ? (
+                        `Resend Code in ${counter}s`
+                    ) : (
+                        "Send Code"
+                    )}
                 </button>
             </div>
 
@@ -173,7 +180,7 @@ function Forgot() {
                     placeholder="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    disabled={!otpVerified}
+                    disabled={!otpVerified || resettingPassword}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400 pr-10"
                 />
                 <button
@@ -196,7 +203,7 @@ function Forgot() {
                     placeholder="Confirm password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={!otpVerified}
+                    disabled={!otpVerified || resettingPassword}
                     className="w-full border border-gray-300 rounded-md py-2 px-3 outline-none focus:border-gray-400 pr-10"
                 />
                 <button
@@ -210,11 +217,21 @@ function Forgot() {
 
             {/* Reset Password Button */}
             <button
-                className="w-full bg-black text-white py-2 rounded-md font-semibold hover:bg-gray-900 transition-colors"
-                disabled={!otpVerified}
+                className="w-full bg-black text-white py-2 rounded-md font-semibold hover:bg-gray-900 transition-colors flex items-center justify-center"
+                disabled={!otpVerified || resettingPassword}
                 onClick={handleResetPassword}
             >
-                Reset Password
+                {resettingPassword ? (
+                    <>
+                        <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Resetting Password...
+                    </>
+                ) : (
+                    "Reset Password"
+                )}
             </button>
 
             {/* Bottom text */}

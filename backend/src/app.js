@@ -45,9 +45,9 @@ const logStream = fs.createWriteStream(path.join(__dirname, 'logs', 'access.log'
 
 app.use(morgan('combined', { stream: logStream }));
 
-app.use("/admin", adminRoutes)
-app.use("/seller", sellerRoutes)
-app.use("/user", userRouter);
+app.use("/api/admin", adminRoutes)
+app.use("/api/seller", sellerRoutes)
+app.use("/api/user", userRouter);
 app.use((req, res, next) => {
     res.status(NOT_FOUND).json({ message: 'Route not found' });
 });

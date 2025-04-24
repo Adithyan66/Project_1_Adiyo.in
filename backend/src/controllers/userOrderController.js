@@ -788,7 +788,6 @@ export const createOrder = async (req, res) => {
                     "colors.color": productColor,
                     [`colors.variants.${sizeKey}.stock`]: { $gte: quantity }
                 },)
-                console.log("need a product here", justProduct, "arguments are ", sizeKey, quantity);
 
                 const updated = await Product.findOneAndUpdate(
                     {
@@ -805,14 +804,12 @@ export const createOrder = async (req, res) => {
                     }
                 );
                 if (!updated) {
-                    console.log("error thrown from here");
 
                     throw new Error(`Out of stock: ${product.name} (${productColor}/${productSize})`);
                 }
             }
         } catch (stockError) {
 
-            console.log("here not need to work", stockError);
 
             // 🔄 REFUND & FAILED ORDER HANDLING
             const refundAmt = finalTotalAmount;
