@@ -38,6 +38,7 @@ import SalesDetailsPage from './pages/admin/SalesDetailsPage';
 import ReferralsDetailsPage from './pages/customer/ReferralsDetailsPage';
 import WalletManagementPage from './pages/admin/WalletManagementPage';
 import httpClient from './services/httpClient';
+import { captureReferral } from './utils/referral';
 
 
 function App() {
@@ -70,6 +71,11 @@ function App() {
 
     persistLogin();
   }, [dispatch, navigate]);
+
+
+  useEffect(() => {
+    captureReferral();
+  }, []);
 
 
   return (

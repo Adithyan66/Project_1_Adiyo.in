@@ -11,15 +11,24 @@ export const login = async (credentials) => {
         throw error
     }
 }
-export const googleLogin = async (credential) => {
-    try {
-        const response = await httpClient.post("/user/google-login", { token: credential })
-        return response
-    } catch (error) {
-        console.error("Error during login:", error)
-        throw error
-    }
-}
+
+// export const googleLogin = async (credential) => {
+//     try {
+//         const response = await httpClient.post("/user/google-login", { token: credential })
+//         return response
+//     } catch (error) {
+//         console.error("Error during login:", error)
+//         throw error
+//     }
+// }
+
+export const googleLogin = (credential) => {
+    const referralCode = localStorage.getItem('referralCode');
+    return httpClient.post('/user/google-login', {
+        token: credential,
+        referralCode
+    });
+};
 
 export const sentOtp = async (email) => {
     try {

@@ -59,6 +59,7 @@ export const signUp = async (req, res) => {
         const userId = await generateUniqueUserId(role);
         const hashedPassword = await bcrypt.hash(password, 10);
 
+
         let referrerUserReferral = null;
         let referralOffer = null;
 
@@ -90,6 +91,15 @@ export const signUp = async (req, res) => {
             password: hashedPassword,
             role: role || "customer",
         });
+
+        const wallet = await Wallet.create({
+            userId: user._id,
+            balance: 0,
+            pendingBalance: 0,
+            currency: 'INR',
+            isActive: true,
+        });
+
 
         if (referralCode && referrerUserReferral && referralOffer) {
 
@@ -149,7 +159,7 @@ export const signUp = async (req, res) => {
             await UserReferral.create({
                 user: user._id,
                 referralCode: await generateUniqueReferralCode(),
-                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referralLink: `https://adiyo.shop/join/${referralCode}`,
                 referrals: []
             });
 
@@ -160,19 +170,10 @@ export const signUp = async (req, res) => {
             await UserReferral.create({
                 user: user._id,
                 referralCode,
-                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referralLink: `https://adiyo.shop/join/${referralCode}`,
                 referrals: []
             });
         }
-
-        // const token = jwt.sign({ userId: user._id }, "secret", { expiresIn: "30d" });
-
-        // res.cookie("session", token, {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: "Lax",
-        //     maxAge: 30 * 24 * 60 * 60 * 1000,
-        // });
 
         const payload = { userId: user._id, role: user.role };
 
@@ -235,21 +236,8 @@ export const login = async (req, res) => {
         const payload = { userId: user._id, role: user.role };
 
         const accessToken = generateAccessToken(payload);
+
         const refreshToken = generateRefreshToken(payload);
-
-        // const token = jwt.sign(
-        //     { userId: user._id, role: user.role },
-        //     process.env.JWT_SECRET,
-        //     { expiresIn: "30d" }
-        // );
-
-        // res.cookie("session", token, {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: "lax",
-        //     path: "/",
-        //     maxAge: 30 * 24 * 60 * 60 * 1000
-        // });
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
@@ -365,16 +353,21 @@ export const resetPassword = async (req, res) => {
 
 
 
-export const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res) => {
 
-    const idToken = req.body.token;
+    console.log("function workinggggggggggggggg");
+
+
+    const { token: idToken, referralCode } = req.body;
 
     if (!idToken) {
         return res.status(BAD_REQUEST).json({
             success: false,
-            message: "Token not provided"
+            message: 'Token not provided'
         });
     }
 
@@ -382,71 +375,131 @@ export const googleLogin = async (req, res) => {
 
         const ticket = await client.verifyIdToken({
             idToken,
-            audience: process.env.GOOGLE_CLIENT_ID,
+            audience: process.env.GOOGLE_CLIENT_ID
         });
-        const payload = ticket.getPayload();
-        const { sub: googleId, email, name } = payload;
+        const { sub: googleId, email, name: username } = ticket.getPayload();
 
-        let user = await User.findOne({ email });
-        let role = "customer";
+        let user = await User.findOne({ googleId })
+            || await User.findOne({ email });
 
-        if (!user) {
+        const isNewUser = !user;
 
-            const userId = await generateUniqueUserId(role);
+        console.log("isnew user ", isNewUser);
 
-            user = new User({
-                username: name,
-                email,
-                googleId,
-                userId,
-            });
-            await user.save();
 
-            const referralCode = await generateUniqueReferralCode()
+        if (isNewUser) {
+
+            console.log("workeddddddddddd ");
+
+            const userId = await generateUniqueUserId('customer');
+
+            user = await User.create({ googleId, email, username, userId, role: 'customer' });
+
+            const newCode = await generateUniqueReferralCode();
 
             await UserReferral.create({
                 user: user._id,
-                referralCode,
-                referralLink: `https://adiyo.in/join/${referralCode}`,
+                referralCode: newCode,
+                referralLink: `https://adiyo.shop/join/${newCode}`,
                 referrals: []
             });
-        }
 
-        user = await User.findOne({ email });
+            console.log("thsi is user id", user._id);
 
-        if (!user.isActive) {
-
-            return res.status(BAD_REQUEST).json({
-                success: false,
-                message: 'User is Blocked'
+            const wallet = await Wallet.create({
+                userId: user._id,
+                balance: 0,
+                pendingBalance: 0,
+                currency: 'INR',
+                isActive: true,
             });
         }
 
-        // const sessionToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || "secret", { expiresIn: "30d" });
+        if (isNewUser && referralCode) {
 
-        // res.cookie("session", sessionToken, {
-        //     httpOnly: true,
-        //     secure: false,
-        //     sameSite: "Lax",
-        //     maxAge: 30 * 24 * 60 * 60 * 1000,
-        // });
+            console.log("alsooooooooo workeddddddddddddddddd");
 
-        const userInfo = { userId: user._id, role: user.role };
 
-        const accessToken = generateAccessToken(userInfo);
-        const refreshToken = generateRefreshToken(userInfo);
+            const referralOffer = await ReferralOffer.findOne({ isActive: true, deletedAt: null });
+            if (!referralOffer) {
+                return res.status(BAD_REQUEST).json({
+                    success: false,
+                    message: 'No active referral program right now'
+                });
+            }
 
-        res.cookie("refreshToken", refreshToken, {
+            const referrerProfile = await UserReferral.findOne({ referralCode });
+            if (!referrerProfile) {
+                return res.status(BAD_REQUEST).json({
+                    success: false,
+                    message: 'Invalid referral code'
+                });
+            }
+
+            const session = await mongoose.startSession();
+            session.startTransaction();
+            try {
+                const wallet = await Wallet.findOne({ userId: referrerProfile.user });
+                const amount = referralOffer.rewardAmount;
+                const txId = generateTransactionId();
+
+                await Transaction.create([{
+                    transactionId: txId,
+                    walletId: wallet._id,
+                    userId: referrerProfile.user,
+                    type: 'referral',
+                    amount,
+                    balance: wallet.balance + amount,
+                    description: `Referral bonus from ${username}`,
+                    status: 'completed',
+                    source: 'referral'
+                }], { session });
+
+                wallet.balance += amount;
+                wallet.updatedAt = new Date();
+                await wallet.save({ session });
+
+                const newReferral = await mongoose.model('Referral').create([{
+                    user: referrerProfile.user,
+                    name: username,
+                    email,
+                    status: 'inactive',
+                    amount,
+                    isPaid: true
+                }], { session });
+
+                referrerProfile.referrals.push(newReferral[0]._id);
+                await referrerProfile.updateStats();
+                await referrerProfile.save({ session });
+
+                await session.commitTransaction();
+            } catch (err) {
+                await session.abortTransaction();
+                throw err;
+            } finally {
+                session.endSession();
+            }
+        }
+
+        if (!user.isActive) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: 'User is blocked'
+            });
+        }
+
+        const payload = { userId: user._id, role: user.role };
+        const accessToken = generateAccessToken(payload);
+        const refreshToken = generateRefreshToken(payload);
+
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "strict",
-            path: "/",
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
             maxAge: cookieMaxAge
         });
 
-        logger.info(`${user.username} logged `);
-
-        res.status(OK).json({
+        return res.status(OK).json({
             success: true,
             message: 'Google login successful',
             token: accessToken,
@@ -454,30 +507,21 @@ export const googleLogin = async (req, res) => {
             user: {
                 _id: user._id,
                 email: user.email,
-                username: user.username,
+                username: user.username
             }
         });
 
     } catch (error) {
-
-        console.error('Error verifying token:', error);
-        res.status(BAD_REQUEST).json({
+        console.error('Google login error:', error);
+        return res.status(BAD_REQUEST).json({
             success: false,
-            message: 'Invalid token'
+            message: 'Invalid Google token'
         });
     }
 };
 
 
-// export const logout = async (req, res) => {
 
-//     res.clearCookie("session", { path: "/" });
-//     res.status(OK).json({
-//         status: true,
-//         message: "logout succesfully"
-//     })
-
-// }
 
 export const logout = (req, res) => {
     try {
@@ -517,10 +561,8 @@ export const profile = async (req, res) => {
             });
         }
 
-        // Verify token and extract userId
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Find user with the decoded userId
         const user = await User.findById(decoded.userId);
 
         if (!user) {
@@ -569,23 +611,19 @@ export const tokenRefresh = async (req, res) => {
     }
 
     try {
-        // Verify the refresh token using the refresh secret
         const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
 
-        // Generate a new short-lived access token
         const newAccessToken = jwt.sign(
             { userId: payload.userId, role: payload.role },
             process.env.JWT_SECRET,
-            { expiresIn: '15m' } // Adjust the expiration as needed
+            { expiresIn: '15m' }
         );
 
-        // Fetch user details from the database using the userId from the token payload
-        const user = await User.findById(payload.userId).select('-password'); // omit sensitive info
+        const user = await User.findById(payload.userId).select('-password');
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
-        // Respond with the new access token, user details, and role
         return res.status(200).json({
             success: true,
             message: "Token verified",

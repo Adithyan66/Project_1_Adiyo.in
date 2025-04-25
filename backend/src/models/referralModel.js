@@ -86,12 +86,6 @@ const UserReferralSchema = new mongoose.Schema({
 
 
 
-
-
-
-
-
-
 // ReferralSchema.index({ user: 1 });
 // ReferralSchema.index({ status: 1 });
 // UserReferralSchema.index({ referralCode: 1 });
