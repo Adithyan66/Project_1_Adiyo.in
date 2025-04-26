@@ -60,7 +60,7 @@ function Forgot() {
         try {
             const response = await forgotPassword(email);
             toast.success(response.data.message);
-            setOtpSent(response.data.status);
+            setOtpSent(response.data.success);
 
             setCounter(60);
         } catch (err) {

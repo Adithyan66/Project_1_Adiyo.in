@@ -1,4 +1,490 @@
+// import HttpStatusCode from "../utils/httpStatusCodes.js";
+// const {
+//     OK,
+//     CREATED,
+//     ACCEPTED,
+//     NO_CONTENT,
+//     BAD_REQUEST,
+//     UNAUTHORIZED,
+//     FORBIDDEN,
+//     NOT_FOUND,
+//     METHOD_NOT_ALLOWED,
+//     CONFLICT,
+//     UNPROCESSABLE_ENTITY,
+//     INTERNAL_SERVER_ERROR,
+//     BAD_GATEWAY,
+//     SERVICE_UNAVAILABLE,
+//     GATEWAY_TIMEOUT
+// } = HttpStatusCode
+
+// const ObjectId = mongoose.Types.ObjectId;
+
+// import mongoose from "mongoose";
+// import Product from "../models/productModel.js"
+// import Cart from "../models/cartSchema.js";
+// import Wishlist from "../models/wishListModel.js";
+// import { attachSignedUrlsToCartItems } from "../utils/imageService.js";
+
+
+
+
+// export const addCart = async (req, res) => {
+
+//     const userId = req.user.userId
+
+//     const {
+//         productId,
+//         selectedColor,
+//         selectedSize,
+//         quantity,
+//         removeFromWishlist
+//     } = req.body.data
+
+//     try {
+
+//         if (!productId || !selectedColor || !selectedSize || !quantity) {
+
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "Missing required fields."
+//             });
+//         }
+
+//         const product = await Product.findById(productId);
+
+//         if (!product) {
+
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "product not found"
+//             })
+//         }
+
+//         if (product.deletedAt) {
+
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "product not available"
+//             })
+//         }
+
+//         const colorVarient = product.colors.find(
+//             (col) => col.color.toLowerCase() === selectedColor.toLowerCase()
+//         )
+//         if (!colorVarient) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "selected color varient not found"
+//             })
+//         }
+
+//         const variant = colorVarient.variants[selectedSize];
+
+//         if (!variant) {
+
+//             return res.status(BAD_REQUEST).json({
+//                 status: false,
+//                 message: "selected size not available"
+//             })
+//         }
+
+//         if (variant.stock < quantity) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "Insufficient stock for the selected variant."
+//             });
+//         }
+
+//         if (removeFromWishlist) {
+//             const wishlist = await Wishlist.findOne({ user: req.user.userId });
+//             if (wishlist) {
+//                 wishlist.items = wishlist.items.filter(
+//                     item => !(item.product.toString() === productId && item.selectedColor === selectedColor)
+//                 );
+//                 await wishlist.save();
+//             }
+//         }
+
+//         let cart = await Cart.findOne({ user: userId })
+
+//         if (!cart) {
+//             cart = new Cart({ user: userId, items: [] })
+//         }
+
+//         const existingItemIndex = cart.items.findIndex(
+//             (item) =>
+//                 item.product.toString() === productId &&
+//                 item.selectedColor.toLowerCase() === selectedColor.toLowerCase() &&
+//                 item.selectedSize === selectedSize.toLowerCase()
+//         )
+
+//         const maxAllowed = 5;
+
+//         if (existingItemIndex > -1) {
+//             const cartItem = cart.items[existingItemIndex]
+//             const newQuantity = cartItem.quantity + quantity
+
+//             if (newQuantity > maxAllowed) {
+//                 return res.status(BAD_REQUEST).json({
+//                     success: false,
+//                     message: "Reached maximum allowed quantity for this product"
+//                 })
+//             }
+//             if (newQuantity > variant.stock) {
+//                 return res.status(BAD_REQUEST).json({
+//                     success: false,
+//                     message: "Insufficient stock to add the requested quantity"
+//                 })
+//             }
+
+//             cart.items[existingItemIndex].quantity = newQuantity
+
+//         } else {
+
+//             cart.items.push({
+//                 product: new ObjectId(productId),
+//                 selectedColor,
+//                 selectedSize,
+//                 quantity
+//             })
+//         }
+
+//         await cart.save()
+
+//         res.status(OK).json({
+//             success: true,
+//             message: "product added to cart succesfully"
+//         })
+
+//     } catch (error) {
+
+//         console.log(error);
+//         res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: "server error"
+//         })
+//     }
+// }
+
+
+// export const cartItems = async (req, res, next) => {
+
+//     const userId = req.user.userId
+
+//     try {
+//         if (!userId) {
+//             return res.status(UNAUTHORIZED).json({
+//                 success: false,
+//                 message: "Unauthorized User not authenticated"
+//             })
+//         }
+
+//         const cart = await Cart.findOne({ user: userId }).populate("items.product")
+
+//         if (!cart) {
+//             return res.status(OK).json({
+//                 success: true,
+//                 message: "cart is empty",
+//                 items: []
+//             })
+//         }
+
+//         const cartItemsForRes = await attachSignedUrlsToCartItems(cart.items)
+
+//         res.status(OK).json({
+//             success: true,
+//             message: "cart items fetched succesfully",
+//             items: cartItemsForRes
+//         })
+
+//     } catch (error) {
+//         next(error)
+//         // console.log(error)
+//         // res.status(INTERNAL_SERVER_ERROR).json({
+//         //     success: false,
+//         //     message: "server error"
+//         // })
+//     }
+// }
+
+
+// export const removeCartItem = async (req, res) => {
+
+//     const { userId } = req.user
+
+//     const itemId = req.params.itemId
+
+//     try {
+
+//         if (!userId || !itemId) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "not authorised or no cart Id"
+//             })
+//         }
+
+//         const cart = await Cart.findOne({ user: userId })
+
+//         if (!cart) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "cart not found"
+//             })
+//         }
+
+//         const removedItem = cart.items.pull(itemId)
+
+//         if (!removedItem) {
+//             return res.status(NOT_FOUND).json({
+//                 status: false,
+//                 message: "cart item not found",
+//             })
+//         }
+
+//         await cart.save()
+
+//         res.status(OK).json({
+//             success: true,
+//             message: "cart item removed"
+//         })
+
+//     } catch (error) {
+
+//         console.log(error);
+//         res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: "server error"
+//         })
+//     }
+// }
+
+// export const updateCartQuantity = async (req, res) => {
+
+//     try {
+
+//         if (!req.user || !req.user.userId) {
+//             return res.status(UNAUTHORIZED).json({
+//                 success: false,
+//                 message: "Unauthorized: User not authenticated"
+//             });
+//         }
+
+//         const userId = req.user.userId;
+//         const { itemId } = req.params;
+//         const { newQuantity } = req.body;
+
+//         if (!newQuantity || newQuantity < 1) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: "Invalid quantity. It must be at least 1"
+//             });
+//         }
+
+//         const cart = await Cart.findOne({ user: userId });
+
+//         if (!cart) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "Cart not found."
+//             });
+//         }
+
+//         const cartItem = cart.items.id(itemId);
+
+//         if (!cartItem) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "Cart item not found"
+//             });
+//         }
+
+//         const product = await Product.findById(cartItem.product);
+
+//         if (!product) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "Product not found"
+//             });
+//         }
+
+//         const selectedColor = product.colors.find(color => color.color === cartItem.selectedColor);
+
+//         if (!selectedColor) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "Selected color not found for this product"
+//             });
+//         }
+
+//         const selectedSizeKey = cartItem.selectedSize.toLowerCase();
+//         const selectedVariant = selectedColor.variants[selectedSizeKey];
+
+//         if (!selectedVariant) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: "Selected size not found for this product color"
+//             });
+//         }
+
+//         if (newQuantity > selectedVariant.stock) {
+//             return res.status(BAD_REQUEST).json({
+//                 success: false,
+//                 message: `Only ${selectedVariant.stock} units available in stock`,
+//                 availableStock: selectedVariant.stock
+//             });
+//         }
+
+//         cartItem.quantity = newQuantity;
+//         await cart.save();
+
+//         return res.status(OK).json({
+//             success: true,
+//             message: "Cart item quantity updated successfully."
+//         });
+
+//     } catch (error) {
+
+//         console.error("Error updating cart item quantity:", error);
+//         return res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: "Server error while updating cart item quantity."
+//         });
+//     }
+// }
+
+// export const checkCart = async (req, res) => {
+
+//     try {
+
+//         const userId = req.user.userId;
+
+//         const cart = await Cart.findOne({ user: userId })
+//             .populate({
+//                 path: 'items.product',
+//                 select: 'name size colors _id'
+//             });
+
+//         if (!cart) {
+//             return res.status(OK).json({
+//                 status: true,
+//                 cart: []
+//             });
+//         }
+
+//         return res.status(OK).json({
+//             status: true,
+//             cart: cart.items
+//         });
+
+//     } catch (error) {
+
+//         console.error("Error fetching cart:", error);
+//         return res.status(INTERNAL_SERVER_ERROR).json({
+//             status: false,
+//             message: "Server error"
+//         });
+//     }
+// };
+
+
+
+// export const deleteCart = async (req, res) => {
+
+//     try {
+
+//         const userId = req.user.userId;
+
+//         const result = await Cart.findOneAndUpdate(
+//             { user: userId },
+//             { $set: { items: [] } },
+//             { new: true }
+//         );
+
+//         if (!result) {
+//             return res.status(NOT_FOUND).json({
+//                 success: false,
+//                 message: 'Cart not found'
+//             });
+//         }
+
+//         return res.status(OK).json({
+//             success: true,
+//             message: 'Cart cleared successfully'
+//         });
+
+//     } catch (error) {
+
+//         console.error('Error clearing cart:', error);
+//         return res.status(INTERNAL_SERVER_ERROR).json({
+//             success: false,
+//             message: 'Server error while clearing cart'
+//         });
+//     }
+// }
+
+
+
+// export const checkAvailability = async (req, res) => {
+//     try {
+//         const { items } = req.body;
+//         // items: [{ productId, selectedColor, selectedSize, quantity }, …]
+
+//         const availability = await Promise.all(items.map(async item => {
+
+//             const { productId, selectedColor, selectedSize, quantity } = item;
+
+//             const product = await Product.findById(productId)
+//                 //    .select('colors')
+//                 .lean();
+//             if (!product) {
+//                 return { productId, productName: product.name, available: false, reason: 'Not found' };
+//             }
+
+//             const colorDoc = product.colors.find(c => c.color === selectedColor);
+//             if (!colorDoc) {
+//                 return { productId, productName: product.name, available: false, reason: 'Color not available' };
+//             }
+
+//             const sizeKey = selectedSize.toLowerCase();
+//             const variant = colorDoc.variants?.[sizeKey];
+//             if (!variant) {
+//                 return { productId, productName: product.name, available: false, reason: 'Size not available' };
+//             }
+
+//             const inStock = variant.stock >= quantity;
+//             return {
+//                 productName: product.name,
+//                 available: inStock,
+//                 stock: variant.stock,
+//                 reason: inStock ? null : 'Insufficient stock'
+//             };
+//         }));
+
+//         const status = availability.filter(product => product.available === false)
+
+//         if (status.length > 0) {
+//             return res.status(OK).json({ success: false, availability: status })
+//         }
+
+//         return res.status(OK).json({ success: true, availability });
+
+//     } catch (err) {
+//         console.error('Error in checkAvailability:', err);
+//         return res.status(INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
+//     }
+// };
+
+
+
+
+
+
+
+
+
+
 import HttpStatusCode from "../utils/httpStatusCodes.js";
+import messages from "../utils/messages.js";
 const {
     OK,
     CREATED,
@@ -15,83 +501,72 @@ const {
     BAD_GATEWAY,
     SERVICE_UNAVAILABLE,
     GATEWAY_TIMEOUT
-} = HttpStatusCode
+} = HttpStatusCode;
 
 const ObjectId = mongoose.Types.ObjectId;
 
 import mongoose from "mongoose";
-import Product from "../models/productModel.js"
+import Product from "../models/productModel.js";
 import Cart from "../models/cartSchema.js";
 import Wishlist from "../models/wishListModel.js";
 import { attachSignedUrlsToCartItems } from "../utils/imageService.js";
-
-
-
+import { log } from "console";
 
 export const addCart = async (req, res) => {
-
-    const userId = req.user.userId
-
+    const userId = req.user.userId;
     const {
         productId,
         selectedColor,
         selectedSize,
         quantity,
         removeFromWishlist
-    } = req.body.data
+    } = req.body.data;
 
     try {
-
         if (!productId || !selectedColor || !selectedSize || !quantity) {
-
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: "Missing required fields."
+                message: messages.CART.MISSING_FIELDS
             });
         }
 
         const product = await Product.findById(productId);
-
         if (!product) {
-
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "product not found"
-            })
+                message: messages.CART.PRODUCT_NOT_FOUND
+            });
         }
 
         if (product.deletedAt) {
-
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: "product not available"
-            })
+                message: messages.CART.PRODUCT_NOT_AVAILABLE
+            });
         }
 
         const colorVarient = product.colors.find(
             (col) => col.color.toLowerCase() === selectedColor.toLowerCase()
-        )
+        );
         if (!colorVarient) {
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: "selected color varient not found"
-            })
+                message: messages.CART.COLOR_NOT_FOUND
+            });
         }
 
         const variant = colorVarient.variants[selectedSize];
-
         if (!variant) {
-
             return res.status(BAD_REQUEST).json({
-                status: false,
-                message: "selected size not available"
-            })
+                success: false,
+                message: messages.CART.SIZE_NOT_AVAILABLE
+            });
         }
 
         if (variant.stock < quantity) {
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: "Insufficient stock for the selected variant."
+                message: messages.CART.INSUFFICIENT_STOCK
             });
         }
 
@@ -105,10 +580,9 @@ export const addCart = async (req, res) => {
             }
         }
 
-        let cart = await Cart.findOne({ user: userId })
-
+        let cart = await Cart.findOne({ user: userId });
         if (!cart) {
-            cart = new Cart({ user: userId, items: [] })
+            cart = new Cart({ user: userId, items: [] });
         }
 
         const existingItemIndex = cart.items.findIndex(
@@ -116,156 +590,137 @@ export const addCart = async (req, res) => {
                 item.product.toString() === productId &&
                 item.selectedColor.toLowerCase() === selectedColor.toLowerCase() &&
                 item.selectedSize === selectedSize.toLowerCase()
-        )
+        );
 
         const maxAllowed = 5;
-
         if (existingItemIndex > -1) {
-            const cartItem = cart.items[existingItemIndex]
-            const newQuantity = cartItem.quantity + quantity
+            const cartItem = cart.items[existingItemIndex];
+            const newQuantity = cartItem.quantity + quantity;
 
             if (newQuantity > maxAllowed) {
                 return res.status(BAD_REQUEST).json({
                     success: false,
-                    message: "Reached maximum allowed quantity for this product"
-                })
+                    message: messages.CART.MAX_QUANTITY_REACHED
+                });
             }
             if (newQuantity > variant.stock) {
                 return res.status(BAD_REQUEST).json({
                     success: false,
-                    message: "Insufficient stock to add the requested quantity"
-                })
+                    message: messages.CART.INSUFFICIENT_STOCK_ADD
+                });
             }
 
-            cart.items[existingItemIndex].quantity = newQuantity
-
+            cart.items[existingItemIndex].quantity = newQuantity;
         } else {
-
             cart.items.push({
                 product: new ObjectId(productId),
                 selectedColor,
                 selectedSize,
                 quantity
-            })
+            });
         }
 
-        await cart.save()
+        await cart.save();
 
         res.status(OK).json({
             success: true,
-            message: "product added to cart succesfully"
-        })
-
+            message: messages.CART.ADDED_SUCCESSFULLY
+        });
     } catch (error) {
-
         console.log(error);
         res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "server error"
-        })
+            message: messages.CART.FAILED_ADD
+        });
     }
-}
-
+};
 
 export const cartItems = async (req, res, next) => {
-
-    const userId = req.user.userId
+    const userId = req.user.userId;
 
     try {
         if (!userId) {
             return res.status(UNAUTHORIZED).json({
                 success: false,
-                message: "Unauthorized User not authenticated"
-            })
+                message: messages.AUTH.USER_NOT_AUTHENTICATED
+            });
         }
 
-        const cart = await Cart.findOne({ user: userId }).populate("items.product")
+        const cart = await Cart.findOne({ user: userId }).populate("items.product");
 
         if (!cart) {
             return res.status(OK).json({
                 success: true,
-                message: "cart is empty",
+                message: messages.CART.CART_EMPTY,
                 items: []
-            })
+            });
         }
 
-        const cartItemsForRes = await attachSignedUrlsToCartItems(cart.items)
+        const cartItemsForRes = await attachSignedUrlsToCartItems(cart.items);
 
         res.status(OK).json({
             success: true,
-            message: "cart items fetched succesfully",
+            message: messages.CART.FETCHED_SUCCESSFULLY,
             items: cartItemsForRes
-        })
-
+        });
     } catch (error) {
-        next(error)
-        // console.log(error)
-        // res.status(INTERNAL_SERVER_ERROR).json({
-        //     success: false,
-        //     message: "server error"
-        // })
-    }
-}
-
-
-export const removeCartItem = async (req, res) => {
-
-    const { userId } = req.user
-
-    const itemId = req.params.itemId
-
-    try {
-
-        if (!userId || !itemId) {
-            return res.status(BAD_REQUEST).json({
-                success: false,
-                message: "not authorised or no cart Id"
-            })
-        }
-
-        const cart = await Cart.findOne({ user: userId })
-
-        if (!cart) {
-            return res.status(NOT_FOUND).json({
-                success: false,
-                message: "cart not found"
-            })
-        }
-
-        const removedItem = cart.items.pull(itemId)
-
-        if (!removedItem) {
-            return res.status(NOT_FOUND).json({
-                status: false,
-                message: "cart item not found",
-            })
-        }
-
-        await cart.save()
-
-        res.status(OK).json({
-            success: true,
-            message: "cart item removed"
-        })
-
-    } catch (error) {
-
         console.log(error);
         res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "server error"
-        })
+            message: messages.CART.FAILED_FETCH
+        });
     }
-}
+};
 
-export const updateCartQuantity = async (req, res) => {
+export const removeCartItem = async (req, res) => {
+    const { userId } = req.user;
+    const itemId = req.params.itemId;
 
     try {
+        if (!userId || !itemId) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: messages.CART.NOT_AUTHORIZED
+            });
+        }
 
+        const cart = await Cart.findOne({ user: userId });
+        if (!cart) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.CART.CART_NOT_FOUND
+            });
+        }
+
+        const removedItem = cart.items.pull(itemId);
+        if (!removedItem) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.CART.ITEM_NOT_FOUND
+            });
+        }
+
+        await cart.save();
+
+        res.status(OK).json({
+            success: true,
+            message: messages.CART.REMOVED_SUCCESSFULLY
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.CART.FAILED_REMOVE
+        });
+    }
+};
+
+export const updateCartQuantity = async (req, res) => {
+    try {
         if (!req.user || !req.user.userId) {
             return res.status(UNAUTHORIZED).json({
                 success: false,
-                message: "Unauthorized: User not authenticated"
+                message: messages.AUTH.USER_NOT_AUTHENTICATED
             });
         }
 
@@ -276,60 +731,55 @@ export const updateCartQuantity = async (req, res) => {
         if (!newQuantity || newQuantity < 1) {
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: "Invalid quantity. It must be at least 1"
+                message: messages.CART.INVALID_QUANTITY
             });
         }
 
         const cart = await Cart.findOne({ user: userId });
-
         if (!cart) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "Cart not found."
+                message: messages.CART.CART_NOT_FOUND
             });
         }
 
         const cartItem = cart.items.id(itemId);
-
         if (!cartItem) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "Cart item not found"
+                message: messages.CART.ITEM_NOT_FOUND
             });
         }
 
         const product = await Product.findById(cartItem.product);
-
         if (!product) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "Product not found"
+                message: messages.CART.PRODUCT_NOT_FOUND
             });
         }
 
         const selectedColor = product.colors.find(color => color.color === cartItem.selectedColor);
-
         if (!selectedColor) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "Selected color not found for this product"
+                message: messages.CART.COLOR_NOT_FOUND
             });
         }
 
         const selectedSizeKey = cartItem.selectedSize.toLowerCase();
         const selectedVariant = selectedColor.variants[selectedSizeKey];
-
         if (!selectedVariant) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: "Selected size not found for this product color"
+                message: messages.CART.SIZE_NOT_AVAILABLE
             });
         }
 
         if (newQuantity > selectedVariant.stock) {
             return res.status(BAD_REQUEST).json({
                 success: false,
-                message: `Only ${selectedVariant.stock} units available in stock`,
+                message: messages.CART.STOCK_LIMIT_EXCEEDED,
                 availableStock: selectedVariant.stock
             });
         }
@@ -339,25 +789,20 @@ export const updateCartQuantity = async (req, res) => {
 
         return res.status(OK).json({
             success: true,
-            message: "Cart item quantity updated successfully."
+            message: messages.CART.QUANTITY_UPDATED_SUCCESSFULLY
         });
-
     } catch (error) {
-
         console.error("Error updating cart item quantity:", error);
         return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: "Server error while updating cart item quantity."
+            message: messages.CART.FAILED_UPDATE_QUANTITY
         });
     }
-}
+};
 
 export const checkCart = async (req, res) => {
-
     try {
-
         const userId = req.user.userId;
-
         const cart = await Cart.findOne({ user: userId })
             .populate({
                 path: 'items.product',
@@ -366,34 +811,29 @@ export const checkCart = async (req, res) => {
 
         if (!cart) {
             return res.status(OK).json({
-                status: true,
+                success: true,
+                message: messages.CART.CART_EMPTY,
                 cart: []
             });
         }
 
         return res.status(OK).json({
-            status: true,
+            success: true,
+            message: messages.CART.FETCHED_SUCCESSFULLY,
             cart: cart.items
         });
-
     } catch (error) {
-
         console.error("Error fetching cart:", error);
         return res.status(INTERNAL_SERVER_ERROR).json({
-            status: false,
-            message: "Server error"
+            success: false,
+            message: messages.CART.FAILED_FETCH
         });
     }
 };
 
-
-
 export const deleteCart = async (req, res) => {
-
     try {
-
         const userId = req.user.userId;
-
         const result = await Cart.findOneAndUpdate(
             { user: userId },
             { $set: { items: [] } },
@@ -403,52 +843,43 @@ export const deleteCart = async (req, res) => {
         if (!result) {
             return res.status(NOT_FOUND).json({
                 success: false,
-                message: 'Cart not found'
+                message: messages.CART.CART_NOT_FOUND
             });
         }
 
         return res.status(OK).json({
             success: true,
-            message: 'Cart cleared successfully'
+            message: messages.CART.CLEARED_SUCCESSFULLY
         });
-
     } catch (error) {
-
         console.error('Error clearing cart:', error);
         return res.status(INTERNAL_SERVER_ERROR).json({
             success: false,
-            message: 'Server error while clearing cart'
+            message: messages.CART.FAILED_CLEAR
         });
     }
-}
-
-
+};
 
 export const checkAvailability = async (req, res) => {
     try {
         const { items } = req.body;
-        // items: [{ productId, selectedColor, selectedSize, quantity }, …]
-
         const availability = await Promise.all(items.map(async item => {
-
             const { productId, selectedColor, selectedSize, quantity } = item;
+            const product = await Product.findById(productId).lean();
 
-            const product = await Product.findById(productId)
-                //    .select('colors')
-                .lean();
             if (!product) {
-                return { productId, productName: product.name, available: false, reason: 'Not found' };
+                return { productId, productName: product?.name, available: false, reason: messages.CART.PRODUCT_NOT_FOUND };
             }
 
             const colorDoc = product.colors.find(c => c.color === selectedColor);
             if (!colorDoc) {
-                return { productId, productName: product.name, available: false, reason: 'Color not available' };
+                return { productId, productName: product.name, available: false, reason: messages.CART.COLOR_NOT_FOUND };
             }
 
             const sizeKey = selectedSize.toLowerCase();
             const variant = colorDoc.variants?.[sizeKey];
             if (!variant) {
-                return { productId, productName: product.name, available: false, reason: 'Size not available' };
+                return { productId, productName: product.name, available: false, reason: messages.CART.SIZE_NOT_AVAILABLE };
             }
 
             const inStock = variant.stock >= quantity;
@@ -456,20 +887,60 @@ export const checkAvailability = async (req, res) => {
                 productName: product.name,
                 available: inStock,
                 stock: variant.stock,
-                reason: inStock ? null : 'Insufficient stock'
+                reason: inStock ? null : messages.CART.INSUFFICIENT_STOCK
             };
         }));
 
-        const status = availability.filter(product => product.available === false)
+        const status = availability.filter(product => product.available === false);
 
         if (status.length > 0) {
-            return res.status(OK).json({ success: false, availability: status })
+            return res.status(OK).json({ success: false, availability: status });
         }
 
-        return res.status(OK).json({ success: true, availability });
-
+        return res.status(OK).json({
+            success: true,
+            message: messages.CART.CHECKED_SUCCESSFULLY,
+            availability
+        });
     } catch (err) {
         console.error('Error in checkAvailability:', err);
-        return res.status(INTERNAL_SERVER_ERROR).json({ success: false, message: 'Server error' });
+        return res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.CART.FAILED_CHECK
+        });
+    }
+};
+
+
+export const clearCart = async (req, res) => {
+    try {
+        const cart = await Cart.findOne({ user: req.user.userId });
+
+        if (!cart) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.CART.CART_NOT_FOUND
+            });
+        }
+
+        cart.items = [];
+        await cart.save();
+
+        return res
+            .status(OK)
+            .json({
+                success: true,
+                message: "Cart cleared successfully"
+            });
+
+    } catch (error) {
+
+        console.error("Error clearing cart:", error);
+        return res
+            .status(INTERNAL_SERVER_ERROR)
+            .json({
+                success: false,
+                message: "Server error, could not clear cart"
+            });
     }
 };

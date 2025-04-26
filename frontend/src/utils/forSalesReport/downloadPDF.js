@@ -22,7 +22,7 @@ const downloadPDF = async (params) => {
         const tableColumn = ['Order ID', 'Date', 'Total Amount', 'Discounts', 'Coupon Deduction', 'Status'];
         const tableRows = response.data.data.map(sale => [
             sale.orderId,
-            formatDate(sale.date),
+            formatDate(sale.createdAt),
             `₹${sale.totalAmount}`,
             `₹${sale.discount}`,
             `₹${sale.couponCode || 0}`,

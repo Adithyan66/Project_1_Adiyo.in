@@ -54,7 +54,7 @@ export const checkUserCart = async () => {
 
 export const clearUserCart = async () => {
     try {
-        const response = await httpClient.delete(`/user/cart`);
+        const response = await httpClient.delete(`/user/clear-cart`);
         return response;
     } catch (error) {
         console.error("Error clearing user cart:", error);
@@ -65,10 +65,11 @@ export const clearUserCart = async () => {
 
 export const checkAvailable = async (items) => {
     try {
-        const response = await httpClient.post("user/check-cart-availablity", { items })
+        const response = await httpClient.post("/user/check-cart-availablity", { items })
         return response
     } catch {
         console.error("Error checking cart:", error);
         throw error;
     }
 }
+

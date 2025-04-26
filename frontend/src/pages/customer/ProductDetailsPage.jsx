@@ -27,8 +27,6 @@ function ProductDetailsPage() {
 
                 const response = await getUserDroductDetail(id)
 
-                //const response = await axios.get(`http://localhost:3333/user/product/${id}`);
-
                 console.log(response.data.product);
 
                 if (response.data && response.data.product) {

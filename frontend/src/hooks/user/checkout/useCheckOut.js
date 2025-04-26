@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getCartItems } from "../../../services/cartService";
+import { clearUserCart, getCartItems } from "../../../services/cartService";
 import { placeOrder } from "../../../services/checkoutService";
 
 
@@ -203,9 +203,9 @@ function useCheckout({
 
             if (response.data.success) {
                 dispatch(setConfirmationData(response.data.order));
-                // if (isCartCheckout) {
-                //     dispatch(clearCart());
-                // }
+                if (isCartCheckout) {
+                    await clearUserCart()
+                }
                 toast.success("Order placed successfully!");
                 dispatch(setCurrentStep('confirmation'));
             } else {

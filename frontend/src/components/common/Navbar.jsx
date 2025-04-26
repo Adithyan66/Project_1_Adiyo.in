@@ -17,23 +17,23 @@ function Navbar({ setSearchTerm, toProductPage }) {
   const [isOpen, setIsOpen] = useState(false);
   const popupRef = useRef(null);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      const modalEl = document.getElementById("login-modal");
+  // useEffect(() => {
+  //   function handleClickOutside(event) {
+  //     const modalEl = document.getElementById("login-modal");
 
-      if (
-        popupRef.current &&
-        !popupRef.current.contains(event.target) &&
-        !(modalEl && modalEl.contains(event.target))
-      ) {
-        setIsOpen(false);
-        dispatch(setLoginPopup(false));
-        dispatch(setActiveForm(""));
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [dispatch]);
+  //     if (
+  //       popupRef.current &&
+  //       !popupRef.current.contains(event.target) &&
+  //       !(modalEl && modalEl.contains(event.target))
+  //     ) {
+  //       setIsOpen(false);
+  //       dispatch(setLoginPopup(false));
+  //       dispatch(setActiveForm(""));
+  //     }
+  //   }
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => document.removeEventListener("mousedown", handleClickOutside);
+  // }, [dispatch]);
 
   return (
     <nav className="fixed top-0 left-0 w-full z-50 bg-white shadow-md px-4 sm:px-6 lg:px-8 py-2 sm:py-3">
@@ -66,14 +66,14 @@ function Navbar({ setSearchTerm, toProductPage }) {
           <div className="mr-4">
             <SearchBar setSearchTerm={setSearchTerm} toProductPage={toProductPage} />
           </div>
-          <NavButtons onUserClick={() => setIsOpen(!isOpen)} />
+          <NavButtons onUserClick={() => setIsOpen(!isOpen)} isOpen={isOpen} />
         </div>
       </div>
 
       {/* User popup (positioned appropriately for both layouts) */}
       {isOpen && (
         <div className="absolute right-4 sm:right-6 lg:right-8 top-[5.5rem] sm:top-16">
-          <UserPopupMenu popupRef={popupRef} />
+          <UserPopupMenu />
         </div>
       )}
     </nav>

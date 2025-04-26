@@ -109,8 +109,13 @@ import AddSubcategoryModal from './AddSubcategoryModal.jsx';
 import useCategoryManagement from '../../../../hooks/admin/useCategoryManagement.js';
 import { PlusIcon } from 'lucide-react';
 import { PulseRingLoader } from '../../../common/loading/Spinner.jsx';
+import ErrorModal from '../../../common/error/ErrorModal.jsx';
+import { useNavigate } from 'react-router';
 
 const CategoryManagement = () => {
+
+    const navigate = useNavigate()
+
     const {
         categories,
         selectedCategoryId,
@@ -137,9 +142,9 @@ const CategoryManagement = () => {
             <PulseRingLoader />
         );
     }
-    if (error) {
-        return <ErrorModal isOpen={true} message={error} onClose={() => navigate(-1)} />;
-    }
+    // if (error) {
+    //     return <ErrorModal isOpen={true} message={error} onClose={() => navigate(-1)} />;
+    // }
 
     return (
         <div className="p-3 sm:p-6 bg-white min-h-screen w-full">

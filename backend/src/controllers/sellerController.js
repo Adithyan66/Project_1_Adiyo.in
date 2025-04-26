@@ -1,190 +1,198 @@
 
-import cloudinary from '../config/cloudinary.js';
-import Product from '../models/productModel.js';
-import Category from '../models/categoryModel.js';
-import fs from "fs";
-import mongoose from 'mongoose';
-import { attachSignedUrlsToProduct } from '../utils/imageService.js';
-const ObjectId = mongoose.Types.ObjectId;
+// import cloudinary from '../config/cloudinary.js';
+// import Product from '../models/productModel.js';
+// import Category from '../models/categoryModel.js';
+// import fs from "fs";
+// import mongoose from 'mongoose';
+// import { attachSignedUrlsToProduct } from '../utils/imageService.js';
+// const ObjectId = mongoose.Types.ObjectId;
 
-export const addProduct = async (req, res) => {
+// export const addProduct = async (req, res) => {
 
-    const {
-        name,
-        shortDescription,
-        description,
-        brand,
-        category,
-        subCategory,
-        sku,
-        material,
-        careInstructions,
-        totalQuantity
-    } = req.body;
+//     const {
+//         name,
+//         shortDescription,
+//         description,
+//         brand,
+//         category,
+//         subCategory,
+//         sku,
+//         material,
+//         careInstructions,
+//         totalQuantity
+//     } = req.body;
 
-    let parsedCareInstructions;
+//     let parsedCareInstructions;
 
-    try {
-        parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
-    } catch (err) {
-        return res.status(400).json({
-            status: false,
-            message: 'Invalid careInstructions format',
-        });
-    }
+//     try {
+//         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
+//     } catch (err) {
+//         return res.status(400).json({
+//             status: false,
+//             message: 'Invalid careInstructions format',
+//         });
+//     }
 
-    let colorsData;
-    try {
-        colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
-    } catch (err) {
-        return res.status(400).json({
-            status: false,
-            message: 'Invalid colors data format',
-        });
-    }
+//     let colorsData;
+//     try {
+//         colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
+//     } catch (err) {
+//         return res.status(400).json({
+//             status: false,
+//             message: 'Invalid colors data format',
+//         });
+//     }
 
-    const filesByColor = {};
-    if (!req.files || req.files.length === 0) {
-        return res.status(400).json({
-            status: false,
-            message: 'Please upload image files for each color variant',
-        });
-    }
+//     const filesByColor = {};
+//     if (!req.files || req.files.length === 0) {
+//         return res.status(400).json({
+//             status: false,
+//             message: 'Please upload image files for each color variant',
+//         });
+//     }
 
-    req.files.forEach((file) => {
-        const match = file.fieldname.match(/color(\d+)_image/);
-        if (match) {
-            const colorIndex = match[1];
-            if (!filesByColor[colorIndex]) {
-                filesByColor[colorIndex] = [];
-            }
-            filesByColor[colorIndex].push(file);
-        }
-    });
-
-
-    for (let i = 0; i < colorsData.length; i++) {
-        if (!filesByColor[i] || filesByColor[i].length !== 5) {
-            return res.status(400).json({
-                status: false,
-                message: `Color variant at index ${i} must have exactly 5 images`,
-            });
-        }
-    }
-
-    try {
-
-        for (let i = 0; i < colorsData.length; i++) {
-            const colorFiles = filesByColor[i];
-            const cloudinaryResults = await Promise.all(
-                colorFiles.map((file) => {
-                    return cloudinary.uploader.upload(file.path, {
-                        folder: "Adiyo/productsImages",
-                    });
-                })
-            );
-            const imageUrls = cloudinaryResults.map((result) => result.secure_url);
-            const imagePublicIds = cloudinaryResults.map((result) => result.public_id);
-
-            colorsData[i].images = imagePublicIds;
-            // colorsData[i].imagePublicIds = imagePublicIds;
-        }
+//     req.files.forEach((file) => {
+//         const match = file.fieldname.match(/color(\d+)_image/);
+//         if (match) {
+//             const colorIndex = match[1];
+//             if (!filesByColor[colorIndex]) {
+//                 filesByColor[colorIndex] = [];
+//             }
+//             filesByColor[colorIndex].push(file);
+//         }
+//     });
 
 
-        const product = new Product({
-            sku,
-            name,
-            shortDescription,
-            description,
-            brand,
-            category,
-            subCategory,
-            material,
-            careInstructions: parsedCareInstructions,
-            colors: colorsData,
-            totalQuantity
-        });
+//     for (let i = 0; i < colorsData.length; i++) {
+//         if (!filesByColor[i] || filesByColor[i].length !== 5) {
+//             return res.status(400).json({
+//                 status: false,
+//                 message: `Color variant at index ${i} must have exactly 5 images`,
+//             });
+//         }
+//     }
 
-        await product.save();
+//     try {
 
-        res.json({
-            status: true,
-            message: 'Product added successfully',
-            product,
-        });
+//         for (let i = 0; i < colorsData.length; i++) {
+//             const colorFiles = filesByColor[i];
+//             const cloudinaryResults = await Promise.all(
+//                 colorFiles.map((file) => {
+//                     return cloudinary.uploader.upload(file.path, {
+//                         folder: "Adiyo/productsImages",
+//                     });
+//                 })
+//             );
+//             const imageUrls = cloudinaryResults.map((result) => result.secure_url);
+//             const imagePublicIds = cloudinaryResults.map((result) => result.public_id);
 
-    } catch (error) {
-
-        if (req.files && req.files.length > 0) {
-            req.files.forEach(async (file) => {
-
-            });
-        }
-        console.error(error);
-        res.status(500).json({
-            status: false,
-            message: 'Server error',
-        });
-    }
-};
-
-export const getProducts = async (req, res) => {
-
-    try {
-
-        const products = await Product.find({ deletedAt: null }).populate("category")
-
-        res.status(200).json({
-            status: true,
-            message: "products fetched succesfully",
-            products
-        })
+//             colorsData[i].images = imagePublicIds;
+//             // colorsData[i].imagePublicIds = imagePublicIds;
+//         }
 
 
-    } catch (error) {
+//         const product = new Product({
+//             sku,
+//             name,
+//             shortDescription,
+//             description,
+//             brand,
+//             category,
+//             subCategory,
+//             material,
+//             careInstructions: parsedCareInstructions,
+//             colors: colorsData,
+//             totalQuantity
+//         });
 
-        console.log("error fetching in products", error);
-        res.status(500).json({
-            success: false,
-            message: "server error"
-        })
+//         await product.save();
+
+//         res.json({
+//             status: true,
+//             message: 'Product added successfully',
+//             product,
+//         });
+
+//     } catch (error) {
+
+//         if (req.files && req.files.length > 0) {
+//             req.files.forEach(async (file) => {
+
+//             });
+//         }
+//         console.error(error);
+//         res.status(500).json({
+//             status: false,
+//             message: 'Server error',
+//         });
+//     }
+// };
+
+// export const getProducts = async (req, res) => {
+
+//     try {
+
+//         const products = await Product.find({ deletedAt: null }).populate("category")
+
+//         res.status(200).json({
+//             status: true,
+//             message: "products fetched succesfully",
+//             products
+//         })
 
 
-    }
-}
+//     } catch (error) {
 
-export const productDetails = async (req, res) => {
+//         console.log("error fetching in products", error);
+//         res.status(500).json({
+//             success: false,
+//             message: "server error"
+//         })
 
-    const { id } = req.params;
 
-    try {
-        const product = await Product.findById(id);
+//     }
+// }
 
-        if (!product) {
-            return res.status(404).json({
-                status: false,
-                message: "Product not found"
-            });
-        }
+// export const productDetails = async (req, res) => {
 
-        const productForRes = await attachSignedUrlsToProduct(product)
+//     const { id } = req.params;
 
-        res.status(200).json({
-            status: true,
-            message: "Product details fetched successfully",
-            product: productForRes
-        });
-    } catch (error) {
-        console.error("Error fetching product:", error);
-        res.status(500).json({
-            status: false,
-            message: "Server error"
-        });
-    }
-};
+//     try {
+//         const product = await Product.findById(id);
+
+//         if (!product) {
+//             return res.status(404).json({
+//                 status: false,
+//                 message: "Product not found"
+//             });
+//         }
+
+//         const productForRes = await attachSignedUrlsToProduct(product)
+
+//         res.status(200).json({
+//             status: true,
+//             message: "Product details fetched successfully",
+//             product: productForRes
+//         });
+//     } catch (error) {
+//         console.error("Error fetching product:", error);
+//         res.status(500).json({
+//             status: false,
+//             message: "Server error"
+//         });
+//     }
+// };
+
+
+// const extractPublicIdFromUrl = (url) => {
+//     if (!url || typeof url !== 'string') return null;
+//     const parts = url.split('/v1/');
+//     if (parts.length < 2) return null;
+//     const publicId = parts[1].split('?')[0];
+//     return publicId;
+// };
 
 // export const editProduct = async (req, res) => {
-
 //     const {
 //         name,
 //         shortDescription,
@@ -197,7 +205,6 @@ export const productDetails = async (req, res) => {
 //         careInstructions,
 //         totalQuantity,
 //     } = req.body;
-
 
 //     let parsedCareInstructions;
 //     try {
@@ -230,26 +237,24 @@ export const productDetails = async (req, res) => {
 
 //     try {
 //         for (let i = 0; i < colorsData.length; i++) {
+//             if (!Array.isArray(colorsData[i].images)) {
+//                 colorsData[i].images = [];
+//             }
+
+//             const updatedImages = colorsData[i].images.map((img, j) => {
+//                 if (img === null && filesByColorAndIndex[i]?.[j]) {
+//                     // New upload will replace this index
+//                     return null;
+//                 }
+//                 return extractPublicIdFromUrl(img) || img;
+//             });
+
+//             colorsData[i].images = updatedImages;
+
 //             if (filesByColorAndIndex[i]) {
 //                 const imageUpdates = filesByColorAndIndex[i];
-//                 if (!Array.isArray(colorsData[i].images)) {
-//                     colorsData[i].images = [];
-//                 }
-//                 if (!Array.isArray(colorsData[i].imagePublicIds)) {
-//                     colorsData[i].imagePublicIds = [];
-//                 }
 //                 for (const imageIndex in imageUpdates) {
 //                     const file = imageUpdates[imageIndex];
-//                     if (
-//                         colorsData[i].imagePublicIds &&
-//                         colorsData[i].imagePublicIds[imageIndex]
-//                     ) {
-//                         try {
-//                             await cloudinary.uploader.destroy(colorsData[i].imagePublicIds[imageIndex]);
-//                         } catch (error) {
-//                             console.error(`Error deleting image with publicId ${colorsData[i].imagePublicIds[imageIndex]}:`, error);
-//                         }
-//                     }
 
 //                     const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
 //                         folder: "Adiyo/productsImages",
@@ -260,9 +265,6 @@ export const productDetails = async (req, res) => {
 //                         transformation: [],
 //                         flags: "attachment"
 //                     });
-
-//                     // colorsData[i].images[imageIndex] = cloudinaryResult.secure_url;
-//                     // colorsData[i].imagePublicIds[imageIndex] = cloudinaryResult.public_id;
 
 //                     colorsData[i].images[imageIndex] = cloudinaryResult.public_id;
 
@@ -304,16 +306,264 @@ export const productDetails = async (req, res) => {
 //     }
 // };
 
+// export const deleteProduct = async (req, res) => {
+//     try {
+//         const productId = req.params.id;
+//         const product = await Product.findByIdAndUpdate(
+//             productId,
+//             { deletedAt: new Date() },
+//             { new: true }
+//         );
+
+//         if (!product) {
+//             return res.status(404).json({ message: 'Product not found' });
+//         }
+
+//         res.status(200).json({
+//             status: true,
+//             message: 'Product soft deleted successfully',
+//             product
+//         });
+
+//     } catch (error) {
+
+//         console.error('Error soft deleting product:', error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+
+// }
+
+// export const getCategories = async (req, res) => {
+
+//     try {
+
+//         const categories = await Category.find()
+
+//         if (!categories) {
+//             return res.status(400).json({
+//                 status: false,
+//                 message: "Categories not found"
+//             })
+//         }
+
+//         res.status(200).json({
+//             status: true,
+//             message: "categories fetched succesfully",
+//             categories
+//         })
+
+
+//     } catch (error) {
+//         console.log(error.message);
+
+//         res.status(500).json({
+//             status: false,
+//             message: "server error"
+//         }
+//         )
+
+//     }
+// }
 
 
 
-// Utility function to extract public ID from a Cloudinary signed URL
+
+
+
+
+
+
+
+
+
+
+
+import HttpStatusCode from "../utils/httpStatusCodes.js";
+import messages from "../utils/messages.js";
+
+const {
+    OK,
+    CREATED,
+    ACCEPTED,
+    NO_CONTENT,
+    BAD_REQUEST,
+    UNAUTHORIZED,
+    FORBIDDEN,
+    NOT_FOUND,
+    METHOD_NOT_ALLOWED,
+    CONFLICT,
+    UNPROCESSABLE_ENTITY,
+    INTERNAL_SERVER_ERROR,
+    BAD_GATEWAY,
+    SERVICE_UNAVAILABLE,
+    GATEWAY_TIMEOUT
+} = HttpStatusCode;
+
+import cloudinary from '../config/cloudinary.js';
+import Product from '../models/productModel.js';
+import Category from '../models/categoryModel.js';
+import fs from "fs";
+import mongoose from 'mongoose';
+import { attachSignedUrlsToProduct } from '../utils/imageService.js';
+const ObjectId = mongoose.Types.ObjectId;
+
+export const addProduct = async (req, res) => {
+    const {
+        name,
+        shortDescription,
+        description,
+        brand,
+        category,
+        subCategory,
+        sku,
+        material,
+        careInstructions,
+        totalQuantity
+    } = req.body;
+
+    let parsedCareInstructions;
+    try {
+        parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
+    } catch (err) {
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.PRODUCT.INVALID_CARE_INSTRUCTIONS
+        });
+    }
+
+    let colorsData;
+    try {
+        colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
+    } catch (err) {
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.PRODUCT.INVALID_COLORS_DATA
+        });
+    }
+
+    const filesByColor = {};
+    if (!req.files || req.files.length === 0) {
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.PRODUCT.MISSING_IMAGES
+        });
+    }
+
+    req.files.forEach((file) => {
+        const match = file.fieldname.match(/color(\d+)_image/);
+        if (match) {
+            const colorIndex = match[1];
+            if (!filesByColor[colorIndex]) {
+                filesByColor[colorIndex] = [];
+            }
+            filesByColor[colorIndex].push(file);
+        }
+    });
+
+    for (let i = 0; i < colorsData.length; i++) {
+        if (!filesByColor[i] || filesByColor[i].length !== 5) {
+            return res.status(BAD_REQUEST).json({
+                success: false,
+                message: messages.PRODUCT.INVALID_IMAGE_COUNT
+            });
+        }
+    }
+
+    try {
+        for (let i = 0; i < colorsData.length; i++) {
+            const colorFiles = filesByColor[i];
+            const cloudinaryResults = await Promise.all(
+                colorFiles.map((file) => {
+                    return cloudinary.uploader.upload(file.path, {
+                        folder: "Adiyo/productsImages",
+                    });
+                })
+            );
+            const imagePublicIds = cloudinaryResults.map((result) => result.public_id);
+            colorsData[i].images = imagePublicIds;
+        }
+
+        const product = new Product({
+            sku,
+            name,
+            shortDescription,
+            description,
+            brand,
+            category,
+            subCategory,
+            material,
+            careInstructions: parsedCareInstructions,
+            colors: colorsData,
+            totalQuantity
+        });
+
+        await product.save();
+
+        res.status(CREATED).json({
+            success: true,
+            message: messages.PRODUCT.CREATED_SUCCESSFULLY,
+            product
+        });
+    } catch (error) {
+        console.error("Error adding product:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.PRODUCT.FAILED_CREATE
+        });
+    }
+};
+
+export const getProducts = async (req, res) => {
+    try {
+        const products = await Product.find({ deletedAt: null }).populate("category");
+
+        res.status(OK).json({
+            success: true,
+            message: messages.PRODUCT.FETCHED_SUCCESSFULLY,
+            products
+        });
+    } catch (error) {
+        console.error("Error fetching products:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.PRODUCT.FAILED_FETCH
+        });
+    }
+};
+
+export const productDetails = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const product = await Product.findById(id);
+        if (!product) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.PRODUCT.NOT_FOUND
+            });
+        }
+
+        const productForRes = await attachSignedUrlsToProduct(product);
+
+        res.status(OK).json({
+            success: true,
+            message: messages.PRODUCT.DETAILS_FETCHED_SUCCESSFULLY,
+            product: productForRes
+        });
+    } catch (error) {
+        console.error("Error fetching product details:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.PRODUCT.FAILED_FETCH_DETAILS
+        });
+    }
+};
+
 const extractPublicIdFromUrl = (url) => {
     if (!url || typeof url !== 'string') return null;
-    // Signed URL format: https://res.cloudinary.com/<cloud_name>/image/upload/s--<signature>--/v1/<public_id>
     const parts = url.split('/v1/');
     if (parts.length < 2) return null;
-    const publicId = parts[1].split('?')[0]; // Remove query params if any
+    const publicId = parts[1].split('?')[0];
     return publicId;
 };
 
@@ -335,14 +585,20 @@ export const editProduct = async (req, res) => {
     try {
         parsedCareInstructions = careInstructions ? JSON.parse(careInstructions) : [];
     } catch (err) {
-        return res.status(400).json({ status: false, message: "Invalid careInstructions format" });
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.PRODUCT.INVALID_CARE_INSTRUCTIONS
+        });
     }
 
     let colorsData;
     try {
         colorsData = req.body.colors ? JSON.parse(req.body.colors) : [];
     } catch (err) {
-        return res.status(400).json({ status: false, message: "Invalid colors data format" });
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.PRODUCT.INVALID_COLORS_DATA
+        });
     }
 
     const filesByColorAndIndex = {};
@@ -361,31 +617,25 @@ export const editProduct = async (req, res) => {
     }
 
     try {
-        // Process colors to extract public IDs and handle new uploads
         for (let i = 0; i < colorsData.length; i++) {
             if (!Array.isArray(colorsData[i].images)) {
                 colorsData[i].images = [];
             }
 
-            // Convert signed URLs to public IDs for unchanged images
             const updatedImages = colorsData[i].images.map((img, j) => {
                 if (img === null && filesByColorAndIndex[i]?.[j]) {
-                    // New upload will replace this index
                     return null;
                 }
-                // Extract public ID from signed URL for unchanged images
-                return extractPublicIdFromUrl(img) || img; // Fallback to img if not a valid URL
+                return extractPublicIdFromUrl(img) || img;
             });
 
             colorsData[i].images = updatedImages;
 
-            // Handle new image uploads
             if (filesByColorAndIndex[i]) {
                 const imageUpdates = filesByColorAndIndex[i];
                 for (const imageIndex in imageUpdates) {
                     const file = imageUpdates[imageIndex];
 
-                    // Upload new image to Cloudinary
                     const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
                         folder: "Adiyo/productsImages",
                         resource_type: "auto",
@@ -396,16 +646,13 @@ export const editProduct = async (req, res) => {
                         flags: "attachment"
                     });
 
-                    // Update the image at imageIndex with the new public ID
                     colorsData[i].images[imageIndex] = cloudinaryResult.public_id;
 
-                    // Clean up temporary file
                     fs.unlinkSync(file.path);
                 }
             }
         }
 
-        // Update the product in the database
         const updatedProduct = await Product.findByIdAndUpdate(
             req.params.id,
             {
@@ -425,17 +672,23 @@ export const editProduct = async (req, res) => {
         );
 
         if (!updatedProduct) {
-            return res.status(404).json({ status: false, message: "Product not found" });
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.PRODUCT.NOT_FOUND
+            });
         }
 
-        res.status(200).json({
-            status: true,
-            message: "Product updated successfully",
-            product: updatedProduct,
+        res.status(OK).json({
+            success: true,
+            message: messages.PRODUCT.UPDATED_SUCCESSFULLY,
+            product: updatedProduct
         });
     } catch (error) {
         console.error("Error updating product:", error);
-        res.status(500).json({ status: false, message: "Server error" });
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.PRODUCT.FAILED_UPDATE
+        });
     }
 };
 
@@ -449,51 +702,47 @@ export const deleteProduct = async (req, res) => {
         );
 
         if (!product) {
-            return res.status(404).json({ message: 'Product not found' });
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.PRODUCT.NOT_FOUND
+            });
         }
 
-        res.status(200).json({
-            status: true,
-            message: 'Product soft deleted successfully',
+        res.status(OK).json({
+            success: true,
+            message: messages.PRODUCT.DELETED_SUCCESSFULLY,
             product
         });
-
     } catch (error) {
-
         console.error('Error soft deleting product:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.PRODUCT.FAILED_DELETE
+        });
     }
-
-}
+};
 
 export const getCategories = async (req, res) => {
-
     try {
+        const categories = await Category.find();
 
-        const categories = await Category.find()
-
-        if (!categories) {
-            return res.status(400).json({
-                status: false,
-                message: "Categories not found"
-            })
+        if (!categories || categories.length === 0) {
+            return res.status(NOT_FOUND).json({
+                success: false,
+                message: messages.CATEGORY.NOT_FOUND
+            });
         }
 
-        res.status(200).json({
-            status: true,
-            message: "categories fetched succesfully",
+        res.status(OK).json({
+            success: true,
+            message: messages.CATEGORY.FETCHED_SUCCESSFULLY,
             categories
-        })
-
-
+        });
     } catch (error) {
-        console.log(error.message);
-
-        res.status(500).json({
-            status: false,
-            message: "server error"
-        }
-        )
-
+        console.error("Error fetching categories:", error);
+        res.status(INTERNAL_SERVER_ERROR).json({
+            success: false,
+            message: messages.CATEGORY.FAILED_FETCH
+        });
     }
-}
+};

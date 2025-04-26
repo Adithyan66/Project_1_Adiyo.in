@@ -8,6 +8,7 @@ import {
     updateCategoryfunction,
     updateSubcategoryfunction,
 } from '../../services/categoryService';
+import { toast } from 'react-toastify';
 
 const useCategoryManagement = () => {
     const [categories, setCategories] = useState([]);
@@ -34,7 +35,7 @@ const useCategoryManagement = () => {
             }
             setError(null);
         } catch (err) {
-            setError('Failed to fetch categories.');
+            toast.error('Failed to fetch categories.');
             console.error(err);
         } finally {
             setIsLoading(false);
@@ -42,21 +43,57 @@ const useCategoryManagement = () => {
     };
 
     const addCategory = async (newCategory, resetForm) => {
-        if (!newCategory.name) return;
+        const rawName = newCategory.name?.trim() || '';
+
+        if (!rawName) {
+            toast.error('cant be empty');
+            return;
+        }
+        const validNameRegex = /^[A-Za-z ]{3,15}$/;
+        if (!validNameRegex.test(rawName)) {
+            toast.error(
+                'Keep it clean: 3–15 characters, letters only'
+            );
+            return;
+        }
+
+        const exists = categories.some(
+            (cat) => cat.name.toLowerCase() === rawName.toLowerCase()
+        );
+        if (exists) {
+            toast.error(`“${rawName}” already exists in . Try another name!`);
+            return;
+        }
+
         try {
             const response = await addCategoryfunction(newCategory);
             setCategories([...categories, response.data]);
             setSelectedCategoryId(response.data._id);
             resetForm();
             setIsAddingCategory(false);
+            await fetchCategories()
         } catch (err) {
-            setError('Failed to add category.');
+            toast.error(err.response.data.message);
             console.error(err);
         }
     };
 
     const addSubcategory = async (newSubcategory, resetForm) => {
-        if (!newSubcategory.name || !selectedCategoryId) return;
+
+        const rawName = newSubcategory.name?.trim() || '';
+
+        if (!rawName) {
+            toast.error('Cant be empty');
+            return;
+        }
+        const validNameRegex = /^[A-Za-z ]{3,15}$/;
+        if (!validNameRegex.test(rawName)) {
+            toast.error(
+                'Keep it clean: 3–15 characters, letters only'
+            );
+            return;
+        }
+
         try {
             const response = await addSubcategoryfunction(selectedCategoryId, newSubcategory);
             setCategories(categories.map((category) =>
@@ -68,8 +105,8 @@ const useCategoryManagement = () => {
             setIsAddingSubcategory(false);
             fetchCategories();
         } catch (err) {
-            setError('Failed to add subcategory.');
-            console.error(err);
+            toast.error(err.response.data.message);
+            console.error("error", err);
         }
     };
 
@@ -81,7 +118,7 @@ const useCategoryManagement = () => {
             setSelectedCategoryId(updatedCategories.length > 0 ? updatedCategories[0]._id : null);
             fetchCategories();
         } catch (err) {
-            setError('Failed to delete category.');
+            toast.error('Failed to delete category.');
             console.error(err);
         }
     };
@@ -100,13 +137,14 @@ const useCategoryManagement = () => {
             ));
             fetchCategories();
         } catch (err) {
-            setError('Failed to delete subcategory.');
+            toast.error('Failed to delete subcategory.');
             console.error(err);
         }
     };
 
     const updateCategory = async (field, value) => {
         if (!selectedCategoryId) return;
+
         try {
             const selectedCategory = categories.find((c) => c._id === selectedCategoryId);
             const updatedCategory = { ...selectedCategory, [field]: value };
@@ -115,13 +153,28 @@ const useCategoryManagement = () => {
                 category._id === selectedCategoryId ? { ...category, [field]: value } : category
             ));
         } catch (err) {
-            setError('Failed to update category.');
+            toast.error(err.response.data.message);
             console.error(err);
         }
     };
 
     const updateSubcategory = async (subcategoryId, field, value) => {
         if (!selectedCategoryId) return;
+
+        const rawName = value.trim() || '';
+
+        if (!rawName) {
+            toast.error('Cant be empty');
+            return;
+        }
+        const validNameRegex = /^[A-Za-z ]{3,15}$/;
+        if (!validNameRegex.test(rawName)) {
+            toast.error(
+                'Keep it clean: 3–15 characters, letters only'
+            );
+            return;
+        }
+
         try {
             const selectedCategory = categories.find((c) => c._id === selectedCategoryId);
             const subcategory = selectedCategory.subcategories?.find((sc) => sc._id === subcategoryId);
@@ -139,7 +192,7 @@ const useCategoryManagement = () => {
                     : category
             ));
         } catch (err) {
-            setError('Failed to update subcategory.');
+            toast.error(err.response.data.message);
             console.error(err);
         }
     };

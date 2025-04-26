@@ -53,10 +53,6 @@ function OtpVerification({ email, onVerified, setResetToken }) {
                 email,
                 otp: enteredOtp,
             });
-            // const response = await axios.post("http://localhost:3333/user/validate-otp", {
-            //     email,
-            //     otp: enteredOtp,
-            // });
 
             if (response.data.success) {
 
@@ -84,8 +80,6 @@ function OtpVerification({ email, onVerified, setResetToken }) {
             setLoading(false);
         }
     };
-
-
 
 
     return (

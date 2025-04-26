@@ -12,7 +12,7 @@ const downloadExcel = async (params) => {
         const response = await getSalesReport(fullParams);
         const salesData = response.data.data.map(sale => ({
             'Order ID': sale.orderId,
-            'Date': formatDate(sale.date),
+            'Date': formatDate(sale.createdAt),
             'Total Amount': `₹${sale.totalAmount}`,
             'Discounts': `₹${sale.discount}`,
             'Coupon Deduction': `₹${sale.couponCode || 0}`,

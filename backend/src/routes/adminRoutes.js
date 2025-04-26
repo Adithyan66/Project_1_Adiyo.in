@@ -5,7 +5,7 @@ const router = express.Router()
 import { blockUser, customerDetails, customersList } from "../controllers/customerController.js";
 import { deleteProduct, getProducts, productDetails, productNames } from "../controllers/adminProductController.js";
 import { addCoupon, deleteCoupon, getCoupons, updateCoupon } from "../controllers/couponController.js";
-import { addCategory, addSubCategories, deleteCategories, deleteSubCategories, editSubcategoryName, getCategories } from "../controllers/categoryController.js";
+import { addCategory, addSubCategories, deleteCategories, deleteSubCategories, editCategory, editSubcategoryName, getCategories } from "../controllers/categoryController.js";
 import { getOrderDetails, getOrders, updateOrderStatus, verifyReturn } from "../controllers/adminOrderController.js";
 import { createProductOffer, deleteProductOffer, editProductOffer, getAllProductOffers } from "../controllers/productOfferController.js";
 import { createCategoryOffer, deleteCategoryOffer, editCategoryOffer, getAllCategoryOffers } from "../controllers/categoryOfferController.js";
@@ -50,7 +50,7 @@ router.put("/categories/:categoryId/subcategories/:subcategoryId", authenticateA
 router.put("/referral-offer/:id", authenticateAdmin, editReferalOffer)
 router.put("/edit-product-offer/:id", authenticateAdmin, editProductOffer)
 router.put("/category-offer/:id", authenticateAdmin, editCategoryOffer)
-
+router.put("/categories/:id", authenticateAdmin, editCategory)
 
 router.patch("/block-user/:id", authenticateAdmin, blockUser)
 router.patch("/orders/:orderId/status", authenticateAdmin, updateOrderStatus)

@@ -1,5 +1,7 @@
 
 import axios from "axios";
+import { login, logout } from "./authService";
+import { toast } from "react-toastify";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -76,6 +78,23 @@ httpClient.interceptors.response.use(
     }
 );
 
+
+httpClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (
+            error.response &&
+            error.response.status === 403 &&
+            error.response.data.message === 'User account is blocked'
+        ) {
+            logout()
+            localStorage.removeItem('accessToken');
+            window.location.href = '/'
+            toast.error("User blocked")
+        }
+        return Promise.reject(error);
+    }
+);
 
 
 export default httpClient;

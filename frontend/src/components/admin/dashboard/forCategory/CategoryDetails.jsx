@@ -68,8 +68,8 @@ const CategoryDetails = ({ category, onUpdateCategory }) => {
                             <div className="flex w-full">
                                 <input
                                     type="text"
-                                    value={category.name}
-                                    onChange={(e) => onUpdateCategory('name', e.target.value)}
+                                    defaultValue={category.name}
+                                    onBlur={(e) => onUpdateCategory('name', e.target.value)}
                                     className="flex-grow px-3 py-2 border border-gray-300 rounded-md"
                                 />
                                 <button

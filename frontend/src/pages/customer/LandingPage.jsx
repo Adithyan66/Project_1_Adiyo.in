@@ -24,7 +24,7 @@ function LandingPage() {
             <HeroSection />
             <Brandadd />
             <LandingProducts />
-            <BrowseByStyle />
+            {/* <BrowseByStyle /> */}
             <Newsletter />
             <Footer />
         </div>

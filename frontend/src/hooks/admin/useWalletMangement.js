@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { adminGetWalletTransactions } from "../../services/wishlistService";
 import useDebounce from "../common/useDebounce";
+import { toast } from "react-toastify";
 
 
 const useWalletManagement = () => {
@@ -50,6 +51,8 @@ const useWalletManagement = () => {
                 type: filter !== 'all' ? filter : undefined,
                 search: searchQuery || undefined,
             };
+            console.log("paraaaaaaaaaaaaam", params);
+
 
             const response = await adminGetWalletTransactions(params);
 

@@ -69,6 +69,7 @@ import {
     cartItems,
     checkAvailability,
     checkCart,
+    clearCart,
     deleteCart,
     removeCartItem,
     updateCartQuantity
@@ -113,7 +114,7 @@ import {
 }
     from "../controllers/referalController.js"
 
-import { addMoneyRazopay } from "../controllers/payment.js"
+import { addMoneyRazorpay } from "../controllers/payment.js"
 
 
 const upload = multer({ dest: "uploads/" });
@@ -139,10 +140,8 @@ router.post("/orders/:orderId/return", authenticateUser, returnRequest)
 router.post("/wishlist/add", authenticateUser, addWishlist)
 router.post("/coupons/validate", validateCoupon)
 router.post("/wallet-recharge", authenticateUser, verifyRazorpayPayment, walletRecharge)
-router.post("/add-money-razopay", authenticateUser, addMoneyRazopay)
+router.post("/add-money-razopay", authenticateUser, addMoneyRazorpay)
 router.post("/check-cart-availablity", checkAvailability)
-
-
 router.get("/refresh-token", tokenRefresh)
 router.get("/profile", profile)
 router.get("/product-list", productList)
@@ -161,36 +160,16 @@ router.get("/wallet", authenticateUser, getWalletDetails)
 router.get("/get-wallet-balance", authenticateUser, getWalletBalance)
 router.get("/offers/product/:productId", checkOffer)
 router.get("/referrals", authenticateUser, referalDetails)
-
-
-
-
-
-
-
-
 router.put("/:id/change-password", changePassword)
 router.put("/update-address", authenticateUser, editAddress)
 router.put("/set-default-address/:addressId", authenticateUser, makeDefaultAddress)
 router.put("/orders/:orderId/cancel", authenticateUser, cancelOrder)
-
-
-
 router.patch("/cart-items/:itemId", authenticateUser, updateCartQuantity)
-
-
-
 router.delete("/delete-address/:id", authenticateUser, deleteAddress)
 router.delete("/cart", authenticateUser, deleteCart)
 router.delete("/cart-items/:itemId", authenticateUser, removeCartItem)
 router.delete("/wishlist/remove", authenticateUser, removeWishlistItem)
-
-
-
-
-
-
-
+router.delete("/clear-cart", authenticateUser, clearCart)
 
 
 
