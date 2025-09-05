@@ -1,8 +1,11 @@
-Adiyo.shop - Full-Stack E-Commerce Platform
+# Adiyo.shop - Full-Stack E-Commerce Platform
+
 A comprehensive e-commerce solution built from scratch with modern web technologies, featuring complete business logic and user experience design.
 
 🚀 Overview
+
 Adiyo.shop is a feature-rich e-commerce platform developed over 2 months, encompassing the entire development lifecycle from Figma design to AWS deployment. Built without tutorials or cloned repositories, this project demonstrates proficiency in full-stack development and complex business logic implementation.
+
 
 🌐 Live Demo: adiyo.shop
 🎨 Design: Figma Prototype
