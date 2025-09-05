@@ -146,7 +146,6 @@ CLOUDINARY_NAME=your_cloudinary_name
 🤝 Contributing
 This project serves as a learning reference and portfolio piece. Feel free to explore the codebase and provide feedback.
 
-📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+
 
 Built with passion and attention to detail. This project represents a significant milestone in full-stack development proficiency and understanding of e-commerce business logic.
