@@ -48,8 +48,12 @@ httpClient.interceptors.response.use(
 
         const originalRequest = error.config;
 
-
         if (error.response && error.response.status === 401 && !originalRequest._retry) {
+
+            if (originalRequest.url && originalRequest.url.includes('/user/refresh-token')) {
+                localStorage.removeItem('accessToken');
+                return Promise.reject(error);
+            }
 
             console.log("401 detected, attempting to refresh token...");
 

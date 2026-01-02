@@ -62,7 +62,7 @@ function LoginForm() {
                 toast.success("Logged in successfully!");
 
                 if (response.data.role === "admin") {
-                    navigate("/admin");
+                    navigate("/admin/dashboard");
                 } else if (response.data.role === "seller") {
                     navigate("/seller");
                 }

@@ -57,6 +57,12 @@ function App() {
             role: response.data.role,
           })
         );
+
+        if (response.data.role === "admin" && window.location.pathname === "/") {
+          navigate("/admin/dashboard");
+        } else if (response.data.role === "seller" && window.location.pathname === "/") {
+          navigate("/seller");
+        }
       } catch (error) {
 
         dispatch(logout());
