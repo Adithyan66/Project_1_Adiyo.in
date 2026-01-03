@@ -626,17 +626,8 @@ export const profile = async (req, res) => {
         });
     }
 };
-
 export const tokenRefresh = async (req, res) => {
-    const token = req.cookies.refreshToken || req.headers.authorization;
-
-    if (!token || typeof token !== 'string') {
-        console.log("Token type:", typeof token, "Token value:", token);
-        return res.status(BAD_REQUEST).json({
-            success: false,
-            message: messages.AUTH.NO_REFRESH_TOKEN
-        });
-    }
+    let token = req.cookies?.refreshToken;
 
     if (!token && req.headers.authorization) {
         const authHeader = req.headers.authorization;
@@ -645,14 +636,15 @@ export const tokenRefresh = async (req, res) => {
         }
     }
 
+    if (!token) {
+        return res.status(BAD_REQUEST).json({
+            success: false,
+            message: messages.AUTH.NO_REFRESH_TOKEN
+        });
+    }
 
     try {
         const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-        const newAccessToken = jwt.sign(
-            { userId: payload.userId, role: payload.role },
-            process.env.JWT_SECRET,
-            { expiresIn: '15m' }
-        );
 
         const user = await User.findById(payload.userId).select('-password');
         if (!user) {
@@ -661,6 +653,12 @@ export const tokenRefresh = async (req, res) => {
                 message: messages.AUTH.USER_NOT_FOUND
             });
         }
+
+        const newAccessToken = jwt.sign(
+            { userId: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '15m' }
+        );
 
         return res.status(OK).json({
             success: true,
@@ -672,10 +670,10 @@ export const tokenRefresh = async (req, res) => {
                 email: user.email,
                 username: user.username,
                 profileImg: user.profileImg
-            },
+            }
         });
     } catch (error) {
-        console.error("Refresh token error:", error);
+        console.error('Refresh token error:', error.message);
         return res.status(UNAUTHORIZED).json({
             success: false,
             message: messages.AUTH.INVALID_REFRESH_TOKEN
