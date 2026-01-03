@@ -169,7 +169,7 @@ export const signUp = async (req, res) => {
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
             secure: false,
-            sameSite: "strict",
+            sameSite: "none",
             path: "/",
             maxAge: cookieMaxAge
         });
@@ -243,8 +243,8 @@ export const login = async (req, res) => {
 
         res.cookie("refreshToken", refreshToken, {
             httpOnly: true,
-            secure: false,
-            sameSite: "strict",
+            secure: true,
+            sameSite: "none",
             path: "/",
             maxAge: cookieMaxAge
         });
