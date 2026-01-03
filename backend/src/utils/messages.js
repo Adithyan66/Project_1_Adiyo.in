@@ -16,7 +16,7 @@ export default {
         INVALID_TOKEN: 'Invalid token',
         USER_INACTIVE: 'User account is inactive',
         TOKEN_VERIFIED: 'Token verified',
-        NO_REFRESH_TOKEN: 'No refresh token provided',
+        NO_REFRESH_TOKEN: ' refresh token Not provided ',
         INVALID_REFRESH_TOKEN: 'Invalid or expired refresh token',
         GOOGLE_TOKEN_INVALID: 'Invalid Google token',
         GOOGLE_LOGIN_SUCCESSFUL: 'Google login successful',
